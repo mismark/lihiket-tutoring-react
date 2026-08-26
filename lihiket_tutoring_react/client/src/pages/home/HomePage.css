@@ -1,0 +1,102 @@
+/* ── HomePage ─────────────────────────────────────────── */
+
+.home-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%);
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.home-logo {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.home-title {
+  font-size: 48px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 16px;
+  line-height: 1.15;
+}
+
+.home-subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  max-width: 520px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+.home-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.home-btn-signin {
+  background: #ffffff;
+  color: #1d4ed8;
+  padding: 13px 36px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  display: inline-flex;
+  align-items: center;
+}
+.home-btn-signin:hover { background: #eff6ff; transform: translateY(-1px); }
+
+.home-btn-register {
+  background: transparent;
+  color: #ffffff;
+  padding: 13px 36px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  display: inline-flex;
+  align-items: center;
+}
+.home-btn-register:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.home-features {
+  display: flex;
+  gap: 12px;
+  margin-top: 56px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.home-feature-pill {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 480px) {
+  .home-title    { font-size: 32px; }
+  .home-subtitle { font-size: 15px; }
+  .home-actions  { flex-direction: column; width: 100%; }
+  .home-btn-signin,
+  .home-btn-register { justify-content: center; width: 100%; }
+}

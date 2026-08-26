@@ -1,0 +1,152 @@
+/* ── Register pages shared CSS ────────────────────────── */
+
+.register-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+/* ── Role selector (Step 1) ───────────────────────────── */
+
+.role-select-wrap { width: 100%; max-width: 440px; }
+
+.role-select-header { text-align: center; margin-bottom: 28px; }
+.role-select-header h1 { font-size: 28px; font-weight: 800; color: #1e293b; margin-bottom: 6px; }
+.role-select-header p  { font-size: 15px; color: #64748b; }
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 18px 20px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.role-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 20px rgba(37,99,235,0.12);
+  transform: translateY(-1px);
+}
+
+.role-card-icon  { font-size: 36px; flex-shrink: 0; }
+.role-card-body  { flex: 1; }
+.role-card-title { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+.role-card-desc  { font-size: 13px; color: #64748b; }
+.role-card-arrow { font-size: 22px; color: #cbd5e1; transition: color 0.2s; }
+.role-card:hover .role-card-arrow { color: #2563eb; }
+
+.role-select-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* ── Register Form (Step 2) ───────────────────────────── */
+
+.register-form-wrap { width: 100%; max-width: 620px; }
+
+.register-form-header { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+
+.back-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  color: #64748b;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: #f1f5f9; }
+
+.register-form-header h1 { font-size: 22px; font-weight: 800; color: #1e293b; margin-bottom: 2px; }
+.register-form-header p  { font-size: 13px; color: #64748b; }
+
+.register-form-card { background: #ffffff; border-radius: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); padding: 32px; }
+
+.form-section { margin-bottom: 28px; }
+.form-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid #f1f5f9;
+  margin-bottom: 16px;
+}
+
+/* CV Upload */
+.cv-upload-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: #f8fafc;
+}
+.cv-upload-zone:hover     { border-color: #2563eb; background: #eff6ff; }
+.cv-upload-zone.has-file  { border-color: #2563eb; background: #eff6ff; }
+
+.cv-upload-icon   { font-size: 28px; margin-bottom: 6px; }
+.cv-upload-label  { font-size: 14px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+.cv-upload-hint   { font-size: 12px; color: #94a3b8; }
+.cv-file-name     { font-size: 13px; font-weight: 600; color: #2563eb; margin-bottom: 4px; }
+.cv-remove-btn {
+  background: none; border: none; color: #dc2626;
+  font-size: 12px; cursor: pointer; text-decoration: underline;
+}
+
+/* Password input with show/hide toggle */
+.password-wrap { position: relative; }
+.password-wrap .form-input { padding-right: 44px; }
+.password-toggle {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  cursor: pointer; font-size: 16px;
+  color: #94a3b8;
+  display: flex; align-items: center;
+}
+.password-toggle:hover { color: #64748b; }
+
+/* Password strength bar */
+.strength-bar-wrap { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.strength-bars     { display: flex; gap: 4px; flex: 1; }
+.strength-bar-seg  {
+  height: 5px; flex: 1; border-radius: 99px;
+  background: #e2e8f0; transition: background 0.3s;
+}
+.strength-bar-seg.active-1 { background: #ef4444; }
+.strength-bar-seg.active-2 { background: #f59e0b; }
+.strength-bar-seg.active-3 { background: #3b82f6; }
+.strength-bar-seg.active-4 { background: #22c55e; }
+.strength-label { font-size: 11px; font-weight: 600; width: 44px; text-align: right; }
+.strength-label.s1 { color: #ef4444; }
+.strength-label.s2 { color: #f59e0b; }
+.strength-label.s3 { color: #3b82f6; }
+.strength-label.s4 { color: #22c55e; }
+
+/* Submit section */
+.register-submit-section { margin-top: 8px; }
+.register-notice { font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 14px; }
+.register-footer { text-align: center; margin-top: 16px; font-size: 14px; color: #64748b; }
+
+@media (max-width: 480px) {
+  .register-form-card { padding: 20px; }
+  .register-form-header h1 { font-size: 18px; }
+}

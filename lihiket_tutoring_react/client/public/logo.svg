@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 50" fill="none">
+  <!-- Icon mark -->
+  <rect width="40" height="40" x="0" y="5" rx="10" fill="url(#g)"/>
+  <path d="M11 13h5v16H27v5H11V13z" fill="white"/>
+  <!-- Wordmark -->
+  <text x="50" y="35" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="22" fill="#0f172a">
+    Lihiket<tspan fill="#2563eb">.</tspan>
+  </text>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="40" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+  </defs>
+</svg>

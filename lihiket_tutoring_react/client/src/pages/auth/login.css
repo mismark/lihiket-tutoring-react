@@ -1,0 +1,80 @@
+/* ── LoginPage ─────────────────────────────────────────── */
+
+.login-bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.login-wrap { width: 100%; max-width: 420px; }
+
+.login-logo {
+  text-align: center;
+  font-size: 40px;
+  margin-bottom: 8px;
+}
+
+.login-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 28px;
+}
+
+.login-card {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 32px;
+}
+
+.login-form { display: flex; flex-direction: column; gap: 18px; }
+
+.login-password-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.login-password-label { font-size: 13px; font-weight: 600; color: #334155; }
+.login-forgot-link    { font-size: 13px; color: #2563eb; text-decoration: none; font-weight: 600; }
+.login-forgot-link:hover { text-decoration: underline; }
+
+.password-wrap { position: relative; }
+.password-wrap .form-input { padding-right: 44px; }
+.password-toggle {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  cursor: pointer; font-size: 16px;
+  color: #94a3b8;
+}
+.password-toggle:hover { color: #64748b; }
+
+.login-divider {
+  display: flex; align-items: center; gap: 10px; margin: 6px 0;
+}
+.login-divider-line { flex: 1; height: 1px; background: #e2e8f0; }
+.login-divider-text { font-size: 12px; color: #94a3b8; white-space: nowrap; }
+
+.login-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: 22px; }
+}
