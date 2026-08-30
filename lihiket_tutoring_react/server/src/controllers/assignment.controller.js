@@ -178,14 +178,42 @@ exports.getSubmissions = async (req, res, next) => {
 // ── PUT /api/assignments/:id/submissions/:studentId/grade ─────────────────────
 exports.grade = async (req, res, next) => {
   try {
+    const assignment = await Assignment.findById(req.params.id);
+    if (!assignment) return next(new AppError('Assignment not found', 404));
+
     const sub = await AssignmentSubmission.findOne({
       assignment: req.params.id, student: req.params.studentId,
     });
     if (!sub) return next(new AppError('Submission not found', 404));
-    sub.marks    = Number(req.body.marks);
+
+    const marks = Number(req.body.marks);
+
+    // Validate: marks must be a number, >= 0, and <= assignment total marks
+    if (isNaN(marks) || marks < 0) {
+      return next(new AppError('Marks must be a positive number', 400));
+    }
+    if (marks > assignment.totalMarks) {
+      return next(new AppError(
+        `Marks cannot exceed the total marks for this assignment (${assignment.totalMarks})`,
+        400
+      ));
+    }
+
+    sub.marks    = marks;
     sub.feedback = req.body.feedback || '';
     sub.status   = 'graded';
     await sub.save();
+
+    // Notify the student their assignment has been graded
+    await notify({
+      userId:    sub.student,
+      userModel: 'Student',
+      type:      EVENTS.ASSIGNMENT_GRADED,
+      title:     'Assignment Graded',
+      message:   `Your assignment "${assignment.title}" has been graded: ${marks}/${assignment.totalMarks}.`,
+      link:      '/assignments',
+    });
+
     res.json({ success: true, data: sub });
   } catch (err) { next(err); }
 };

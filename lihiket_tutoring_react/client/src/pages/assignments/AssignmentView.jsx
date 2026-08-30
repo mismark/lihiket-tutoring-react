@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
 import { FiX, FiCalendar, FiAward, FiBook, FiUpload, FiEdit2,
-         FiExternalLink, FiCheckCircle, FiUsers, FiUser } from 'react-icons/fi';
+         FiExternalLink, FiCheckCircle, FiUsers, FiUser, FiAlertCircle } from 'react-icons/fi';
 import { getSubmissions, gradeSubmission } from '../../api/assignment.api';
 import toast from 'react-hot-toast';
 
@@ -13,34 +13,111 @@ function GradePanel({ sub, totalMarks, onGraded, theme }) {
   const [marks,    setMarks]    = useState(sub.marks ?? '');
   const [feedback, setFeedback] = useState(sub.feedback || '');
   const [saving,   setSaving]   = useState(false);
-  const inputCls = `w-full px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${dark ? 'bg-slate-900 border-slate-600 text-white' : 'bg-slate-50 border-gray-300 text-slate-900'}`;
+  const [error,    setError]    = useState('');
+
+  const inputCls = `w-full px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+    dark ? 'bg-slate-900 border-slate-600 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+  }`;
+
+  const numMarks   = Number(marks);
+  const isInvalid  = marks !== '' && (isNaN(numMarks) || numMarks < 0 || numMarks > totalMarks);
+  const marksError = isInvalid
+    ? numMarks > totalMarks
+      ? `Cannot exceed total marks (${totalMarks})`
+      : 'Marks must be 0 or above'
+    : '';
 
   const handleGrade = async () => {
+    if (isInvalid || marks === '') return;
+    setError('');
     setSaving(true);
     try {
-      await gradeSubmission(sub.assignment, sub.student._id, { marks: Number(marks), feedback });
-      toast.success('Graded!');
+      await gradeSubmission(sub.assignment, sub.student._id, {
+        marks: numMarks, feedback,
+      });
+      toast.success(`Graded: ${numMarks}/${totalMarks}`);
       onGraded();
-    } catch (err) { toast.error(err.message || 'Failed to grade'); }
-    finally { setSaving(false); }
+    } catch (err) {
+      setError(err.message || 'Failed to grade');
+    } finally { setSaving(false); }
   };
 
   return (
-    <div className={`p-4 rounded-xl border space-y-3 ${dark ? 'border-slate-700 bg-slate-700/30' : 'border-slate-200 bg-slate-50'}`}>
+    <div className={`p-4 rounded-xl border space-y-3 ${
+      dark ? 'border-slate-700 bg-slate-700/30' : 'border-slate-200 bg-slate-50'
+    }`}>
       <div className="grid grid-cols-2 gap-3">
+        {/* Marks field */}
         <div>
-          <label className={`block text-xs font-semibold mb-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Marks (/ {totalMarks})</label>
-          <input type="number" value={marks} onChange={e => setMarks(e.target.value)} min="0" max={totalMarks} className={inputCls} />
+          <label className={`block text-xs font-semibold mb-1 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
+            Marks <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(max {totalMarks})</span>
+          </label>
+          <input
+            type="number"
+            value={marks}
+            onChange={e => { setMarks(e.target.value); setError(''); }}
+            min="0"
+            max={totalMarks}
+            placeholder={`0 – ${totalMarks}`}
+            className={`${inputCls} ${isInvalid ? 'border-red-400 focus:ring-red-400' : ''}`}
+          />
+          {/* Inline validation message */}
+          {marksError && (
+            <p className="text-xs font-medium text-red-500 mt-1 flex items-center gap-1">
+              <FiAlertCircle className="w-3 h-3 flex-shrink-0" />
+              {marksError}
+            </p>
+          )}
+          {/* Visual percentage indicator */}
+          {marks !== '' && !isInvalid && totalMarks > 0 && (
+            <div className="mt-1.5">
+              <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-300"
+                  style={{ width: `${Math.min(100, (numMarks / totalMarks) * 100)}%` }}
+                />
+              </div>
+              <p className={`text-xs mt-0.5 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+                {Math.round((numMarks / totalMarks) * 100)}%
+              </p>
+            </div>
+          )}
         </div>
+
+        {/* Feedback field */}
         <div>
-          <label className={`block text-xs font-semibold mb-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Feedback</label>
-          <input value={feedback} onChange={e => setFeedback(e.target.value)} placeholder="Optionalâ€¦" className={inputCls} />
+          <label className={`block text-xs font-semibold mb-1 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>
+            Feedback
+          </label>
+          <input
+            value={feedback}
+            onChange={e => setFeedback(e.target.value)}
+            placeholder="Optional comment…"
+            className={inputCls}
+          />
         </div>
       </div>
-      <button onClick={handleGrade} disabled={saving || marks === ''}
-        className="w-full py-2 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-50 flex items-center justify-center gap-2">
-        {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiCheckCircle className="w-4 h-4" />}
-        {saving ? 'Savingâ€¦' : 'Save Grade'}
+
+      {/* Server-side error */}
+      {error && (
+        <p className="text-xs font-medium text-red-500 flex items-center gap-1">
+          <FiAlertCircle className="w-3 h-3 flex-shrink-0" />
+          {error}
+        </p>
+      )}
+
+      <button
+        onClick={handleGrade}
+        disabled={saving || marks === '' || isInvalid}
+        className="w-full py-2 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-700
+                   text-white transition disabled:opacity-50 disabled:cursor-not-allowed
+                   flex items-center justify-center gap-2"
+      >
+        {saving
+          ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          : <FiCheckCircle className="w-4 h-4" />
+        }
+        {saving ? 'Saving…' : `Grade (${marks === '' ? '?' : marks}/${totalMarks})`}
       </button>
     </div>
   );
