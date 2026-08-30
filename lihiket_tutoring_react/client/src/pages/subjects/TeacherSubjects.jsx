@@ -6,7 +6,8 @@ import { getAllSubjects } from '../../api/subject.api';
 import toast from 'react-hot-toast';
 import {
   FiBook, FiArrowLeft, FiDollarSign, FiUsers,
-  FiUserCheck, FiBookOpen, FiSearch, FiX, FiSettings, FiDatabase, FiZap, FiAward, FiFileText,
+  FiUserCheck, FiBookOpen, FiSearch, FiX, FiSettings, FiDatabase,
+  FiZap, FiAward, FiFileText, FiRadio,
 } from 'react-icons/fi';
 
 import SubjectStudentsModal from './components/SubjectStudentsModal';
