@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useTheme } from '../../store/theme/ThemeContext';
 import axios from '../../api/axios';
 import { getAllSubjects } from '../../api/subject.api';
@@ -60,13 +60,13 @@ export default function AdminSubjects() {
     }
   };
 
-  // ── generic opener ────────────────────────────────────────────────────────
+  // â”€â”€ generic opener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const open = (setter, subject) => {
     setSelectedSubject(subject);
     setter(true);
   };
 
-  // ── teacher assignment ────────────────────────────────────────────────────
+  // â”€â”€ teacher assignment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleAssignTeacher = async (teacherId) => {
     try {
       await axios.post(`/subjects/${selectedSubject._id}/assign`, { teacherId });
@@ -87,7 +87,7 @@ export default function AdminSubjects() {
     <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-50'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* ── Page header ── */}
+        {/* â”€â”€ Page header â”€â”€ */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -122,7 +122,7 @@ export default function AdminSubjects() {
         />
       </div>
 
-      {/* ── Modals ── */}
+      {/* â”€â”€ Modals â”€â”€ */}
       <SubjectCreate
         isOpen={showCreate}
         onClose={() => setShowCreate(false)}
@@ -184,3 +184,4 @@ export default function AdminSubjects() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared form used by LessonCreate and LessonEdit.
  * Handles all lesson types, file upload with live preview, allow-download toggle.
  */
@@ -96,9 +96,9 @@ export default function LessonForm({
 
   const inputCls = `w-full px-3 py-2.5 rounded-xl border text-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
     dark ? 'bg-slate-900 border-slate-600 text-white placeholder-slate-500'
-         : 'bg-gray-50 border-gray-300 text-gray-900'
+         : 'bg-slate-50 border-gray-300 text-slate-900'
   }`;
-  const lbl = `block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-300' : 'text-gray-600'}`;
+  const lbl = `block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-300' : 'text-slate-600'}`;
 
   const isVid   = file && /\.(mp4|webm|mov)$/i.test(file.name);
   const isPdf   = file && /\.pdf$/i.test(file.name);
@@ -107,14 +107,14 @@ export default function LessonForm({
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`flex flex-col w-full max-w-xl max-h-[94vh] rounded-2xl border shadow-2xl ${
-        dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
+        dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
       }`}>
 
         {/* Header */}
-        <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${dark ? 'border-slate-700' : 'border-gray-200'}`}>
-          <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-gray-900'}`}>{title}</h2>
+        <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
+          <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
           <button type="button" onClick={onCancel}
-            className={`p-2 rounded-lg ${dark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+            className={`p-2 rounded-lg ${dark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
             <FiX className="w-5 h-5" />
           </button>
         </div>
@@ -127,7 +127,7 @@ export default function LessonForm({
               <div>
                 <label className={lbl}>Course *</label>
                 <select name="courseId" value={form.courseId} onChange={handleChange} required className={inputCls}>
-                  <option value="">— Select course —</option>
+                  <option value="">â€” Select course â€”</option>
                   {courses.map(c => (
                     <option key={c._id} value={c._id}>{c.title}</option>
                   ))}
@@ -166,7 +166,7 @@ export default function LessonForm({
             {/* File upload */}
             <div>
               <label className={lbl}>
-                File <span className={`font-normal ${dark ? 'text-slate-500' : 'text-gray-400'}`}>(optional)</span>
+                File <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
               </label>
               <div onClick={() => fileInputRef.current?.click()}
                 className={`flex items-center gap-3 p-4 rounded-xl border-2 border-dashed cursor-pointer transition ${
@@ -174,8 +174,8 @@ export default function LessonForm({
                     ? dark ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-emerald-400 bg-emerald-50'
                     : dark ? 'border-slate-600 hover:border-slate-500' : 'border-gray-300 hover:border-blue-400'
                 }`}>
-                <FiUpload className={`w-5 h-5 flex-shrink-0 ${file ? 'text-emerald-500' : dark ? 'text-slate-400' : 'text-gray-400'}`} />
-                <span className={`text-sm flex-1 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>
+                <FiUpload className={`w-5 h-5 flex-shrink-0 ${file ? 'text-emerald-500' : dark ? 'text-slate-400' : 'text-slate-400'}`} />
+                <span className={`text-sm flex-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {file
                     ? <span className={`font-semibold ${dark ? 'text-emerald-400' : 'text-emerald-600'}`}>{file.name}</span>
                     : form.type === 'video' ? 'Click to upload MP4 / WebM / MOV'
@@ -194,10 +194,10 @@ export default function LessonForm({
 
               {/* Live preview */}
               {previewUrl && (
-                <div className={`mt-3 rounded-xl overflow-hidden border ${dark ? 'border-slate-700' : 'border-gray-200'}`}>
-                  <div className={`flex items-center justify-between px-3 py-2 ${dark ? 'bg-slate-700' : 'bg-gray-100'}`}>
-                    <span className={`text-xs font-semibold ${dark ? 'text-slate-300' : 'text-gray-600'}`}>Preview</span>
-                    <span className={`text-xs ${dark ? 'text-slate-400' : 'text-gray-400'}`}>
+                <div className={`mt-3 rounded-xl overflow-hidden border ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
+                  <div className={`flex items-center justify-between px-3 py-2 ${dark ? 'bg-slate-700' : 'bg-slate-100'}`}>
+                    <span className={`text-xs font-semibold ${dark ? 'text-slate-300' : 'text-slate-600'}`}>Preview</span>
+                    <span className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-400'}`}>
                       {(file.size / 1024 / 1024).toFixed(2)} MB
                     </span>
                   </div>
@@ -208,8 +208,8 @@ export default function LessonForm({
                     <div className={`flex items-center gap-3 p-3 ${dark ? 'bg-slate-800' : 'bg-white'}`}>
                       <FiFileText className={`w-8 h-8 ${dark ? 'text-amber-400' : 'text-amber-500'}`} />
                       <div>
-                        <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-gray-900'}`}>{file.name}</p>
-                        <p className={`text-xs ${dark ? 'text-slate-400' : 'text-gray-500'}`}>Ready to upload</p>
+                        <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{file.name}</p>
+                        <p className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Ready to upload</p>
                       </div>
                     </div>
                   )}
@@ -218,37 +218,37 @@ export default function LessonForm({
 
               {/* Show current file when editing */}
               {initial && !file && (initial.videoUrl || initial.fileUrl) && (
-                <div className={`mt-2 p-3 rounded-xl text-xs ${dark ? 'bg-slate-700/50 text-slate-400' : 'bg-gray-50 text-gray-500'}`}>
+                <div className={`mt-2 p-3 rounded-xl text-xs ${dark ? 'bg-slate-700/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
                   Current:{' '}
                   <a href={fileHref(initial.videoUrl || initial.fileUrl)} target="_blank" rel="noopener noreferrer"
                     className="text-blue-500 hover:underline">
                     {initial.fileName || 'view file'}
-                  </a>{' '}— upload a new file to replace
+                  </a>{' '}â€” upload a new file to replace
                 </div>
               )}
             </div>
 
             {/* Allow Download toggle */}
-            <div className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-slate-600 bg-slate-900/50' : 'border-gray-200 bg-gray-50'}`}>
+            <div className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-slate-600 bg-slate-900/50' : 'border-slate-200 bg-slate-50'}`}>
               <div>
                 <p className={`text-sm font-semibold ${dark ? 'text-slate-200' : 'text-gray-800'}`}>Allow Download</p>
-                <p className={`text-xs ${dark ? 'text-slate-500' : 'text-gray-400'}`}>When off, students can view but not download</p>
+                <p className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>When off, students can view but not download</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" name="allowDownload" checked={form.allowDownload} onChange={handleChange} className="sr-only peer" />
-                <div className="w-10 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 dark:bg-slate-600 dark:peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4" />
+                <div className="w-10 h-6 bg-slate-200 rounded-full peer peer-checked:bg-blue-600 dark:bg-slate-600 dark:peer-checked:bg-blue-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4" />
               </label>
             </div>
 
             {/* Published toggle */}
-            <div className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-slate-600 bg-slate-900/50' : 'border-gray-200 bg-gray-50'}`}>
+            <div className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-slate-600 bg-slate-900/50' : 'border-slate-200 bg-slate-50'}`}>
               <div>
                 <p className={`text-sm font-semibold ${dark ? 'text-slate-200' : 'text-gray-800'}`}>Published</p>
-                <p className={`text-xs ${dark ? 'text-slate-500' : 'text-gray-400'}`}>Unpublished lessons are hidden from students</p>
+                <p className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Unpublished lessons are hidden from students</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" name="isPublished" checked={form.isPublished} onChange={handleChange} className="sr-only peer" />
-                <div className="w-10 h-6 bg-gray-200 rounded-full peer peer-checked:bg-emerald-600 dark:bg-slate-600 dark:peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4" />
+                <div className="w-10 h-6 bg-slate-200 rounded-full peer peer-checked:bg-emerald-600 dark:bg-slate-600 dark:peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-4" />
               </label>
             </div>
 
@@ -256,21 +256,21 @@ export default function LessonForm({
             <div>
               <label className={lbl}>Notes / Content</label>
               <textarea name="content" value={form.content} onChange={handleChange} rows={4}
-                placeholder="Write lesson notes, explanations, or instructions here…"
+                placeholder="Write lesson notes, explanations, or instructions hereâ€¦"
                 className={`${inputCls} resize-none`} />
             </div>
           </div>
 
           {/* Footer */}
-          <div className={`flex gap-3 px-6 py-4 border-t flex-shrink-0 ${dark ? 'border-slate-700' : 'border-gray-200'}`}>
+          <div className={`flex gap-3 px-6 py-4 border-t flex-shrink-0 ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
             <button type="button" onClick={onCancel}
-              className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition ${dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+              className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition ${dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
               Cancel
             </button>
             <button type="submit" disabled={saving}
               className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50 flex items-center justify-center gap-2">
               {saving
-                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Savingâ€¦</>
                 : <><FiSave className="w-4 h-4" /> Save Lesson</>
               }
             </button>
@@ -280,3 +280,4 @@ export default function LessonForm({
     </div>
   );
 }
+

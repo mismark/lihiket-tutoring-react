@@ -1,4 +1,4 @@
-import { FiBook, FiX } from 'react-icons/fi';
+﻿import { FiBook, FiX } from 'react-icons/fi';
 import SubjectFilters from './components/SubjectFilters';
 import SubjectCard from './components/SubjectCard';
 
@@ -29,7 +29,7 @@ export default function SubjectList({
 
   return (
     <div>
-      {/* ── Filters — always visible ── */}
+      {/* â”€â”€ Filters â€” always visible â”€â”€ */}
       <SubjectFilters
         filters={filters}
         onFilterChange={onFilterChange}
@@ -37,7 +37,7 @@ export default function SubjectList({
         theme={theme}
       />
 
-      {/* ── Loading ── */}
+      {/* â”€â”€ Loading â”€â”€ */}
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -46,7 +46,7 @@ export default function SubjectList({
           </p>
         </div>
 
-      /* ── Empty state ── */
+      /* â”€â”€ Empty state â”€â”€ */
       ) : filteredSubjects.length === 0 ? (
           <div className={`rounded-2xl border shadow-sm p-12 text-center ${
           theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
@@ -68,7 +68,7 @@ export default function SubjectList({
           )}
         </div>
 
-      /* ── Grid ── */
+      /* â”€â”€ Grid â”€â”€ */
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -97,3 +97,4 @@ export default function SubjectList({
     </div>
   );
 }
+

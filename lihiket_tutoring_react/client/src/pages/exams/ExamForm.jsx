@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Shared form used by ExamCreate and ExamEdit.
  * Features: question bank import tab, inline question creator, passMarkPercent slider,
  * start/end time pickers, instructions, allow review toggle.
@@ -15,7 +15,7 @@ const DIFFICULTIES  = ['easy', 'medium', 'hard'];
 const TYPES         = ['multiple_choice', 'true_false', 'short_answer', 'essay'];
 const TYPE_LABELS   = { multiple_choice:'Multiple Choice', true_false:'True / False', short_answer:'Short Answer', essay:'Essay' };
 
-// ── Toggle switch ─────────────────────────────────────────────────────────────
+// â”€â”€ Toggle switch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function Toggle({ name, checked, onChange, label, hint }) {
   return (
     <div className="flex items-center justify-between p-3 rounded-xl border
@@ -36,7 +36,7 @@ function Toggle({ name, checked, onChange, label, hint }) {
   );
 }
 
-// ── Inline question creator ───────────────────────────────────────────────────
+// â”€â”€ Inline question creator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function NewQuestionBuilder({ subjects, onAdd }) {
   const [q, setQ]     = useState({ text:'', type:'multiple_choice', difficulty:'medium', marks:1, subject:'', tags:'', options:['','','',''], correctAnswer:'', explanation:'' });
   const [saving, setSaving] = useState(false);
@@ -71,7 +71,7 @@ function NewQuestionBuilder({ subjects, onAdd }) {
   return (
     <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 space-y-3 bg-slate-50 dark:bg-slate-900/40">
       <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Create &amp; Add New Question</p>
-      <textarea value={q.text} onChange={e => set('text', e.target.value)} placeholder="Enter question text…" rows={2} className={`${inputCls} resize-none`} />
+      <textarea value={q.text} onChange={e => set('text', e.target.value)} placeholder="Enter question textâ€¦" rows={2} className={`${inputCls} resize-none`} />
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
           { label:'Type', key:'type', options: TYPES.map(t=>({value:t,label:TYPE_LABELS[t]})) },
@@ -131,13 +131,13 @@ function NewQuestionBuilder({ subjects, onAdd }) {
       <button type="button" onClick={handleAdd} disabled={saving || !q.text.trim()}
         className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white transition">
         {saving ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiPlusCircle className="w-4 h-4" />}
-        {saving ? 'Saving…' : 'Save to Bank & Add to Exam'}
+        {saving ? 'Savingâ€¦' : 'Save to Bank & Add to Exam'}
       </button>
     </div>
   );
 }
 
-// ── Bank importer ─────────────────────────────────────────────────────────────
+// â”€â”€ Bank importer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function BankImporter({ subjects, selectedIds, onToggle }) {
   const [bankQs, setBankQs]   = useState([]);
   const [loading, setLoading] = useState(true);
@@ -169,7 +169,7 @@ function BankImporter({ subjects, selectedIds, onToggle }) {
     <div className="space-y-3">
       <div className="relative">
         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search questions…"
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search questionsâ€¦"
           className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500
                      bg-white border-slate-200 text-slate-900 placeholder-slate-400
                      dark:bg-slate-900 dark:border-slate-600 dark:text-white dark:placeholder-slate-500" />
@@ -222,14 +222,14 @@ function BankImporter({ subjects, selectedIds, onToggle }) {
       )}
       {filtered.length > 0 && (
         <p className="text-xs text-slate-400 dark:text-slate-500 text-right">
-          {selectedIds.length} selected · {filtered.length} of {bankQs.length}
+          {selectedIds.length} selected Â· {filtered.length} of {bankQs.length}
         </p>
       )}
     </div>
   );
 }
 
-// ── Main ExamForm ─────────────────────────────────────────────────────────────
+// â”€â”€ Main ExamForm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ExamForm({ title, initial, subjects, onSubmit, onCancel, saving, theme }) {
   const dark    = theme === 'dark';
   const titleRef = useRef(null);
@@ -339,7 +339,7 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
               <div className="sm:col-span-1">
                 <label className={lbl}>Subject</label>
                 <select name="subject" value={form.subject} onChange={handleChange} className={inputCls}>
-                  <option value="">— None —</option>
+                  <option value="">â€” None â€”</option>
                   {subjects.map(s => <option key={s._id} value={s._id}>{s.name} ({s.gradeLevel})</option>)}
                 </select>
               </div>
@@ -402,7 +402,7 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
             {/* Description + Instructions */}
             <div>
               <label className={lbl}>Description</label>
-              <textarea name="description" value={form.description} onChange={handleChange} rows={2} className={`${inputCls} resize-none`} placeholder="Brief overview…" maxLength={500} />
+              <textarea name="description" value={form.description} onChange={handleChange} rows={2} className={`${inputCls} resize-none`} placeholder="Brief overviewâ€¦" maxLength={500} />
             </div>
             <div>
               <label className={lbl}>Instructions</label>
@@ -421,7 +421,7 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
                     Questions
                     {selectedQs.length > 0 && (
                       <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
-                        {selectedQs.length} · {totalMarks} marks
+                        {selectedQs.length} Â· {totalMarks} marks
                       </span>
                     )}
                   </p>
@@ -475,7 +475,7 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
             </button>
             <button type="submit" disabled={saving || !form.title.trim()}
               className="flex-1 py-2.5 rounded-xl font-semibold text-sm transition disabled:opacity-50 bg-amber-500 hover:bg-amber-600 text-white flex items-center justify-center gap-2 shadow-sm">
-              {saving ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</> : <><FiSave className="w-4 h-4" /> Save Exam</>}
+              {saving ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Savingâ€¦</> : <><FiSave className="w-4 h-4" /> Save Exam</>}
             </button>
           </div>
         </form>
@@ -485,3 +485,4 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
 }
 
 // end of ExamForm.jsx
+

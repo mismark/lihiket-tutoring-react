@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+﻿import { useEffect, useRef, useState, useCallback } from 'react';
 import { FiSend, FiTrash2, FiArrowLeft, FiLoader, FiWifiOff, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import { useAuth }   from '../../store/auth/AuthContext';
 import { useTheme }  from '../../store/theme/ThemeContext';
@@ -6,13 +6,13 @@ import { useChat }   from '../../store/chat/ChatContext';
 import { useSocket } from '../../store/socket/SocketContext';
 import { getMessages, sendMessage, deleteMessage } from '../../api/chat.api';
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-// Poll is a fallback only — socket handles real-time delivery.
+// â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Poll is a fallback only â€” socket handles real-time delivery.
 // 30 s is enough to catch any edge cases (tab-visibility changes, etc.)
 const POLL_INTERVAL         = 30_000;
 const NEAR_BOTTOM_THRESHOLD = 120;
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ROLE_COLORS = {
   admin:   'from-amber-500 to-orange-500',
   teacher: 'from-blue-500 to-indigo-500',
@@ -57,7 +57,7 @@ function groupByDay(messages) {
   return groups;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function ChatWindow({ conversation, onBack }) {
   const { user }    = useAuth();
   const { theme }   = useTheme();
@@ -87,7 +87,7 @@ export default function ChatWindow({ conversation, onBack }) {
 
   const other = conversation?.otherUser;
 
-  // ── Scroll helpers ──────────────────────────────────────────────────────────
+  // â”€â”€ Scroll helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const isNearBottom = () => {
     const el = scrollAreaRef.current;
     if (!el) return true;
@@ -96,7 +96,7 @@ export default function ChatWindow({ conversation, onBack }) {
   const scrollToBottom = (behavior = 'smooth') =>
     bottomRef.current?.scrollIntoView({ behavior });
 
-  // ── Page loader ─────────────────────────────────────────────────────────────
+  // â”€â”€ Page loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const loadPage = useCallback(async (p = 1, prepend = false) => {
     const id = convIdRef.current;
     if (!id || !localStorage.getItem('token')) return;
@@ -138,14 +138,14 @@ export default function ChatWindow({ conversation, onBack }) {
   // Scroll to bottom after initial load
   useEffect(() => { if (!loading) scrollToBottom('auto'); }, [loading]);
 
-  // ── Socket: join / leave conversation room ──────────────────────────────────
+  // â”€â”€ Socket: join / leave conversation room â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!socket || !conversation?._id) return;
     socket.emit('chat:join', conversation._id);
     return () => socket.emit('chat:leave', conversation._id);
   }, [socket, conversation?._id]);
 
-  // ── Socket: receive new messages instantly ──────────────────────────────────
+  // â”€â”€ Socket: receive new messages instantly â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     if (!socket) return;
 
@@ -186,7 +186,7 @@ export default function ChatWindow({ conversation, onBack }) {
     };
   }, [socket]);
 
-  // ── Fallback poll (30 s) — catches socket gaps ──────────────────────────────
+  // â”€â”€ Fallback poll (30 s) â€” catches socket gaps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const pollMessages = useCallback(async () => {
     const id = convIdRef.current;
     if (!id || document.hidden || !localStorage.getItem('token')) return;
@@ -238,7 +238,7 @@ export default function ChatWindow({ conversation, onBack }) {
     return () => window.removeEventListener('auth:logout', stop);
   }, []);
 
-  // ── Auto-resize textarea ────────────────────────────────────────────────────
+  // â”€â”€ Auto-resize textarea â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -246,7 +246,7 @@ export default function ChatWindow({ conversation, onBack }) {
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [text]);
 
-  // ── Send ────────────────────────────────────────────────────────────────────
+  // â”€â”€ Send â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleSend = async () => {
     if (!text.trim() || sending) return;
     if (!localStorage.getItem('token')) {
@@ -295,7 +295,7 @@ export default function ChatWindow({ conversation, onBack }) {
 
   const handleTextChange = (e) => { setText(e.target.value); if (sendError) setSendError(''); };
 
-  // ── Delete ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleDelete = async (msgId) => {
     if (!window.confirm('Delete this message?')) return;
     try {
@@ -307,7 +307,7 @@ export default function ChatWindow({ conversation, onBack }) {
     }
   };
 
-  // ── Load earlier ────────────────────────────────────────────────────────────
+  // â”€â”€ Load earlier â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const hasMore  = page < totalPages;
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
@@ -317,7 +317,7 @@ export default function ChatWindow({ conversation, onBack }) {
     await loadPage(next, true);
   };
 
-  // ── Manual retry ───────────────────────────────────────────────────────────
+  // â”€â”€ Manual retry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleRetry = async () => {
     setRetrying(true);
     await loadPage(1, false);
@@ -331,14 +331,14 @@ export default function ChatWindow({ conversation, onBack }) {
   const showOfflineBanner = !globalConnected || !pollOk;
   const grouped           = groupByDay(messages);
 
-  // ── Empty state ─────────────────────────────────────────────────────────────
+  // â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (!conversation) {
     return (
       <div className={`flex-1 flex flex-col items-center justify-center gap-4 ${
-        dark ? 'bg-slate-950 text-slate-500' : 'bg-gray-50 text-gray-400'
+        dark ? 'bg-slate-950 text-slate-500' : 'bg-slate-50 text-slate-400'
       }`}>
         <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
-          dark ? 'bg-slate-800' : 'bg-gray-100'
+          dark ? 'bg-slate-800' : 'bg-slate-100'
         }`}>
           <FiSend className="w-8 h-8 opacity-30" />
         </div>
@@ -348,23 +348,23 @@ export default function ChatWindow({ conversation, onBack }) {
   }
 
   return (
-    <div className={`flex flex-col h-full ${dark ? 'bg-slate-950' : 'bg-gray-50'}`}>
+    <div className={`flex flex-col h-full ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
 
-      {/* ── Top bar ── */}
+      {/* â”€â”€ Top bar â”€â”€ */}
       <div className={`flex items-center gap-3 px-4 py-3 border-b flex-shrink-0 ${
-        dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'
+        dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
       }`}>
         <button onClick={onBack} className={`lg:hidden p-2 rounded-xl transition ${
-          dark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-gray-100 text-gray-500'
+          dark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
         }`}>
           <FiArrowLeft className="w-5 h-5" />
         </button>
         <Avatar user={other} />
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-bold truncate ${dark ? 'text-white' : 'text-gray-900'}`}>
+          <p className={`text-sm font-bold truncate ${dark ? 'text-white' : 'text-slate-900'}`}>
             {other?.firstName} {other?.lastName}
           </p>
-          <p className={`text-xs capitalize ${dark ? 'text-slate-400' : 'text-gray-500'}`}>
+          <p className={`text-xs capitalize ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
             {other?.role}
           </p>
         </div>
@@ -374,13 +374,13 @@ export default function ChatWindow({ conversation, onBack }) {
           <span className={`w-2 h-2 rounded-full transition-colors ${
             showOfflineBanner ? 'bg-red-500' : 'bg-green-500 animate-pulse'
           }`} />
-          <span className={`text-xs hidden sm:block ${dark ? 'text-slate-500' : 'text-gray-400'}`}>
+          <span className={`text-xs hidden sm:block ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
             {showOfflineBanner ? 'Offline' : 'Live'}
           </span>
         </div>
       </div>
 
-      {/* ── Offline banner ── */}
+      {/* â”€â”€ Offline banner â”€â”€ */}
       {showOfflineBanner && (
         <div className={`flex items-center justify-between gap-3 px-4 py-2.5 text-xs font-medium flex-shrink-0 ${
           dark ? 'bg-red-500/10 text-red-400 border-b border-red-500/20'
@@ -388,7 +388,7 @@ export default function ChatWindow({ conversation, onBack }) {
         }`}>
           <div className="flex items-center gap-2">
             <FiWifiOff className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>Connection lost — messages may not be delivered</span>
+            <span>Connection lost â€” messages may not be delivered</span>
           </div>
           <button onClick={handleRetry} disabled={retrying}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition ${
@@ -396,12 +396,12 @@ export default function ChatWindow({ conversation, onBack }) {
                    : 'bg-red-100 hover:bg-red-200 text-red-700'
             }`}>
             <FiRefreshCw className={`w-3 h-3 ${retrying ? 'animate-spin' : ''}`} />
-            {retrying ? 'Retrying…' : 'Retry'}
+            {retrying ? 'Retryingâ€¦' : 'Retry'}
           </button>
         </div>
       )}
 
-      {/* ── Messages ── */}
+      {/* â”€â”€ Messages â”€â”€ */}
       <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
 
         {hasMore && (
@@ -409,9 +409,9 @@ export default function ChatWindow({ conversation, onBack }) {
             <button onClick={loadMore} disabled={loadingMore}
               className={`text-xs px-4 py-1.5 rounded-full font-medium transition ${
                 dark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                     : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                     : 'bg-slate-200 text-slate-600 hover:bg-gray-300'
               }`}>
-              {loadingMore ? 'Loading…' : 'Load earlier messages'}
+              {loadingMore ? 'Loadingâ€¦' : 'Load earlier messages'}
             </button>
           </div>
         )}
@@ -422,7 +422,7 @@ export default function ChatWindow({ conversation, onBack }) {
           </div>
         ) : loadError ? (
           <div className={`flex flex-col items-center justify-center py-20 gap-3 ${
-            dark ? 'text-slate-400' : 'text-gray-500'
+            dark ? 'text-slate-400' : 'text-slate-500'
           }`}>
             <FiAlertCircle className="w-10 h-10 text-red-400 opacity-70" />
             <p className="text-sm font-medium text-center">{loadError}</p>
@@ -433,7 +433,7 @@ export default function ChatWindow({ conversation, onBack }) {
           </div>
         ) : grouped.length === 0 ? (
           <div className={`flex flex-col items-center justify-center py-20 gap-2 ${
-            dark ? 'text-slate-500' : 'text-gray-400'
+            dark ? 'text-slate-500' : 'text-slate-400'
           }`}>
             <p className="text-sm">No messages yet. Say hello!</p>
           </div>
@@ -442,11 +442,11 @@ export default function ChatWindow({ conversation, onBack }) {
             if (item.type === 'divider') {
               return (
                 <div key={item.key} className="flex items-center gap-3 py-3">
-                  <div className={`flex-1 h-px ${dark ? 'bg-slate-800' : 'bg-gray-200'}`} />
-                  <span className={`text-xs font-medium px-2 ${dark ? 'text-slate-500' : 'text-gray-400'}`}>
+                  <div className={`flex-1 h-px ${dark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+                  <span className={`text-xs font-medium px-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
                     {item.label}
                   </span>
-                  <div className={`flex-1 h-px ${dark ? 'bg-slate-800' : 'bg-gray-200'}`} />
+                  <div className={`flex-1 h-px ${dark ? 'bg-slate-800' : 'bg-slate-200'}`} />
                 </div>
               );
             }
@@ -463,12 +463,12 @@ export default function ChatWindow({ conversation, onBack }) {
                     mine
                       ? 'bg-blue-600 text-white rounded-tr-sm'
                       : dark ? 'bg-slate-800 text-slate-100 rounded-tl-sm'
-                              : 'bg-white text-gray-900 rounded-tl-sm shadow-sm border border-gray-100'
+                              : 'bg-white text-slate-900 rounded-tl-sm shadow-sm border border-slate-100'
                   } ${item._optimistic ? 'opacity-60' : ''}`}>
                     {item.text || <span className="italic opacity-50">Message deleted</span>}
                   </div>
                   <div className={`flex items-center gap-1.5 px-1 ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <span className={`text-xs ${dark ? 'text-slate-600' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
                       {formatTime(item.createdAt)}
                     </span>
                     {item._optimistic && (
@@ -491,35 +491,35 @@ export default function ChatWindow({ conversation, onBack }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Send error ── */}
+      {/* â”€â”€ Send error â”€â”€ */}
       {sendError && (
         <div className={`flex items-center gap-2 mx-4 mb-2 px-3 py-2 rounded-xl text-xs font-medium ${
           dark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'
         }`}>
           <FiAlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="flex-1">{sendError}</span>
-          <button onClick={() => setSendError('')} className="opacity-60 hover:opacity-100">✕</button>
+          <button onClick={() => setSendError('')} className="opacity-60 hover:opacity-100">âœ•</button>
         </div>
       )}
 
-      {/* ── Input ── */}
+      {/* â”€â”€ Input â”€â”€ */}
       <div className={`px-4 py-3 border-t flex-shrink-0 ${
-        dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-gray-200'
+        dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
       }`}>
         <div className={`flex items-end gap-2 rounded-2xl border px-4 py-2 transition-colors ${
           dark ? 'bg-slate-800 border-slate-700 focus-within:border-blue-500'
-               : 'bg-gray-50 border-gray-200 focus-within:border-blue-400'
+               : 'bg-slate-50 border-slate-200 focus-within:border-blue-400'
         }`}>
           <textarea ref={textareaRef} rows={1} value={text}
             onChange={handleTextChange} onKeyDown={handleKeyDown}
             disabled={sending}
             placeholder={
               showOfflineBanner
-                ? 'Connection lost — check your network…'
-                : 'Type a message… (Enter to send, Shift+Enter for newline)'
+                ? 'Connection lost â€” check your networkâ€¦'
+                : 'Type a messageâ€¦ (Enter to send, Shift+Enter for newline)'
             }
             className={`flex-1 bg-transparent text-sm resize-none outline-none leading-relaxed max-h-32 py-1 disabled:opacity-50 ${
-              dark ? 'text-white placeholder-slate-500' : 'text-gray-900 placeholder-gray-400'
+              dark ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-gray-400'
             }`}
           />
           <button onClick={handleSend} disabled={!text.trim() || sending}
@@ -527,7 +527,7 @@ export default function ChatWindow({ conversation, onBack }) {
               text.trim() && !sending
                 ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
                 : dark ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                       : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}>
             {sending
               ? <FiLoader className="w-4 h-4 animate-spin" />
@@ -535,10 +535,11 @@ export default function ChatWindow({ conversation, onBack }) {
             }
           </button>
         </div>
-        <p className={`text-xs mt-1.5 px-1 ${dark ? 'text-slate-600' : 'text-gray-400'}`}>
-          Enter to send · Shift+Enter for new line
+        <p className={`text-xs mt-1.5 px-1 ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
+          Enter to send Â· Shift+Enter for new line
         </p>
       </div>
     </div>
   );
 }
+
