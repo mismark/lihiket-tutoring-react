@@ -34,6 +34,21 @@ export const SocketProvider = ({ children }) => {
       window.dispatchEvent(new CustomEvent('socket:chat:unread'));
     });
 
+    // Forward notification:new events as a DOM event so NotificationContext
+    // can prepend the notification and bump the badge instantly.
+    socket.on('notification:new', (notification) => {
+      window.dispatchEvent(new CustomEvent('socket:notification:new', {
+        detail: notification,
+      }));
+    });
+
+    // Forward liveclass:status events so LiveClass pages update in real-time
+    socket.on('liveclass:status', (payload) => {
+      window.dispatchEvent(new CustomEvent('socket:liveclass:status', {
+        detail: payload,
+      }));
+    });
+
     // Re-auth when token changes (e.g. after login)
     const onStorage = (e) => {
       if (e.key === 'token') {

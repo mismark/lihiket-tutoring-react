@@ -30,6 +30,10 @@ connectDB()
     const server = http.createServer(app);
     initSocket(server);
 
+    // Start live class auto-status job (scheduled→live→ended)
+    const { startLiveClassJob } = require('./jobs/liveclass.status.job');
+    startLiveClassJob();
+
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`\n🚀 Lihiket API running in ${process.env.NODE_ENV || 'development'} mode on http://localhost:${PORT}`);
       console.log(`📡 Health check: http://localhost:${PORT}/api/health\n`);

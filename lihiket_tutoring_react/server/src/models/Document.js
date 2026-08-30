@@ -33,6 +33,11 @@ const DocumentSchema = new mongoose.Schema(
       ref: 'Subject',
       default: null,
     },
+    course: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Course',
+      default: null,
+    },
     gradeLevel: {
       type: String,
       default: '',

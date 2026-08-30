@@ -7,6 +7,7 @@ import ChatList      from './ChatList';
 import ChatWindow    from './ChatWindow';
 import NewChatModal  from './NewChatModal';
 
+// default exports 
 export default function ChatPage() {
   const { theme } = useTheme();
   const dark = theme === 'dark';

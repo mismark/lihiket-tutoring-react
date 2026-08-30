@@ -41,21 +41,21 @@ export default function SubjectList({
       {loading ? (
         <div className="text-center py-12">
           <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className={`mt-4 text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
+          <p className={`mt-4 text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
             Loading subjects...
           </p>
         </div>
 
       /* ── Empty state ── */
       ) : filteredSubjects.length === 0 ? (
-        <div className={`rounded-2xl border shadow-sm p-12 text-center ${
-          theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
+          <div className={`rounded-2xl border shadow-sm p-12 text-center ${
+          theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
         }`}>
-          <FiBook className={`w-12 h-12 mx-auto mb-4 ${theme === 'dark' ? 'text-slate-600' : 'text-gray-300'}`} />
-          <p className={`font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}`}>
+          <FiBook className={`w-12 h-12 mx-auto mb-4 ${theme === 'dark' ? 'text-slate-600' : 'text-slate-300'}`} />
+          <p className={`font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
             {hasActiveFilter ? 'No subjects match your search' : 'No subjects available'}
           </p>
-          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
+          <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
             {hasActiveFilter ? 'Try a different search term or clear the filters' : 'Create your first subject to get started'}
           </p>
           {hasActiveFilter && (
@@ -86,7 +86,7 @@ export default function SubjectList({
               />
             ))}
           </div>
-          <div className={`mt-6 text-center text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
+          <div className={`mt-6 text-center text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
             {hasActiveFilter
               ? `${filteredSubjects.length} of ${subjects.length} subjects match`
               : `${subjects.length} subject${subjects.length !== 1 ? 's' : ''}`

@@ -1,8 +1,10 @@
-const Lesson    = require('../models/Lesson');
-const Course    = require('../models/Course');
+const Lesson     = require('../models/Lesson');
+const Course     = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
-const AppError  = require('../utils/AppError');
-const path      = require('path');
+const AppError   = require('../utils/AppError');
+const path       = require('path');
+const { notifyEnrolledStudents } = require('../utils/notify');
+const { EVENTS } = require('../constants/events');
 
 // ── Resolve slug OR ObjectId → Course ────────────────────────────────────────
 async function resolveCourse(slugOrId) {
@@ -116,6 +118,16 @@ exports.createLesson = async (req, res, next) => {
     });
 
     res.status(201).json({ success: true, data: lesson });
+
+    // ── Notify enrolled students (fire after response for speed) ──────────
+    setImmediate(() =>
+      notifyEnrolledStudents(course.subject, {
+        type:    EVENTS.NEW_LESSON,
+        title:   'New Lesson Added',
+        message: `A new lesson "${lesson.title}" has been added to "${course.title}".`,
+        link:    `/subjects/${course.subject}/courses/${course.slug || course._id}/lessons`,
+      })
+    );
   } catch (err) { next(err); }
 };
 
@@ -148,6 +160,17 @@ exports.updateLesson = async (req, res, next) => {
     }
 
     await lesson.save();
+
+    // ── Notify enrolled students ──────────────────────────────────────────
+    setImmediate(() =>
+      notifyEnrolledStudents(lesson.subject, {
+        type:    EVENTS.LESSON_UPDATED,
+        title:   'Lesson Updated',
+        message: `The lesson "${lesson.title}" has been updated.`,
+        link:    `/subjects/${lesson.subject}/courses/${lesson.course}/lessons`,
+      })
+    );
+
     res.json({ success: true, data: lesson });
   } catch (err) { next(err); }
 };
@@ -162,6 +185,16 @@ exports.deleteLesson = async (req, res, next) => {
         lesson.course?.teacher?.toString() !== req.user._id.toString()) {
       return next(new AppError('You can only delete your own lessons', 403));
     }
+
+    // ── Notify enrolled students before deleting ─────────────────────────
+    setImmediate(() =>
+      notifyEnrolledStudents(lesson.subject, {
+        type:    EVENTS.LESSON_DELETED,
+        title:   'Lesson Removed',
+        message: `The lesson "${lesson.title}" has been removed.`,
+        link:    `/subjects/${lesson.subject}/courses/${lesson.course}/lessons`,
+      })
+    );
 
     await Lesson.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Lesson deleted' });

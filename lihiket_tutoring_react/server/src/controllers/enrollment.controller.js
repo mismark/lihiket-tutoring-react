@@ -1,6 +1,10 @@
 const Enrollment = require('../models/Enrollment');
 const Subject    = require('../models/Subject');
+const Teacher    = require('../models/Teacher');
+const Student    = require('../models/Student');
 const AppError   = require('../utils/AppError');
+const notify     = require('../utils/notify');
+const { EVENTS } = require('../constants/events');
 
 // @desc   Get all enrollments for the logged-in student
 // @route  GET /api/enrollments
@@ -71,6 +75,23 @@ exports.enroll = async (req, res, next) => {
     );
 
     await enrollment.populate('subject');
+
+    // ── Notify all teachers assigned to this subject ──────────────────────
+    const student          = await Student.findById(req.user._id).select('firstName lastName gradeLevel');
+    const assignedTeachers = await Teacher.find({ assignedSubjects: subject._id }).select('_id');
+
+    await Promise.all(
+      assignedTeachers.map(t =>
+        notify({
+          userId:    t._id,
+          userModel: 'Teacher',
+          type:      EVENTS.STUDENT_ENROLLED,
+          title:     'New Student Enrolled',
+          message:   `${student?.firstName} ${student?.lastName} enrolled in "${subject.name}" (${subject.gradeLevel}).`,
+          link:      '/my-subjects',
+        })
+      )
+    );
 
     res.status(200).json({
       success: true,

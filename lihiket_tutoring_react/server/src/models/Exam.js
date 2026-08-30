@@ -15,7 +15,8 @@ const ExamSchema = new mongoose.Schema(
     questions:    { type: [ExamQuestionSchema], default: [] },
     duration:     { type: Number, default: 60 },   // minutes
     totalMarks:   { type: Number, default: 0 },
-    passMark:     { type: Number, default: 0 },
+    passMark:     { type: Number, default: 0 },     // absolute (computed from passMarkPercent)
+    passMarkPercent: { type: Number, default: 50, min: 0, max: 100 },
     status:       { type: String, enum: ['draft','published','closed'], default: 'draft' },
     startTime:    { type: Date, default: null },
     endTime:      { type: Date, default: null },

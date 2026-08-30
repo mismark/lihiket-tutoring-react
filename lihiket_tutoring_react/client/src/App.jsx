@@ -54,16 +54,20 @@ import QuestionBankPage from './pages/questionbank/QuestionBankPage';
 import DocumentsPage from './pages/documents/DocumentsPage';
 
 // Exams
-import ExamsPage from './pages/exams/ExamsPage';
+import ExamsPage        from './pages/exams/ExamsPage';
+import SubjectExamsPage from './pages/exams/SubjectExamsPage';
 
 // Quizzes
-import QuizzesPage from './pages/quizzes/QuizzesPage';
+import QuizzesPage        from './pages/quizzes/QuizzesPage';
+import SubjectQuizzesPage from './pages/quizzes/SubjectQuizzesPage';
 
 // Assignments
-import AssignmentsPage from './pages/assignments/AssignmentsPage';
+import AssignmentsPage        from './pages/assignments/AssignmentsPage';
+import SubjectAssignmentsPage from './pages/assignments/SubjectAssignmentsPage';
 
 // Live Classes
-import LiveClassesPage from './pages/liveclasses/LiveClassesPage';
+import LiveClassesPage        from './pages/liveclasses/LiveClassesPage';
+import SubjectLiveClassesPage from './pages/liveclasses/SubjectLiveClassesPage';
 
 // Notifications
 import NotificationsPage from './pages/notifications/NotificationsPage';
@@ -187,10 +191,20 @@ export default function App() {
 
             <Route path="/view"          element={<PrivateRoute><FileViewerPage /></PrivateRoute>} />
             <Route path="/documents"     element={<PrivateRoute><DocumentsPage /></PrivateRoute>} />
+            <Route path="/subjects/:subjectSlug/courses/:courseSlug/documents"
+              element={<PrivateRoute><DocumentsPage /></PrivateRoute>} />
             <Route path="/exams"         element={<PrivateRoute><ExamsPage /></PrivateRoute>} />
+            <Route path="/subjects/:subjectSlug/exams"
+              element={<PrivateRoute><SubjectExamsPage /></PrivateRoute>} />
             <Route path="/quizzes"       element={<PrivateRoute><QuizzesPage /></PrivateRoute>} />
+            <Route path="/subjects/:subjectSlug/quizzes"
+              element={<PrivateRoute><SubjectQuizzesPage /></PrivateRoute>} />
             <Route path="/assignments"   element={<PrivateRoute><AssignmentsPage /></PrivateRoute>} />
+            <Route path="/subjects/:subjectSlug/assignments"
+              element={<PrivateRoute><SubjectAssignmentsPage /></PrivateRoute>} />
             <Route path="/live-classes"  element={<PrivateRoute><LiveClassesPage /></PrivateRoute>} />
+            <Route path="/subjects/:subjectSlug/live-classes"
+              element={<PrivateRoute><SubjectLiveClassesPage /></PrivateRoute>} />
             <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
             <Route path="/search"        element={<PrivateRoute><SearchPage /></PrivateRoute>} />
             <Route path="/chats"         element={<PrivateRoute><ChatPage /></PrivateRoute>} />

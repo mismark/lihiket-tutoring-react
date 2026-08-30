@@ -1,49 +1,65 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTheme } from '../../store/theme/ThemeContext';
 import { useAuth } from '../../store/auth/AuthContext';
 import { getLessonsByCourse } from '../../api/lesson.api';
 import { getCourse } from '../../api/course.api';
 import toast from 'react-hot-toast';
 import {
-  FiArrowLeft, FiPlus, FiSearch, FiX,
-  FiVideo, FiFileText, FiBookOpen, FiBook,
-  FiEye, FiEyeOff, FiFilter,
+  FiBookOpen, FiVideo, FiFileText, FiLayers,
+  FiEye, FiEyeOff, FiCheckCircle, FiBook,
+  FiZap, FiAward, FiList,
 } from 'react-icons/fi';
 
+import SubjectPageLayout, { SkeletonCard } from '../../components/shared/SubjectPageLayout';
+import FilterTabs from '../../components/shared/FilterTabs';
+import ViewToggle from '../../components/shared/ViewToggle';
 import LessonCard   from './LessonCard';
 import LessonCreate from './LessonCreate';
 import LessonEdit   from './LessonEdit';
 import LessonDelete from './LessonDelete';
 import LessonView   from './LessonView';
 
-const TYPE_OPTS = [
-  { value: '',          label: 'All Types'  },
-  { value: 'video',     label: 'Video'      },
-  { value: 'document',  label: 'Document'   },
-  { value: 'text',      label: 'Text'       },
-  { value: 'mixed',     label: 'Mixed'      },
+const TYPE_TABS = [
+  { value: '',         label: 'All'      },
+  { value: 'video',    label: 'Video'    },
+  { value: 'document', label: 'Document' },
+  { value: 'text',     label: 'Text'     },
+];
+
+const NAV_LINKS = (subjectId, courseSlug) => [
+  { to: `/subjects/${subjectId}/courses`,
+    label: 'Courses', icon: FiBook,
+    color: 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-600' },
+  { to: `/subjects/${subjectId}/courses/${courseSlug}/documents`,
+    label: 'Documents', icon: FiFileText,
+    color: 'bg-white border-amber-200 text-amber-600 hover:bg-amber-50 shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-amber-400 dark:hover:bg-amber-500/10' },
+  { to: `/subjects/${subjectId}/quizzes`,
+    label: 'Quizzes', icon: FiZap,
+    color: 'bg-white border-violet-200 text-violet-600 hover:bg-violet-50 shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-violet-400 dark:hover:bg-violet-500/10' },
+  { to: `/subjects/${subjectId}/exams`,
+    label: 'Exams', icon: FiAward,
+    color: 'bg-white border-amber-200 text-amber-600 hover:bg-amber-50 shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-amber-400 dark:hover:bg-amber-500/10' },
+  { to: `/subjects/${subjectId}/assignments`,
+    label: 'Assignments', icon: FiList,
+    color: 'bg-white border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm dark:bg-slate-700 dark:border-slate-600 dark:text-blue-400 dark:hover:bg-blue-500/10' },
 ];
 
 export default function LessonsPage() {
   const { subjectSlug: subjectId, courseSlug: courseId } = useParams();
-  const navigate      = useNavigate();
-  const { theme }     = useTheme();
-  const { user }      = useAuth();
-  const dark          = theme === 'dark';
-  const canManage     = user?.role === 'admin' || user?.role === 'teacher';
+  const { theme } = useTheme();
+  const { user }  = useAuth();
+  const canManage = user?.role === 'admin' || user?.role === 'teacher';
 
-  const [course,   setCourse]   = useState(null);
-  const [lessons,  setLessons]  = useState([]);
-  const [loading,  setLoading]  = useState(true);
+  const [course,  setCourse]  = useState(null);
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // filters
-  const [search,      setSearch]      = useState('');
-  const [typeFilter,  setTypeFilter]  = useState('');
-  const [showDrafts,  setShowDrafts]  = useState(true);
-  const [showFilter,  setShowFilter]  = useState(false);
+  const [search,     setSearch]     = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [showDrafts, setShowDrafts] = useState(true);
+  const [view,       setView]       = useState('grid');
 
-  // modals
   const [showCreate, setShowCreate] = useState(false);
   const [viewL,      setViewL]      = useState(null);
   const [editL,      setEditL]      = useState(null);
@@ -61,187 +77,137 @@ export default function LessonsPage() {
       setLessons(lessonsRes.data || []);
     } catch (err) {
       toast.error(err.message || 'Failed to load lessons');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   }, [courseId]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Client-side filter
   const filtered = lessons.filter(l => {
-    const q   = search.trim().toLowerCase();
-    const matchSearch = !q || l.title.toLowerCase().includes(q) || l.content?.toLowerCase().includes(q);
-    const matchType   = !typeFilter || l.type === typeFilter;
-    const matchDraft  = showDrafts || l.isPublished;
-    return matchSearch && matchType && matchDraft;
+    const q = search.trim().toLowerCase();
+    return (
+      (!q || l.title.toLowerCase().includes(q) || l.content?.toLowerCase().includes(q)) &&
+      (!typeFilter || l.type === typeFilter) &&
+      (showDrafts || l.isPublished)
+    );
   });
 
   const hasFilter = search || typeFilter || !showDrafts;
 
-  const stats = {
-    total:     lessons.length,
-    published: lessons.filter(l => l.isPublished).length,
-    videos:    lessons.filter(l => l.type === 'video').length,
-    docs:      lessons.filter(l => l.type === 'document').length,
-  };
+  const stats = loading ? [] : [
+    { value: lessons.length,                         label: 'Total',     color: 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',     icon: FiBookOpen    },
+    { value: lessons.filter(l => l.isPublished).length, label: 'Published', color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400', icon: FiCheckCircle },
+    { value: lessons.filter(l => l.type === 'video').length,    label: 'Videos',    color: 'bg-violet-100 text-violet-600 dark:bg-violet-500/20 dark:text-violet-400', icon: FiVideo    },
+    { value: lessons.filter(l => l.type === 'document').length, label: 'Documents', color: 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',   icon: FiFileText },
+  ];
 
-  const inputCls = `px-3 py-2 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-    dark ? 'bg-slate-900 border-slate-600 text-white placeholder-slate-500'
-         : 'bg-white border-gray-300 text-gray-900'
-  }`;
+  // Build a fake subject for the breadcrumb (course title becomes the subject name)
+  const fakeSubject = course
+    ? { name: course.title, gradeLevel: '', _id: course.subject }
+    : null;
 
   return (
-    <div className={`min-h-screen p-4 md:p-8 ${dark ? 'bg-slate-900' : 'bg-gray-50'}`}>
-      <div className="max-w-6xl mx-auto space-y-5">
-
-        {/* â”€â”€ Header â”€â”€ */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={() => navigate(`/subjects/${subjectId}/courses`)}
-            className={`p-2 rounded-xl border transition flex-shrink-0 ${dark ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
-            <FiArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <h1 className={`text-2xl font-extrabold ${dark ? 'text-white' : 'text-gray-900'}`}>
-              ðŸ“ Lessons
-            </h1>
-            <p className={`text-sm mt-0.5 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>
-              {course
-                ? <><span className="font-semibold">{course.title}</span> Â· {loading ? 'â€¦' : `${lessons.length} lesson${lessons.length !== 1 ? 's' : ''}`}</>
-                : 'â€¦'
-              }
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {course && (
-              <Link
-                to={`/subjects/${subjectId}/classroom`}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition ${dark ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'}`}
-              >
-                <FiEye className="w-4 h-4" /> Preview
-              </Link>
-            )}
+    <>
+      <SubjectPageLayout
+        subject={fakeSubject}
+        subjectSlug={subjectId}
+        section="Lessons"
+        icon={FiBookOpen}
+        gradient="from-blue-500 to-cyan-500"
+        accentColor="blue"
+        total={lessons.length}
+        loading={loading}
+        itemLabel="lesson"
+        stats={stats}
+        search={search}
+        onSearch={setSearch}
+        filterSlot={
+          <FilterTabs
+            tabs={TYPE_TABS}
+            active={typeFilter}
+            onChange={setTypeFilter}
+            activeColor="bg-blue-600"
+          />
+        }
+        toolbarRight={
+          <div className="flex items-center gap-2">
             {canManage && (
-              <button onClick={() => setShowCreate(true)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-600/25 text-sm">
-                <FiPlus className="w-4 h-4" /> Add Lesson
+              <button
+                onClick={() => setShowDrafts(v => !v)}
+                title={showDrafts ? 'Hide drafts' : 'Show drafts'}
+                className={`p-2 rounded-xl border transition ${
+                  showDrafts
+                    ? 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'
+                    : 'bg-amber-500 border-amber-500 text-white'
+                }`}>
+                {showDrafts ? <FiEye className="w-4 h-4" /> : <FiEyeOff className="w-4 h-4" />}
               </button>
             )}
+            <ViewToggle view={view} onChange={setView} />
           </div>
-        </div>
-
-        {/* â”€â”€ Stats row â”€â”€ */}
-        {!loading && lessons.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { label: 'Total',     value: stats.total,     color: 'text-blue-500'    },
-              { label: 'Published', value: stats.published, color: 'text-emerald-500' },
-              { label: 'Videos',    value: stats.videos,    color: 'text-indigo-500'  },
-              { label: 'Documents', value: stats.docs,      color: 'text-amber-500'   },
-            ].map(s => (
-              <div key={s.label} className={`rounded-2xl border p-4 text-center shadow-sm ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-                <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
-                <p className={`text-xs font-medium mt-1 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>{s.label}</p>
-              </div>
-            ))}
+        }
+        navLinks={NAV_LINKS(subjectId, courseId)}
+        showAction={canManage}
+        actionLabel="Add Lesson"
+        onAction={() => setShowCreate(true)}
+      >
+        {/* Result count */}
+        {hasFilter && !loading && (
+          <div className="flex items-center justify-between -mt-2">
+            <p className="text-sm text-gray-500 dark:text-slate-400">
+              {filtered.length} of {lessons.length} lessons
+            </p>
+            <button
+              onClick={() => { setSearch(''); setTypeFilter(''); setShowDrafts(true); }}
+              className="text-xs font-semibold text-blue-500 hover:text-blue-600 transition">
+              Clear filters
+            </button>
           </div>
         )}
 
-        {/* â”€â”€ Search + filter â”€â”€ */}
-        <div className={`rounded-2xl border shadow-sm p-4 space-y-3 ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="relative flex-1 min-w-[200px]">
-              <FiSearch className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${dark ? 'text-slate-400' : 'text-gray-400'}`} />
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="Search by title or contentâ€¦"
-                className={`w-full pl-10 pr-10 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  dark ? 'bg-slate-900 border-slate-600 text-white placeholder-slate-500' : 'bg-gray-50 border-gray-300 text-gray-900'
-                }`} />
-              {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                  <FiX className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-            <button onClick={() => setShowFilter(v => !v)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition ${
-                showFilter || hasFilter
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : dark ? 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
-              }`}>
-              <FiFilter className="w-4 h-4" />
-              Filters{hasFilter ? ` (${[search,typeFilter,!showDrafts].filter(Boolean).length})` : ''}
-            </button>
-          </div>
-
-          {showFilter && (
-            <div className="flex flex-wrap gap-3 pt-1 items-center">
-              <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className={`${inputCls} min-w-[140px]`}>
-                {TYPE_OPTS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </select>
-              <button onClick={() => setShowDrafts(v => !v)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition ${
-                  showDrafts
-                    ? dark ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-gray-200 text-gray-700 hover:bg-gray-50'
-                    : 'bg-amber-500 text-white border-amber-500'
-                }`}>
-                {showDrafts ? <><FiEye className="w-4 h-4" /> Showing drafts</> : <><FiEyeOff className="w-4 h-4" /> Hiding drafts</>}
-              </button>
-              {hasFilter && (
-                <button onClick={() => { setSearch(''); setTypeFilter(''); setShowDrafts(true); }}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl border text-sm font-semibold transition ${dark ? 'border-slate-600 text-slate-300 hover:bg-slate-700' : 'border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
-                  <FiX className="w-4 h-4" /> Clear
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* â”€â”€ Content â”€â”€ */}
         {loading ? (
-          <div className="text-center py-16">
-            <div className="inline-block w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <p className={`mt-4 text-sm ${dark ? 'text-slate-400' : 'text-gray-500'}`}>Loading lessonsâ€¦</p>
+          <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+            {[1,2,3,4,5,6].map(i => <SkeletonCard key={i} lines={3} />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div className={`rounded-2xl border p-12 text-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-            <FiBookOpen className={`w-12 h-12 mx-auto mb-4 ${dark ? 'text-slate-600' : 'text-gray-300'}`} />
-            <p className={`font-semibold ${dark ? 'text-slate-300' : 'text-gray-700'}`}>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-14 text-center shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+              <FiBookOpen className="w-8 h-8 text-blue-400 opacity-60" />
+            </div>
+            <p className="font-semibold text-lg text-gray-700 dark:text-slate-300">
               {hasFilter ? 'No lessons match your filters' : 'No lessons yet'}
             </p>
-            <p className={`text-sm mt-1 ${dark ? 'text-slate-500' : 'text-gray-500'}`}>
-              {hasFilter ? 'Try different filters' : canManage ? 'Click "+ Add Lesson" to create the first lesson' : 'Your teacher hasn\'t added lessons yet'}
+            <p className="text-sm mt-1 text-gray-500 dark:text-slate-400">
+              {hasFilter
+                ? 'Try different filters'
+                : canManage
+                  ? 'Click "+ Add Lesson" to create the first lesson'
+                  : "Your teacher hasn't added lessons yet"}
             </p>
             {hasFilter && (
-              <button onClick={() => { setSearch(''); setTypeFilter(''); setShowDrafts(true); }}
+              <button
+                onClick={() => { setSearch(''); setTypeFilter(''); setShowDrafts(true); }}
                 className="mt-4 text-sm font-semibold text-blue-500 hover:text-blue-600 transition">
                 Clear filters
               </button>
             )}
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((lesson, idx) => (
-                <LessonCard
-                  key={lesson._id}
-                  lesson={lesson}
-                  index={lessons.indexOf(lesson)} // preserve original order index
-                  onView={setViewL}
-                  onEdit={canManage ? setEditL   : () => {}}
-                  onDelete={canManage ? setDeleteL : () => {}}
-                  theme={theme}
-                />
-              ))}
-            </div>
-            <p className={`text-center text-sm ${dark ? 'text-slate-500' : 'text-gray-400'}`}>
-              {hasFilter ? `${filtered.length} of ${lessons.length} lessons` : `${lessons.length} lesson${lessons.length !== 1 ? 's' : ''}`}
-            </p>
-          </>
+          <div className={`grid gap-4 ${view === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+            {filtered.map(lesson => (
+              <LessonCard
+                key={lesson._id}
+                lesson={lesson}
+                index={lessons.indexOf(lesson)}
+                onView={setViewL}
+                onEdit={canManage   ? setEditL   : () => {}}
+                onDelete={canManage ? setDeleteL : () => {}}
+                theme={theme}
+              />
+            ))}
+          </div>
         )}
-      </div>
+      </SubjectPageLayout>
 
-      {/* â”€â”€ Modals â”€â”€ */}
       {showCreate && (
         <LessonCreate
           courses={course ? [course] : []}
@@ -275,7 +241,6 @@ export default function LessonsPage() {
           theme={theme}
         />
       )}
-    </div>
+    </>
   );
 }
-

@@ -1,12 +1,20 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../store/auth/AuthContext';
-import { useTheme } from '../../store/theme/ThemeContext';
+import { useAuth }    from '../../store/auth/AuthContext';
+import { useTheme }   from '../../store/theme/ThemeContext';
 import { useSidebar } from '../../store/sidebar/SidebarContext';
-import { FiMenu, FiLogOut, FiBook, FiSun, FiMoon, FiSearch, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
+import {
+  FiMenu, FiLogOut, FiBook, FiSun, FiMoon,
+  FiSearch, FiChevronsLeft, FiChevronsRight, FiUser,
+} from 'react-icons/fi';
 import NotificationBell from '../../pages/notifications/NotificationBell';
 import ChatBell         from '../../pages/chats/ChatBell';
 import HeaderSearch     from './HeaderSearch';
+
+const AUTH_PAGES = [
+  '/login', '/register', '/forgot-password',
+  '/verify-otp', '/set-new-password', '/pending-approval',
+];
 
 export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
@@ -14,154 +22,170 @@ export default function Header() {
   const { open, toggle }                  = useSidebar();
   const location                          = useLocation();
   const dark                              = theme === 'dark';
+  const [searchOpen, setSearchOpen]       = useState(false);
 
-  const [searchOpen, setSearchOpen] = useState(false);
-
-  const authPages = ['/login', '/register', '/forgot-password', '/verify-otp', '/set-new-password', '/pending-approval'];
-  if (authPages.includes(location.pathname)) return null;
+  // Don't render on auth pages
+  if (AUTH_PAGES.includes(location.pathname)) return null;
 
   const isActive = (path) => location.pathname === path;
 
-  return (
-    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm sticky top-0 z-30 transition-colors duration-200">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="flex items-center gap-3">
+  // Consistent icon button class
+  const iconBtn = `p-2 rounded-xl transition-colors
+    bg-slate-100 dark:bg-slate-800
+    text-slate-600 dark:text-slate-300
+    hover:bg-slate-200 dark:hover:bg-slate-700
+    focus-visible:ring-2 focus-visible:ring-blue-500`;
 
-          {/* ── Sidebar toggle button ── */}
+  return (
+    <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 h-14">
+
+          {/* ── Sidebar toggle ── */}
           {isAuthenticated && (
             <button
               onClick={toggle}
               aria-label={open ? 'Collapse sidebar' : 'Expand sidebar'}
-              title={open ? 'Collapse sidebar' : 'Expand sidebar'}
-              className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex-shrink-0"
+              className={iconBtn}
             >
-              {/* Desktop: show chevrons to indicate collapse/expand */}
               <span className="hidden lg:block">
                 {open
                   ? <FiChevronsLeft  className="w-5 h-5" />
                   : <FiChevronsRight className="w-5 h-5" />
                 }
               </span>
-              {/* Mobile: always show hamburger */}
               <span className="lg:hidden">
                 <FiMenu className="w-5 h-5" />
               </span>
             </button>
           )}
 
-          {/* ── Logo — hidden while search is open on mobile ── */}
+          {/* ── Logo ── */}
           {!searchOpen && (
-            <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow group-hover:scale-105 transition-transform">
+            <Link to="/" className="flex items-center gap-2 group flex-shrink-0 ml-1">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm group-hover:bg-blue-700 transition-colors">
                 <FiBook className="w-4 h-4" />
               </div>
-              <span className="hidden sm:block text-xl font-extrabold text-slate-900 dark:text-white">
+              <span className="hidden sm:block text-lg font-extrabold text-slate-900 dark:text-white">
                 Lihiket<span className="text-blue-600">.</span>
               </span>
             </Link>
           )}
 
-          {/* ── Inline search bar — expands to fill available space ── */}
+          {/* ── Inline search ── */}
           {searchOpen && isAuthenticated ? (
             <div className="flex-1">
               <HeaderSearch onClose={() => setSearchOpen(false)} />
             </div>
           ) : (
             <>
-              {/* ── Desktop nav links ── */}
-              <div className="hidden md:flex items-center gap-6 flex-1">
+              {/* Desktop nav */}
+              <nav className="hidden md:flex items-center gap-1 flex-1 ml-4">
                 {isAuthenticated ? (
                   <>
-                    <Link to="/dashboard" className={`text-sm font-semibold transition-colors ${isActive('/dashboard') ? 'text-blue-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
-                      Dashboard
-                    </Link>
-                    <Link to="/" className={`text-sm font-semibold transition-colors ${isActive('/') ? 'text-blue-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
-                      Home
-                    </Link>
+                    {[
+                      { to: '/dashboard', label: 'Dashboard' },
+                      { to: '/',          label: 'Home'      },
+                    ].map(({ to, label }) => (
+                      <Link key={to} to={to}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                          isActive(to)
+                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}>
+                        {label}
+                      </Link>
+                    ))}
                   </>
                 ) : (
                   <>
-                    <Link to="/" className={`text-sm font-semibold transition-colors ${isActive('/') ? 'text-blue-600' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'}`}>
-                      Home
-                    </Link>
-                    <a href="#features" className="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">Features</a>
-                    <a href="#about"    className="text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">About</a>
+                    {[
+                      { to: '/',           label: 'Home'     },
+                      { href: '#features', label: 'Features' },
+                      { href: '#about',    label: 'About'    },
+                    ].map(({ to, href, label }) => (
+                      to
+                        ? <Link key={label} to={to} className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${isActive(to) ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'}`}>{label}</Link>
+                        : <a key={label} href={href} className="px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">{label}</a>
+                    ))}
                   </>
                 )}
-              </div>
+              </nav>
 
-              {/* ── Right controls ── */}
-              <div className="flex items-center gap-2 ml-auto">
+              {/* Right controls */}
+              <div className="flex items-center gap-1.5 ml-auto">
 
                 {/* Theme toggle */}
-                <button
-                  onClick={toggleTheme}
-                  className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                  title={theme === 'light' ? 'Dark mode' : 'Light mode'}
-                >
-                  {theme === 'light' ? <FiMoon className="w-5 h-5" /> : <FiSun className="w-5 h-5" />}
+                <button onClick={toggleTheme} className={iconBtn}
+                  title={dark ? 'Light mode' : 'Dark mode'}>
+                  {dark ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
                 </button>
 
-                {/* Search icon — opens inline search bar */}
+                {/* Search — authenticated only */}
                 {isAuthenticated && (
-                  <button
-                    onClick={() => setSearchOpen(true)}
-                    aria-label="Search"
-                    className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
+                  <button onClick={() => setSearchOpen(true)} className={iconBtn} aria-label="Search">
                     <FiSearch className="w-5 h-5" />
                   </button>
                 )}
 
-                {/* Notification bell */}
-                <NotificationBell theme={theme} />
-
-                {/* Chat bell with unread badge */}
-                <ChatBell theme={theme} />
+                {/* Notification + Chat bells */}
+                {isAuthenticated && (
+                  <>
+                    <NotificationBell theme={theme} />
+                    <ChatBell theme={theme} />
+                  </>
+                )}
 
                 {isAuthenticated ? (
                   <>
-                    {/* Avatar → /profile */}
-                    <Link
-                      to="/profile"
-                      title="My profile"
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-colors ${
+                    {/* Avatar link */}
+                    <Link to="/profile" title="My profile"
+                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-xl transition-colors ${
                         isActive('/profile')
-                          ? 'bg-blue-50 dark:bg-blue-500/10 ring-2 ring-blue-500/30'
-                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700'
-                      }`}
-                    >
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                          ? 'bg-blue-50 dark:bg-blue-500/10 ring-1 ring-blue-400/30'
+                          : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}>
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
                       </div>
-                      <div className="hidden sm:block text-left">
-                        <p className="text-xs font-semibold text-slate-900 dark:text-white leading-tight">
+                      <div className="hidden sm:block text-left leading-tight">
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">
                           {user?.firstName} {user?.lastName}
                         </p>
                         <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role}</p>
                       </div>
                     </Link>
 
-                    {/* Logout */}
-                    <button
-                      onClick={() => logout()}
-                      className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                    >
+                    {/* Logout — visible on sm+ in header, always visible on mobile via icon */}
+                    <button onClick={() => logout()}
+                      title="Logout"
+                      className={`${iconBtn} text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 hidden sm:flex`}>
                       <FiLogOut className="w-4 h-4" />
-                      <span>Logout</span>
+                    </button>
+                    {/* Mobile-only logout (icon only, always shown on xs) */}
+                    <button onClick={() => logout()}
+                      title="Logout"
+                      className={`${iconBtn} text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 sm:hidden`}>
+                      <FiLogOut className="w-4 h-4" />
                     </button>
                   </>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <Link to="/login"    className="px-3 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">Sign In</Link>
-                    <Link to="/register" className="px-3 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">Sign Up</Link>
+                    <Link to="/login"
+                      className="px-3 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors">
+                      Sign In
+                    </Link>
+                    <Link to="/register"
+                      className="px-3 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm">
+                      Sign Up
+                    </Link>
                   </div>
                 )}
               </div>
             </>
           )}
         </div>
-      </nav>
+      </div>
     </header>
   );
 }

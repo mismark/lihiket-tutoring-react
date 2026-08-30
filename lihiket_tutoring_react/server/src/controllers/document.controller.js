@@ -27,6 +27,7 @@ exports.getAll = async (req, res, next) => {
     if (subject)    filter.subject    = subject;
     if (gradeLevel) filter.gradeLevel = gradeLevel;
     if (category)   filter.category   = category;
+    if (req.query.course) filter.course = req.query.course;
     if (search) {
       const re = { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' };
       filter.$or = [{ title: re }, { description: re }, { tags: re }];
@@ -61,7 +62,7 @@ exports.getOne = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     if (!req.file) return next(new AppError('A file is required', 400));
-    const { title, description, subject, gradeLevel, category, allowDownload, tags, isPublished } = req.body;
+    const { title, description, subject, gradeLevel, category, allowDownload, tags, isPublished, course } = req.body;
     if (!title) return next(new AppError('title is required', 400));
 
     const url = fileUrl(req.file.path);
@@ -74,6 +75,7 @@ exports.create = async (req, res, next) => {
       fileSize:        req.file.size,
       mimeType:        req.file.mimetype,
       subject:         subject || null,
+      course:          course  || null,
       gradeLevel:      gradeLevel || '',
       category:        category || 'other',
       allowDownload:   allowDownload !== 'false',
@@ -98,7 +100,7 @@ exports.update = async (req, res, next) => {
       return next(new AppError('You can only edit your own documents', 403));
     }
 
-    const ALLOWED = ['title','description','subject','gradeLevel','category','allowDownload','tags','isPublished'];
+    const ALLOWED = ['title','description','subject','course','gradeLevel','category','allowDownload','tags','isPublished'];
     ALLOWED.forEach(f => {
       if (req.body[f] !== undefined) doc[f] = req.body[f];
     });

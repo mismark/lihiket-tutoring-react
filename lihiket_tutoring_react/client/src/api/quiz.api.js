@@ -6,4 +6,5 @@ export const createQuiz     = async (data)          => (await axios.post('/quizz
 export const updateQuiz     = async (id, data)      => (await axios.put(`/quizzes/${id}`, data)).data;
 export const deleteQuiz     = async (id)            => (await axios.delete(`/quizzes/${id}`)).data;
 export const submitQuiz     = async (id, data)      => (await axios.post(`/quizzes/${id}/submit`, data)).data;
-export const getQuizResults = async (id)            => (await axios.get(`/quizzes/${id}/results`)).data;
+export const getQuizResults   = async (id)            => (await axios.get(`/quizzes/${id}/results`)).data;
+export const getMyQuizResults = async (id)            => (await axios.get(`/quizzes/${id}/my-results`)).data;

@@ -1,7 +1,11 @@
 const Quiz       = require('../models/Quiz');
 const QuizResult = require('../models/QuizResult');
 const Question   = require('../models/Question');
+const Enrollment = require('../models/Enrollment');
+const Student    = require('../models/Student');
 const AppError   = require('../utils/AppError');
+const notify     = require('../utils/notify');
+const { EVENTS } = require('../constants/events');
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -58,7 +62,7 @@ exports.getOne = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const { title, description, subject, gradeLevel, questionIds,
-            duration, passMark, allowRetake, showAnswers } = req.body;
+            duration, passMarkPercent, allowRetake, showAnswers } = req.body;
     if (!title) return next(new AppError('title is required', 400));
 
     let questions = [];
@@ -70,12 +74,15 @@ exports.create = async (req, res, next) => {
       }).filter(Boolean);
     }
 
+    const totalMarks      = questions.reduce((s, q) => s + q.marks, 0);
+    const pct             = Math.min(100, Math.max(0, Number(passMarkPercent) || 50));
+    const passMark        = Math.round((pct / 100) * totalMarks);
+
     const quiz = await Quiz.create({
       title, description: description || '',
       subject: subject || null, gradeLevel: gradeLevel || '',
       questions, duration: Number(duration) || 15,
-      totalMarks: questions.reduce((s, q) => s + q.marks, 0),
-      passMark: Number(passMark) || 0,
+      totalMarks, passMark, passMarkPercent: pct,
       allowRetake: allowRetake !== false,
       showAnswers: showAnswers !== false,
       status: 'draft',
@@ -96,7 +103,7 @@ exports.update = async (req, res, next) => {
       return next(new AppError('You can only edit your own quizzes', 403));
 
     const ALLOWED = ['title','description','subject','gradeLevel','duration',
-                     'passMark','allowRetake','showAnswers','status'];
+                     'passMarkPercent','allowRetake','showAnswers','status'];
     ALLOWED.forEach(f => { if (req.body[f] !== undefined) quiz[f] = req.body[f]; });
 
     if (Array.isArray(req.body.questionIds)) {
@@ -107,8 +114,51 @@ exports.update = async (req, res, next) => {
       }).filter(Boolean);
       quiz.totalMarks = quiz.questions.reduce((s, q) => s + q.marks, 0);
     }
+    // Recompute absolute passMark from percentage whenever either changes
+    const pct  = Math.min(100, Math.max(0, Number(quiz.passMarkPercent) || 50));
+    quiz.passMarkPercent = pct;
+    quiz.passMark        = Math.round((pct / 100) * (quiz.totalMarks || 0));
 
     await quiz.save();
+
+    // ── When quiz is published, notify enrolled students ──────────────────
+    const wasPublished = req.body.status === 'published' && quiz.status !== 'published';
+    // (quiz.status was already set above, check the incoming value)
+    if (req.body.status === 'published') {
+      const subjectId = quiz.subject;
+      if (subjectId) {
+        const enrollments = await Enrollment.find({
+          subject: subjectId, status: 'active',
+        }).select('student');
+
+        const studentIds = enrollments.map(e => e.student);
+        await Promise.all(
+          studentIds.map(sid =>
+            notify({
+              userId:    sid,
+              userModel: 'Student',
+              type:      EVENTS.NEW_QUIZ,
+              title:     'New Quiz Available',
+              message:   `A new quiz "${quiz.title}" is now available. Duration: ${quiz.duration} min.`,
+              link:      '/quizzes',
+            })
+          )
+        );
+      }
+
+      // Notify the creator (teacher confirmation)
+      if (quiz.createdByModel === 'Teacher') {
+        await notify({
+          userId:    quiz.createdBy,
+          userModel: 'Teacher',
+          type:      EVENTS.QUIZ_PUBLISHED,
+          title:     'Quiz Published',
+          message:   `Your quiz "${quiz.title}" is now live for students.`,
+          link:      '/quizzes',
+        });
+      }
+    }
+
     res.json({ success: true, data: quiz });
   } catch (err) { next(err); }
 };
@@ -159,7 +209,29 @@ exports.submit = async (req, res, next) => {
       ? await QuizResult.findById(result._id).populate('answers.question', 'text correctAnswer explanation type')
       : result;
 
+    // ── Notify the quiz creator (teacher) ─────────────────────────────────
+    if (quiz.createdByModel === 'Teacher') {
+      const student = await Student.findById(req.user._id).select('firstName lastName');
+      await notify({
+        userId:    quiz.createdBy,
+        userModel: 'Teacher',
+        type:      EVENTS.QUIZ_SUBMITTED,
+        title:     'Quiz Submitted',
+        message:   `${student?.firstName} ${student?.lastName} completed "${quiz.title}" — scored ${result.score}/${result.totalMarks}.`,
+        link:      '/quizzes',
+      });
+    }
+
     res.status(201).json({ success: true, data: populated });
+  } catch (err) { next(err); }
+};
+
+exports.getMyResults = async (req, res, next) => {
+  try {
+    const results = await QuizResult.find({ quiz: req.params.id, student: req.user._id })
+      .populate('answers.question', 'text correctAnswer explanation type options')
+      .sort({ attempt: -1 });
+    res.json({ success: true, count: results.length, data: results });
   } catch (err) { next(err); }
 };
 

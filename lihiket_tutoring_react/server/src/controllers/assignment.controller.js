@@ -1,8 +1,12 @@
 const Assignment           = require('../models/Assignment');
 const AssignmentSubmission = require('../models/AssignmentSubmission');
+const Student              = require('../models/Student');
 const AppError             = require('../utils/AppError');
 const path                 = require('path');
 const fs                   = require('fs');
+const notify               = require('../utils/notify');
+const { notifyEnrolledStudents } = require('../utils/notify');
+const { EVENTS }           = require('../constants/events');
 
 function fileUrl(p) {
   if (!p) return null;
@@ -143,6 +147,20 @@ exports.submit = async (req, res, next) => {
       fileSize: req.file ? req.file.size           : 0,
       late, status: 'submitted',
     });
+
+    // ── Notify the teacher who created this assignment ────────────────────
+    if (a.createdBy && a.createdByModel === 'Teacher') {
+      const student = await Student.findById(req.user._id).select('firstName lastName gradeLevel');
+      await notify({
+        userId:    a.createdBy,
+        userModel: 'Teacher',
+        type:      EVENTS.ASSIGNMENT_SUBMITTED,
+        title:     'Assignment Submitted',
+        message:   `${student?.firstName} ${student?.lastName} submitted "${a.title}"${late ? ' (late)' : ''}.`,
+        link:      `/assignments`,
+      });
+    }
+
     res.status(201).json({ success: true, data: sub });
   } catch (err) { next(err); }
 };

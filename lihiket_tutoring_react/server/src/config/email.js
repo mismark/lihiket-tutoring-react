@@ -22,7 +22,7 @@ const sendEmail = async ({ to, toName, subject, html, text }) => {
     !config.email.smtpUser.startsWith('your_');
 
   if (!hasValidSMTP) {
-    console.log('\n────────────────────────────────────────────────────────────');
+    console.log('\n───────────────────────────────────────────────────────────');
     console.log('📧 [MOCK EMAIL SERVICE] (Configure SMTP in .env for live emails)');
     console.log(`To: ${toName || to} <${to}>`);
     console.log(`Subject: ${subject}`);

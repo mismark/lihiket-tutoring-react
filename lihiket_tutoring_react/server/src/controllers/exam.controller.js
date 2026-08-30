@@ -1,7 +1,11 @@
 const Exam       = require('../models/Exam');
 const ExamResult = require('../models/ExamResult');
 const Question   = require('../models/Question');
+const Enrollment = require('../models/Enrollment');
+const Student    = require('../models/Student');
 const AppError   = require('../utils/AppError');
+const notify     = require('../utils/notify');
+const { EVENTS } = require('../constants/events');
 
 // ── GET /api/exams ─────────────────────────────────────────────────────────────
 exports.getAll = async (req, res, next) => {
@@ -62,10 +66,9 @@ exports.getOne = async (req, res, next) => {
 exports.create = async (req, res, next) => {
   try {
     const { title, description, instructions, subject, gradeLevel,
-            questionIds, duration, passMark, startTime, endTime, allowReview } = req.body;
+            questionIds, duration, passMarkPercent, startTime, endTime, allowReview } = req.body;
     if (!title) return next(new AppError('title is required', 400));
 
-    // Fetch questions and build question list with marks
     let questions = [];
     if (Array.isArray(questionIds) && questionIds.length) {
       const qs = await Question.find({ _id: { $in: questionIds } });
@@ -76,12 +79,14 @@ exports.create = async (req, res, next) => {
     }
 
     const totalMarks = questions.reduce((s, q) => s + q.marks, 0);
+    const pct        = Math.min(100, Math.max(0, Number(passMarkPercent) || 50));
+    const passMark   = Math.round((pct / 100) * totalMarks);
 
     const exam = await Exam.create({
       title, description, instructions,
       subject: subject || null, gradeLevel: gradeLevel || '',
       questions, duration: Number(duration) || 60,
-      totalMarks, passMark: Number(passMark) || 0,
+      totalMarks, passMark, passMarkPercent: pct,
       startTime: startTime || null, endTime: endTime || null,
       allowReview: allowReview !== false,
       status: 'draft',
@@ -103,7 +108,7 @@ exports.update = async (req, res, next) => {
       return next(new AppError('You can only edit your own exams', 403));
 
     const ALLOWED = ['title','description','instructions','subject','gradeLevel',
-                     'duration','passMark','startTime','endTime','status','allowReview'];
+                     'duration','passMarkPercent','startTime','endTime','status','allowReview'];
     ALLOWED.forEach(f => { if (req.body[f] !== undefined) exam[f] = req.body[f]; });
 
     if (Array.isArray(req.body.questionIds)) {
@@ -114,8 +119,51 @@ exports.update = async (req, res, next) => {
       }).filter(Boolean);
       exam.totalMarks = exam.questions.reduce((s, q) => s + q.marks, 0);
     }
+    const pct      = Math.min(100, Math.max(0, Number(exam.passMarkPercent) || 50));
+    exam.passMarkPercent = pct;
+    exam.passMark        = Math.round((pct / 100) * (exam.totalMarks || 0));
 
     await exam.save();
+
+    // ── When exam is published, notify enrolled students ──────────────────
+    if (req.body.status === 'published') {
+      const subjectId = exam.subject;
+      if (subjectId) {
+        const enrollments = await Enrollment.find({
+          subject: subjectId, status: 'active',
+        }).select('student');
+
+        const startLabel = exam.startTime
+          ? ` Starting: ${new Date(exam.startTime).toLocaleString()}.`
+          : '';
+
+        await Promise.all(
+          enrollments.map(e =>
+            notify({
+              userId:    e.student,
+              userModel: 'Student',
+              type:      EVENTS.NEW_EXAM,
+              title:     'New Exam Scheduled',
+              message:   `Exam "${exam.title}" is now published. Duration: ${exam.duration} min.${startLabel}`,
+              link:      '/exams',
+            })
+          )
+        );
+      }
+
+      // Confirm to the creator (teacher)
+      if (exam.createdByModel === 'Teacher') {
+        await notify({
+          userId:    exam.createdBy,
+          userModel: 'Teacher',
+          type:      EVENTS.EXAM_PUBLISHED,
+          title:     'Exam Published',
+          message:   `Your exam "${exam.title}" is now live for enrolled students.`,
+          link:      '/exams',
+        });
+      }
+    }
+
     res.json({ success: true, data: exam });
   } catch (err) { next(err); }
 };
@@ -160,11 +208,33 @@ exports.submit = async (req, res, next) => {
       passed: score >= exam.passMark, timeTaken,
     });
 
+    // ── Notify the exam creator (teacher) ─────────────────────────────────
+    if (exam.createdByModel === 'Teacher') {
+      const student = await Student.findById(req.user._id).select('firstName lastName');
+      await notify({
+        userId:    exam.createdBy,
+        userModel: 'Teacher',
+        type:      EVENTS.EXAM_SUBMITTED,
+        title:     'Exam Submitted',
+        message:   `${student?.firstName} ${student?.lastName} submitted "${exam.title}" — scored ${score}/${exam.totalMarks}.`,
+        link:      '/exams',
+      });
+    }
+
     res.status(201).json({ success: true, data: result });
   } catch (err) { next(err); }
 };
 
 // ── GET /api/exams/:id/results ─────────────────────────────────────────────────
+exports.getMyResults = async (req, res, next) => {
+  try {
+    const results = await ExamResult.find({ exam: req.params.id, student: req.user._id })
+      .populate('answers.question', 'text correctAnswer explanation type options')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, count: results.length, data: results });
+  } catch (err) { next(err); }
+};
+
 exports.getResults = async (req, res, next) => {
   try {
     const results = await ExamResult.find({ exam: req.params.id })

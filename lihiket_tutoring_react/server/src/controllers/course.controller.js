@@ -1,8 +1,11 @@
-const Course    = require('../models/Course');
-const Lesson    = require('../models/Lesson');
-const Subject   = require('../models/Subject');
+const Course     = require('../models/Course');
+const Lesson     = require('../models/Lesson');
+const Subject    = require('../models/Subject');
 const Enrollment = require('../models/Enrollment');
-const AppError  = require('../utils/AppError');
+const AppError   = require('../utils/AppError');
+const notify     = require('../utils/notify');
+const { notifyEnrolledStudents } = require('../utils/notify');
+const { EVENTS } = require('../constants/events');
 
 // ── Resolve a slug OR ObjectId → Course document ─────────────────────────────
 async function resolveCourse(slugOrId) {
@@ -11,6 +14,8 @@ async function resolveCourse(slugOrId) {
     ? Course.findById(slugOrId)
     : Course.findOne({ slug: slugOrId });
 }
+
+
 
 // ── Resolve a slug OR ObjectId → Subject document ────────────────────────────
 async function resolveSubject(slugOrId) {
@@ -121,6 +126,15 @@ exports.createCourse = async (req, res, next) => {
     });
 
     await course.populate('teacher', 'firstName lastName');
+
+    // ── Notify enrolled students ──────────────────────────────────────────
+    await notifyEnrolledStudents(subject._id, {
+      type:    EVENTS.NEW_COURSE,
+      title:   'New Course Added',
+      message: `A new course "${course.title}" has been added to "${subject.name}".`,
+      link:    `/subjects/${subject.slug || subject._id}/courses`,
+    });
+
     res.status(201).json({ success: true, data: course });
   } catch (err) { next(err); }
 };
@@ -143,6 +157,14 @@ exports.updateCourse = async (req, res, next) => {
     if (isPublished !== undefined)    course.isPublished = isPublished;
     await course.save();
 
+    // ── Notify enrolled students if course is published or title changed ──
+    await notifyEnrolledStudents(course.subject, {
+      type:    EVENTS.COURSE_UPDATED,
+      title:   'Course Updated',
+      message: `The course "${course.title}" has been updated.`,
+      link:    `/subjects/${course.subject}/courses`,
+    });
+
     res.json({ success: true, data: course });
   } catch (err) { next(err); }
 };
@@ -156,6 +178,14 @@ exports.deleteCourse = async (req, res, next) => {
     if (req.userRole === 'teacher' && course.teacher.toString() !== req.user._id.toString()) {
       return next(new AppError('You can only delete your own courses', 403));
     }
+
+    // ── Notify enrolled students before deleting ─────────────────────────
+    await notifyEnrolledStudents(course.subject, {
+      type:    EVENTS.COURSE_DELETED,
+      title:   'Course Removed',
+      message: `The course "${course.title}" has been removed from the subject.`,
+      link:    `/subjects/${course.subject}/courses`,
+    });
 
     // Delete all lessons in the course
     await Lesson.deleteMany({ course: req.params.id });

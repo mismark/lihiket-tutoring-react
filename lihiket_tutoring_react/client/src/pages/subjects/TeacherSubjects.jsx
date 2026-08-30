@@ -6,7 +6,7 @@ import { getAllSubjects } from '../../api/subject.api';
 import toast from 'react-hot-toast';
 import {
   FiBook, FiArrowLeft, FiDollarSign, FiUsers,
-  FiUserCheck, FiBookOpen, FiSearch, FiX, FiSettings, FiDatabase,
+  FiUserCheck, FiBookOpen, FiSearch, FiX, FiSettings, FiDatabase, FiZap, FiAward, FiFileText,
 } from 'react-icons/fi';
 
 import SubjectStudentsModal from './components/SubjectStudentsModal';
@@ -89,33 +89,66 @@ function TeacherSubjectCard({ subject, onViewStudents, onViewCourses, theme }) {
       </div>
 
       {/* ── Action buttons ── */}
-      <div className="flex gap-2 mt-auto">
+      <div className="grid grid-cols-3 gap-2 mt-auto">
         <button
           onClick={() => onViewStudents(subject)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
-            dark
-              ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
-              : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+            dark ? 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
+                 : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
           }`}
         >
           <FiUserCheck className="w-3.5 h-3.5" /> Students
         </button>
         <Link
           to={`/subjects/${subject.slug || subject._id}/courses`}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
-            dark
-              ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
-              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+            dark ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+                 : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
           }`}
         >
           <FiBookOpen className="w-3.5 h-3.5" /> Courses
         </Link>
+        <Link
+          to={`/subjects/${subject.slug || subject._id}/quizzes`}
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+            dark ? 'bg-violet-600/20 text-violet-400 hover:bg-violet-600/30'
+                 : 'bg-violet-100 text-violet-700 hover:bg-violet-200'
+          }`}
+        >
+          <FiZap className="w-3.5 h-3.5" /> Quizzes
+        </Link>
+        <Link
+          to={`/subjects/${subject.slug || subject._id}/exams`}
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+            dark ? 'bg-amber-600/20 text-amber-400 hover:bg-amber-600/30'
+                 : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+          }`}
+        >
+          <FiAward className="w-3.5 h-3.5" /> Exams
+        </Link>
+        <Link
+          to={`/subjects/${subject.slug || subject._id}/assignments`}
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+            dark ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+                 : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+          }`}
+        >
+          <FiFileText className="w-3.5 h-3.5" /> Assignments
+        </Link>
+        <Link
+          to={`/subjects/${subject.slug || subject._id}/live-classes`}
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+            dark ? 'bg-red-600/20 text-red-400 hover:bg-red-600/30'
+                 : 'bg-red-100 text-red-700 hover:bg-red-200'
+          }`}
+        >
+          <FiRadio className="w-3.5 h-3.5" /> Live
+        </Link>
         <button
           onClick={() => onViewCourses(subject)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
-            dark
-              ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
-              : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition ${
+            dark ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
+                 : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
           }`}
         >
           <FiSettings className="w-3.5 h-3.5" /> Manage

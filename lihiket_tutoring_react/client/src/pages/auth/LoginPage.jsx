@@ -101,7 +101,11 @@ export default function LoginPage() {
               </p>
             </div>
 
-            <div className={`backdrop-blur-xl shadow-2xl rounded-3xl p-6 sm:p-8 space-y-6 animate-[slideUp_0.5s_ease-out] ${theme === 'dark' ? 'bg-slate-800/50 border-slate-700/50' : 'bg-white border-slate-200'}`}>
+            <div className={`border backdrop-blur-xl shadow-2xl rounded-3xl p-6 sm:p-8 space-y-6 animate-slide-up ${
+              theme === 'dark'
+                ? 'bg-slate-800/50 border-slate-700/50'
+                : 'bg-white border-slate-200'
+            }`}>
               <div className="hidden lg:block mb-2">
                 <h3 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>Sign in to account</h3>
                 <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Enter your credentials to access the platform</p>
@@ -127,10 +131,12 @@ export default function LoginPage() {
               {/* Divider */}
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-700" />
+                  <div className="w-full border-t border-slate-200 dark:border-slate-700" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className={`px-2 ${theme === 'dark' ? 'bg-slate-800/50 text-slate-400' : 'bg-white text-slate-500'}`}>Demo Accounts</span>
+                  <span className="px-2 bg-white dark:bg-slate-800/50 text-slate-400 dark:text-slate-500">
+                    Demo Accounts
+                  </span>
                 </div>
               </div>
 

@@ -3,6 +3,8 @@ const Teacher    = require('../models/Teacher');
 const Enrollment = require('../models/Enrollment');
 const AppError   = require('../utils/AppError');
 const { slugify } = require('../utils/slugify');
+const notify     = require('../utils/notify');
+const { EVENTS } = require('../constants/events');
 
 // ── Resolve a slug OR ObjectId to a Subject document ─────────────────────────
 // All routes that used /:id now accept either the slug or the raw _id so
@@ -237,6 +239,21 @@ exports.deleteSubject = async (req, res, next) => {
       return next(new AppError('Subject not found', 404));
     }
 
+    // ── Notify all teachers assigned to this subject before removing them ──
+    const assignedTeachers = await Teacher.find({ assignedSubjects: subject._id }).select('_id');
+    await Promise.all(
+      assignedTeachers.map(t =>
+        notify({
+          userId:    t._id,
+          userModel: 'Teacher',
+          type:      EVENTS.SUBJECT_DELETED,
+          title:     'Subject Deleted',
+          message:   `The subject "${subject.name}" (${subject.gradeLevel}) has been deleted by an administrator.`,
+          link:      '/my-subjects',
+        })
+      )
+    );
+
     await Teacher.updateMany(
       { assignedSubjects: subject._id },
       { $pull: { assignedSubjects: subject._id } }
@@ -277,6 +294,16 @@ exports.assignSubjectToTeacher = async (req, res, next) => {
     teacher.assignedSubjects.push(subject._id);
     await teacher.save();
 
+    // ── Notify the teacher ────────────────────────────────────────────────
+    await notify({
+      userId:    teacher._id,
+      userModel: 'Teacher',
+      type:      EVENTS.SUBJECT_ASSIGNED,
+      title:     'New Subject Assigned',
+      message:   `You have been assigned to teach "${subject.name}" (${subject.gradeLevel}).`,
+      link:      '/my-subjects',
+    });
+
     await teacher.populate('assignedSubjects');
 
     res.status(200).json({
@@ -310,6 +337,16 @@ exports.removeSubjectFromTeacher = async (req, res, next) => {
       (id) => id.toString() !== subject._id.toString()
     );
     await teacher.save();
+
+    // ── Notify the teacher ────────────────────────────────────────────────
+    await notify({
+      userId:    teacher._id,
+      userModel: 'Teacher',
+      type:      EVENTS.SUBJECT_REMOVED,
+      title:     'Subject Removed',
+      message:   `You have been removed from teaching "${subject.name}" (${subject.gradeLevel}).`,
+      link:      '/my-subjects',
+    });
 
     await teacher.populate('assignedSubjects');
 

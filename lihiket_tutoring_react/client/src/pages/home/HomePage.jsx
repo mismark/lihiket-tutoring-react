@@ -8,6 +8,7 @@ const FEATURES = [
   { icon: FiAward, title: 'Certificates', description: 'Earn certificates upon course completion' },
   { icon: FiCreditCard, title: 'Secure Payments', description: 'Safe and convenient payment options' },
   { icon: FiUsers, title: 'Expert Tutors', description: 'Learn from qualified and experienced educators' },
+ 
 ];
 
 const HOW_IT_WORKS = [

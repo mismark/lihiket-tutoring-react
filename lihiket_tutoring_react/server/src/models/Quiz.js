@@ -14,7 +14,8 @@ const QuizSchema = new mongoose.Schema(
     questions:    { type: [QuizQuestionSchema], default: [] },
     duration:     { type: Number, default: 15 },  // minutes
     totalMarks:   { type: Number, default: 0 },
-    passMark:     { type: Number, default: 0 },
+    passMark:     { type: Number, default: 0 },   // absolute marks (computed from passMarkPercent)
+    passMarkPercent: { type: Number, default: 50, min: 0, max: 100 }, // percentage (0-100)
     allowRetake:  { type: Boolean, default: true },
     showAnswers:  { type: Boolean, default: true },
     status:       { type: String, enum: ['draft','published','closed'], default: 'draft' },

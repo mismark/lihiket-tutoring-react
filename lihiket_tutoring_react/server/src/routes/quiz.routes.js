@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const { getAll, getOne, create, update, remove, submit, getResults }
+const { getAll, getOne, create, update, remove, submit, getResults, getMyResults }
   = require('../controllers/quiz.controller');
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
@@ -16,7 +16,8 @@ router.get('/:id',          all,     getOne);
 router.post('/',            staff,   create);
 router.put('/:id',          staff,   update);
 router.delete('/:id',       staff,   remove);
-router.post('/:id/submit',  student, submit);
-router.get('/:id/results',  staff,   getResults);
+router.post('/:id/submit',       student, submit);
+router.get('/:id/results',       staff,   getResults);      // teacher: all students
+router.get('/:id/my-results',    all,     getMyResults);    // student: own results
 
 module.exports = router;

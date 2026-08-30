@@ -84,22 +84,23 @@ export default function AdminSubjects() {
   };
 
   return (
-    <div className={`min-h-screen p-6 md:p-10 ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto">
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-900' : 'bg-slate-50'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* Header */}
+        {/* ── Page header ── */}
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
-            <h1 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              📚 Subject Management
+            <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+              Subject Management
             </h1>
-            <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
+            <p className="text-sm mt-1 text-slate-500 dark:text-slate-400">
               Create and manage subjects, assign teachers
             </p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-600/25"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold
+                       bg-blue-600 hover:bg-blue-700 text-white transition shadow-sm"
           >
             <FiPlus className="w-4 h-4" /> Create Subject
           </button>
