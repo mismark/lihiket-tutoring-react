@@ -86,8 +86,8 @@ import NotFoundPage from './pages/errors/NotFoundPage';
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return (
-    <div className="flex h-screen items-center justify-center text-gray-400">
-      Loading…
+    <div className="flex h-screen items-center justify-center text-slate-400 dark:bg-slate-950">
+      <div className="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
   return isAuthenticated ? children : <Navigate to="/login" replace />;
@@ -113,10 +113,16 @@ const DashboardRouter = () => {
 // ─── Subjects router by role ──────────────────────────────────────────────────
 
 const SubjectsRouter = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center text-slate-400">
+      <div className="w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
   if (user?.role === 'admin')   return <AdminSubjects />;
   if (user?.role === 'teacher') return <TeacherSubjects />;
   if (user?.role === 'student') return <StudentSubjects />;
+  if (user?.role === 'parent')  return <StudentSubjects />; // parents can browse subjects too
   return <Navigate to="/dashboard" replace />;
 };
 
