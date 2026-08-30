@@ -173,13 +173,16 @@ export default function TeacherSubjects() {
   const [showCourses,      setShowCourses]       = useState(false);
 
   const fetchAssignedSubjects = useCallback(async () => {
+    if (!user?.id) return; // wait until user is hydrated
     try {
       setLoading(true);
       const response = await getAllSubjects();
       const assigned = (response.data || []).filter(s =>
-        s.assignedTeachers?.some(
-          t => t._id === user?.id || t._id?.toString() === user?.id?.toString()
-        )
+        s.assignedTeachers?.some(t => {
+          const tid = (t._id || t.id || '').toString();
+          const uid = (user.id || user._id || '').toString();
+          return tid && uid && tid === uid;
+        })
       );
       setSubjects(assigned);
     } catch (err) {
@@ -189,7 +192,9 @@ export default function TeacherSubjects() {
     }
   }, [user?.id]);
 
-  useEffect(() => { fetchAssignedSubjects(); }, [fetchAssignedSubjects]);
+  useEffect(() => {
+    if (user?.id) fetchAssignedSubjects();
+  }, [user?.id, fetchAssignedSubjects]);
 
   const openStudents = (subject) => { setSelectedSubject(subject); setShowStudents(true); };
   const openCourses  = (subject) => { setSelectedSubject(subject); setShowCourses(true);  };
@@ -207,7 +212,7 @@ export default function TeacherSubjects() {
   });
 
   return (
-    <div className={`min-h-screen p-6 md:p-10 ${dark ? 'bg-slate-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen p-6 md:p-10 ${dark ? 'bg-slate-900' : 'bg-slate-50'}`}>
       <div className="max-w-6xl mx-auto">
 
         {/* ── Page header ── */}
@@ -216,16 +221,16 @@ export default function TeacherSubjects() {
             <Link
               to="/dashboard"
               className={`p-2 rounded-xl transition ${
-                dark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                dark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200 shadow-sm'
               }`}
             >
               <FiArrowLeft className="w-5 h-5" />
             </Link>
             <div>
-              <h1 className={`text-2xl font-extrabold ${dark ? 'text-white' : 'text-gray-900'}`}>
-                📚 My Assigned Subjects
+              <h1 className={`text-2xl font-extrabold ${dark ? 'text-white' : 'text-slate-900'}`}>
+                My Assigned Subjects
               </h1>
-              <p className={`text-sm mt-1 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>
+              <p className={`text-sm mt-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {loading ? '…' : `${subjects.length} subject${subjects.length !== 1 ? 's' : ''} assigned to you`}
               </p>
             </div>
@@ -235,24 +240,24 @@ export default function TeacherSubjects() {
         {/* ── Search bar ── */}
         {!loading && subjects.length > 0 && (
           <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-sm mb-6 ${
-            dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
+            dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
           }`}>
-            <FiSearch className={`w-4 h-4 flex-shrink-0 ${dark ? 'text-slate-400' : 'text-gray-400'}`} />
+            <FiSearch className={`w-4 h-4 flex-shrink-0 ${dark ? 'text-slate-400' : 'text-slate-400'}`} />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by name, code, grade or category…"
               className={`flex-1 text-sm bg-transparent outline-none ${
-                dark ? 'text-white placeholder-slate-500' : 'text-gray-900 placeholder-gray-400'
+                dark ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'
               }`}
             />
             {search && (
               <>
-                <button onClick={() => setSearch('')} className={`p-1 rounded-lg transition ${dark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-gray-100 text-gray-400'}`}>
+                <button onClick={() => setSearch('')} className={`p-1 rounded-lg transition ${dark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-400'}`}>
                   <FiX className="w-4 h-4" />
                 </button>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${dark ? 'bg-slate-700 text-slate-300' : 'bg-gray-100 text-gray-600'}`}>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${dark ? 'bg-slate-700 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
                   {filtered.length} of {subjects.length}
                 </span>
               </>
@@ -268,18 +273,18 @@ export default function TeacherSubjects() {
           </div>
 
         ) : subjects.length === 0 ? (
-          <div className={`rounded-2xl border shadow-sm p-12 text-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-            <FiBook className={`w-12 h-12 mx-auto mb-4 ${dark ? 'text-slate-600' : 'text-gray-300'}`} />
-            <p className={`font-semibold ${dark ? 'text-slate-300' : 'text-gray-700'}`}>No subjects assigned yet</p>
-            <p className={`text-sm mt-1 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>
+          <div className={`rounded-2xl border shadow-sm p-12 text-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+            <FiBook className={`w-12 h-12 mx-auto mb-4 ${dark ? 'text-slate-600' : 'text-slate-300'}`} />
+            <p className={`font-semibold ${dark ? 'text-slate-300' : 'text-slate-700'}`}>No subjects assigned yet</p>
+            <p className={`text-sm mt-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
               Contact your admin to get subjects assigned to you
             </p>
           </div>
 
         ) : filtered.length === 0 ? (
-          <div className={`rounded-2xl border shadow-sm p-12 text-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'}`}>
-            <FiSearch className={`w-12 h-12 mx-auto mb-4 ${dark ? 'text-slate-600' : 'text-gray-300'}`} />
-            <p className={`font-semibold ${dark ? 'text-slate-300' : 'text-gray-700'}`}>No subjects match "{search}"</p>
+          <div className={`rounded-2xl border shadow-sm p-12 text-center ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
+            <FiSearch className={`w-12 h-12 mx-auto mb-4 ${dark ? 'text-slate-600' : 'text-slate-300'}`} />
+            <p className={`font-semibold ${dark ? 'text-slate-300' : 'text-slate-700'}`}>No subjects match "{search}"</p>
             <button onClick={() => setSearch('')} className="mt-4 text-sm font-semibold text-blue-500 hover:text-blue-600 transition">
               Clear search
             </button>
