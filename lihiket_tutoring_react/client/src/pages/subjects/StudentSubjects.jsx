@@ -1,9 +1,8 @@
 ﻿import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../store/theme/ThemeContext';
 import { getAllSubjects } from '../../api/subject.api';
 import { getMyEnrollments, enrollInSubject, unenrollFromSubject } from '../../api/enrollment.api';
-import { initiatePayment } from '../../api/payment.api';
 import useCopy from '../../hooks/useCopy';
 import toast from 'react-hot-toast';
 import {
@@ -491,6 +490,7 @@ function SkeletonCard() {
 export default function StudentSubjects() {
   const { theme } = useTheme();
   const dark      = theme === 'dark';
+  const navigate  = useNavigate();
 
   const [subjects,      setSubjects]      = useState([]);
   const [enrolledIds,   setEnrolledIds]   = useState(new Set());
@@ -525,9 +525,10 @@ export default function StudentSubjects() {
     setEnrolling(subjectId);
     try {
       if (isPaid) {
-        const res = await initiatePayment(subjectId);
-        toast.success('Redirecting to Chapa payment\u2026');
-        setTimeout(() => { window.location.href = res.checkoutUrl; }, 600);
+        // Navigate to the professional checkout page with method selection
+        setEnrolling(null);
+        navigate(`/payment/checkout?subjectId=${subjectId}`);
+        return;
       } else {
         await enrollInSubject(subjectId);
         toast.success(`Enrolled in ${name}`);
@@ -737,3 +738,4 @@ export default function StudentSubjects() {
     </div>
   );
 }
+

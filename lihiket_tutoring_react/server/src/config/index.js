@@ -34,10 +34,12 @@ module.exports = {
 
   // Payment (Chapa)
   chapa: {
-    secretKey: process.env.CHAPA_SECRET_KEY,
-    baseUrl: 'https://api.chapa.co/v1',
-    callbackUrl: process.env.CHAPA_CALLBACK_URL,
-    returnUrl: process.env.CHAPA_RETURN_URL,
+    secretKey:     process.env.CHAPA_SECRET_KEY,
+    baseUrl:       'https://api.chapa.co/v1',
+    callbackUrl:   process.env.CHAPA_CALLBACK_URL,
+    returnUrl:     process.env.CHAPA_RETURN_URL,
+    webhookSecret: process.env.CHAPA_WEBHOOK_SECRET || '', // used for HMAC verification
+  },
   },
 
   // Timezone

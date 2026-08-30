@@ -44,8 +44,9 @@ import FileViewerPage from './pages/viewer/FileViewerPage';
 import ProfilePage from './pages/profile/ProfilePage';
 
 // Payment
-import PaymentVerifyPage  from './pages/payments/PaymentVerifyPage';
-import PaymentHistoryPage from './pages/payments/PaymentHistoryPage';
+import PaymentVerifyPage   from './pages/payments/PaymentVerifyPage';
+import PaymentHistoryPage  from './pages/payments/PaymentHistoryPage';
+import PaymentCheckoutPage from './pages/payments/PaymentCheckoutPage';
 
 // Question Bank
 import QuestionBankPage from './pages/questionbank/QuestionBankPage';
@@ -181,8 +182,9 @@ export default function App() {
             {/* Protected */}
             <Route path="/dashboard"       element={<PrivateRoute><DashboardRouter /></PrivateRoute>} />
             <Route path="/profile"         element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
-            <Route path="/payment/verify"  element={<PrivateRoute><PaymentVerifyPage /></PrivateRoute>} />
-            <Route path="/payment/history" element={<PrivateRoute><PaymentHistoryPage /></PrivateRoute>} />
+            <Route path="/payment/verify"   element={<PrivateRoute><PaymentVerifyPage /></PrivateRoute>} />
+            <Route path="/payment/checkout" element={<PrivateRoute><PaymentCheckoutPage /></PrivateRoute>} />
+            <Route path="/payment/history"  element={<PrivateRoute><PaymentHistoryPage /></PrivateRoute>} />
 
             <Route path="/subjects"
               element={<PrivateRoute><SubjectsRouter /></PrivateRoute>} />
