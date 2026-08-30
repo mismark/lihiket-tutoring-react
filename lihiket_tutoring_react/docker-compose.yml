@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7-jammy
+    container_name: lihiket-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - lihiket-net
+    environment:
+      MONGO_INITDB_DATABASE: lihiket_tutoring
+    # Only expose to internal network — never to the internet
+    expose:
+      - "27017"
+
+  # ── API + Client ───────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: lihiket-api
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    networks:
+      - lihiket-net
+    ports:
+      - "5000:5000"   # Nginx proxies to this
+    volumes:
+      - uploads:/app/server/uploads
+      - logs:/app/logs
+    env_file:
+      - ./server/.env
+    environment:
+      NODE_ENV:  production
+      MONGO_URI: mongodb://mongo:27017/lihiket_tutoring
+      PORT:      5000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout:  10s
+      retries:  3
+      start_period: 30s
+
+volumes:
+  mongo_data:
+  uploads:
+  logs:
+
+networks:
+  lihiket-net:
+    driver: bridge

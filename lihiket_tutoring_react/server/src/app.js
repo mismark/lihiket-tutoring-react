@@ -15,7 +15,21 @@ const app = express();
 // â”€â”€â”€ Security â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginResourcePolicy:  { policy: 'cross-origin' },
+    // Strong Content-Security-Policy for production
+    contentSecurityPolicy: process.env.NODE_ENV === 'production' ? {
+      directives: {
+        defaultSrc:  ["'self'"],
+        scriptSrc:   ["'self'", "'unsafe-inline'"],
+        styleSrc:    ["'self'", "'unsafe-inline'", 'fonts.googleapis.com'],
+        fontSrc:     ["'self'", 'fonts.gstatic.com'],
+        imgSrc:      ["'self'", 'data:', 'blob:'],
+        connectSrc:  ["'self'", 'api.chapa.co'],
+        frameSrc:    ["'self'", 'checkout.chapa.co'],
+        objectSrc:   ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    } : false,
   })
 );
 
@@ -148,4 +162,5 @@ app.use((_req, res) => {
 app.use(errorMiddleware);
 
 module.exports = app;
+
 
