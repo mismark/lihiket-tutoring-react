@@ -26,8 +26,9 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-  // LAN / phone access
+  // LAN / phone access — add any new IP here
   'http://10.71.170.86:5173',
+  'http://10.161.141.169:5173',
   'http://192.168.37.1:5173',
   'http://192.168.229.1:5173',
 ];

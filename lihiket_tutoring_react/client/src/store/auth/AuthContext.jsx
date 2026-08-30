@@ -2,6 +2,10 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+// Bump this version whenever the user object shape changes.
+// Old sessions with a different version will be cleared automatically.
+const AUTH_VERSION = '2';
+
 export const AuthProvider = ({ children }) => {
   const [user,    setUser]    = useState(null);
   const [token,   setToken]   = useState(() => localStorage.getItem('token') || null);
@@ -9,17 +13,26 @@ export const AuthProvider = ({ children }) => {
 
   // Hydrate user from localStorage on first mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser  = localStorage.getItem('user');
+    const storedVersion = localStorage.getItem('auth_version');
+    const storedToken   = localStorage.getItem('token');
+    const storedUser    = localStorage.getItem('user');
+
+    // Clear everything if version mismatch (forces clean re-login)
+    if (storedVersion !== AUTH_VERSION) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.setItem('auth_version', AUTH_VERSION);
+      setLoading(false);
+      return;
+    }
 
     if (storedToken && storedUser) {
       try {
         const parsed = JSON.parse(storedUser);
-        // Only restore if it has the essential fields
+        // Validate essential fields — must have an id AND a role
         if (parsed && (parsed.id || parsed._id) && parsed.role) {
           setUser(parsed);
         } else {
-          // Stale/incomplete data — clear it so the user re-logs in cleanly
           localStorage.removeItem('user');
           localStorage.removeItem('token');
         }
@@ -30,16 +43,16 @@ export const AuthProvider = ({ children }) => {
     }
 
     setLoading(false);
-  }, []); // run once on mount only
+  }, []); // run once on mount
 
   const login = (userData, authToken) => {
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('token', authToken);
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('auth_version', AUTH_VERSION);
   };
 
-  // Call this after a successful profile update to keep header/sidebar in sync
   const updateUser = (updatedData) => {
     setUser(prev => {
       const merged = { ...prev, ...updatedData };
