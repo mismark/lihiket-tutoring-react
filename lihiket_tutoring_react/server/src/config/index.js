@@ -40,7 +40,6 @@ module.exports = {
     returnUrl:     process.env.CHAPA_RETURN_URL,
     webhookSecret: process.env.CHAPA_WEBHOOK_SECRET || '', // used for HMAC verification
   },
-  },
 
   // Timezone
   timezone: 'Africa/Addis_Ababa',
