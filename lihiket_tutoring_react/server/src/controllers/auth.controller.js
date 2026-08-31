@@ -258,9 +258,9 @@ exports.forgotPassword = async (req, res) => {
     throw new AppError('No account found with this email address.', 404);
   }
 
-  // Generate 4-digit OTP code
+  // Generate 6-digit cryptographically secure OTP
   const otpCode = generateOTP();
-  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
   // Invalidate any active OTPs for this email
   await OTP.deleteMany({ email: normalizedEmail });
@@ -273,43 +273,113 @@ exports.forgotPassword = async (req, res) => {
     isUsed: false,
   });
 
-  // Send email with OTP
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="color: #1e3a8a; margin: 0;">Lihiket Tutoring</h2>
-        <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Password Reset Request</p>
-      </div>
-      <p style="color: #334155; font-size: 15px;">Hello <strong>${userFound.firstName}</strong>,</p>
-      <p style="color: #334155; font-size: 14px; line-height: 1.6;">
-        You recently requested to reset your password for your Lihiket account. Use the 4-digit verification code below to proceed:
-      </p>
-      <div style="text-align: center; margin: 28px 0;">
-        <span style="display: inline-block; font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #2563eb; background: #eff6ff; padding: 14px 28px; border-radius: 12px; border: 2px dashed #93c5fd;">
-          ${otpCode}
-        </span>
-      </div>
-      <p style="color: #64748b; font-size: 13px; text-align: center;">
-        This code is valid for <strong>10 minutes</strong>. If you did not request a password reset, please ignore this email.
-      </p>
-      <hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0;" />
-      <p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 0;">
-        © ${new Date().getFullYear()} Lihiket Online Tutoring Platform. All rights reserved.
-      </p>
-    </div>
-  `;
+  // Professional HTML email template
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Password Reset — Lihiket</title>
+</head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#2563eb 0%,#4f46e5 100%);padding:36px 40px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">
+                Lihiket<span style="color:#93c5fd;">.</span>
+              </h1>
+              <p style="margin:4px 0 0;color:rgba(255,255,255,0.75);font-size:13px;">Online Tutoring Platform</p>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:40px 40px 32px;">
+
+              <!-- Icon -->
+              <div style="text-align:center;margin-bottom:24px;">
+                <div style="display:inline-block;width:64px;height:64px;background:#eff6ff;border-radius:50%;line-height:64px;font-size:28px;">🔐</div>
+              </div>
+
+              <!-- Greeting -->
+              <h2 style="margin:0 0 8px;color:#0f172a;font-size:20px;font-weight:700;text-align:center;">
+                Password Reset Request
+              </h2>
+              <p style="margin:0 0 24px;color:#64748b;font-size:14px;text-align:center;line-height:1.6;">
+                Hi <strong style="color:#0f172a;">${userFound.firstName}</strong>, use the verification code below to reset your password.
+              </p>
+
+              <!-- OTP Box -->
+              <div style="text-align:center;margin:28px 0;">
+                <div style="display:inline-block;background:#eff6ff;border:2px dashed #3b82f6;border-radius:16px;padding:20px 40px;">
+                  <p style="margin:0 0 4px;color:#64748b;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;">Verification Code</p>
+                  <p style="margin:0;color:#1d4ed8;font-size:44px;font-weight:900;letter-spacing:12px;line-height:1.2;">
+                    ${otpCode}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Expiry notice -->
+              <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:8px;padding:12px 16px;margin-bottom:24px;">
+                <p style="margin:0;color:#92400e;font-size:13px;">
+                  ⏰ &nbsp;This code expires in <strong>15 minutes</strong>. Request a new one if it expires.
+                </p>
+              </div>
+
+              <!-- Security warning -->
+              <div style="background:#fef2f2;border-left:4px solid #ef4444;border-radius:8px;padding:12px 16px;margin-bottom:24px;">
+                <p style="margin:0;color:#991b1b;font-size:13px;">
+                  🔒 &nbsp;<strong>Did not request this?</strong> Ignore this email. Your password will not change.
+                </p>
+              </div>
+
+              <!-- Steps -->
+              <p style="color:#475569;font-size:13px;line-height:1.8;margin:0;">
+                <strong style="color:#0f172a;">How to reset:</strong><br/>
+                1. Go back to the password reset page<br/>
+                2. Enter the 6-digit code above<br/>
+                3. Create your new secure password
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:24px 40px;text-align:center;">
+              <p style="margin:0 0 4px;color:#94a3b8;font-size:12px;">
+                This email was sent to <strong>${normalizedEmail}</strong>
+              </p>
+              <p style="margin:0;color:#94a3b8;font-size:12px;">
+                © ${new Date().getFullYear()} Lihiket Online Tutoring. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+  const text = `Hi ${userFound.firstName},\n\nYour Lihiket password reset verification code is:\n\n  ${otpCode}\n\nThis code expires in 15 minutes.\n\nIf you did not request this, ignore this email.\n\n— Lihiket Team`;
 
   await sendEmail({
-    to: normalizedEmail,
-    toName: `${userFound.firstName} ${userFound.lastName}`,
-    subject: `Your Lihiket Password Reset OTP: ${otpCode}`,
+    to:      normalizedEmail,
+    toName:  `${userFound.firstName} ${userFound.lastName}`,
+    subject: `${otpCode} is your Lihiket verification code`,
     html,
-    text: `Your Lihiket password reset OTP is: ${otpCode}. It expires in 10 minutes.`,
+    text,
   });
 
   res.json({
     success: true,
-    message: `A 4-digit OTP has been sent to ${normalizedEmail}.`,
+    message: `A 6-digit verification code has been sent to ${normalizedEmail}. Check your inbox (and spam folder).`,
     data: { email: normalizedEmail },
   });
 };
@@ -319,7 +389,7 @@ exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
-    throw new AppError('Email and 4-digit OTP code are required.', 400);
+    throw new AppError('Email and 6-digit OTP code are required.', 400);
   }
 
   const normalizedEmail = email.trim().toLowerCase();

@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
             Forgot your password?
           </h2>
           <p className={`mt-2 text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-            No worries! Enter your email and we'll send a 4-digit OTP code to verify your identity.
+            No worries! Enter your email and we'll send a 6-digit OTP code to verify your identity.
           </p>
         </div>
 
@@ -113,7 +113,7 @@ export default function ForgotPasswordPage() {
                 </>
               ) : (
                 <>
-                  <span>Send 4-Digit OTP</span>
+                  <span>Send Verification Code</span>
                   <FiArrowRight className="w-4 h-4" />
                 </>
               )}
