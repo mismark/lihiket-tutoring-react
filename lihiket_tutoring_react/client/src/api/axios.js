@@ -1,66 +1,62 @@
 import axios from 'axios';
 
+/**
+ * Base URL resolution:
+ *  - Development: '/api' → Vite proxy → http://localhost:5000/api
+ *  - Production:  VITE_API_URL env var (e.g. https://lihiket-api.onrender.com/api)
+ */
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 20000,
+  withCredentials: false,
 });
 
-// ── Request: attach token ─────────────────────────────────────────────────────
+// ── Request: attach JWT token ─────────────────────────────────────────────────
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// ── Response: handle errors globally ─────────────────────────────────────────
+// ── Response: global error handling ──────────────────────────────────────────
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     const status = err.response?.status;
 
-    // ── 401 Unauthorized: token missing, expired, or invalid ─────────────────
-    // Clear credentials and redirect to login so the user re-authenticates.
-    // We use window.location instead of React Router here because this
-    // interceptor lives outside the component tree.
+    // 401 — session expired or invalid token
     if (status === 401) {
       const wasLoggedIn = !!localStorage.getItem('token');
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-
-      // Only redirect if the user had a session (avoid redirect loops on the
-      // login page itself or on public routes that return 401).
       if (wasLoggedIn && !window.location.pathname.startsWith('/login')) {
-        // Dispatch a custom event so React providers (ChatContext, etc.) can
-        // stop their intervals immediately without waiting for a re-render.
         window.dispatchEvent(new CustomEvent('auth:logout'));
         window.location.href = '/login';
       }
-
       return Promise.reject(new Error('Session expired. Please log in again.'));
     }
 
-    // ── 429 Too Many Requests ────────────────────────────────────────────────
+    // 429 — rate limited
     if (status === 429) {
-      return Promise.reject(
-        new Error('Too many requests — please wait a moment and try again.')
-      );
+      return Promise.reject(new Error('Too many requests — please wait a moment.'));
     }
 
-    // ── 403 Forbidden ─────────────────────────────────────────────────────────
+    // 403 — forbidden
     if (status === 403) {
       return Promise.reject(
         new Error(err.response?.data?.message || 'You do not have permission to do that.')
       );
     }
 
-    // ── Network / timeout ─────────────────────────────────────────────────────
+    // Network / timeout / other
     let message = err.response?.data?.message;
     if (message && typeof message === 'object') message = JSON.stringify(message);
-
     if (!message) {
       if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
-        message = 'Cannot connect to server. Make sure the backend is running.';
+        message = 'Cannot connect to server. Check your connection.';
       } else if (err.code === 'ECONNABORTED') {
         message = 'Request timed out. Please try again.';
       } else {
@@ -69,7 +65,6 @@ api.interceptors.response.use(
           : 'Something went wrong. Please try again.';
       }
     }
-
     return Promise.reject(new Error(String(message)));
   }
 );

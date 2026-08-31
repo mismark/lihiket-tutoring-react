@@ -4,7 +4,7 @@ import { io } from 'socket.io-client';
 const SocketContext = createContext(null);
 
 const SERVER_URL = import.meta.env.VITE_API_URL?.replace('/api', '')
-  || 'http://localhost:5000';
+  || (import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin);
 
 export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
