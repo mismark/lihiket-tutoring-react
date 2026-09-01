@@ -239,30 +239,37 @@ exports.login = async (req, res) => {
 
 // ─── POST /api/auth/forgot-password ───────────────────────────────────────────
 exports.forgotPassword = async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.body;  // can be email OR username
 
-  if (!email || !/\S+@\S+\.\S+/.test(email)) {
-    throw new AppError('Please provide a valid email address.', 400);
+  if (!email) {
+    throw new AppError('Please provide your email address or username.', 400);
   }
 
-  const normalizedEmail = email.trim().toLowerCase();
+  const identifier = email.trim().toLowerCase();
 
-  // Check if user exists in any of the 4 collections
-  let userExists = false;
+  // Determine query — email contains @, username does not
+  const isEmail = identifier.includes('@');
+  const query   = isEmail
+    ? { email: identifier }
+    : { $or: [{ email: identifier }, { username: identifier }] };
+
+  // Find user across all collections
   let userFound = null;
 
   for (const item of ALL_MODELS) {
-    const found = await item.model.findOne({ email: normalizedEmail });
-    if (found) {
-      userExists = true;
-      userFound = found;
-      break;
-    }
+    const found = await item.model.findOne(query);
+    if (found) { userFound = found; break; }
   }
 
-  if (!userExists) {
-    throw new AppError('No account found with this email address.', 404);
+  if (!userFound) {
+    // Return generic message so we don't leak whether an account exists
+    return res.json({
+      success: true,
+      message: 'If an account with that email or username exists, a verification code has been sent.',
+    });
   }
+
+  const normalizedEmail = userFound.email; // always use the real email for OTP delivery
 
   // Generate 6-digit cryptographically secure OTP
   const otpCode = generateOTP();
