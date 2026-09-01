@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi';
+import { FiAtSign, FiLock, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi';
 
 export default function LoginForm({ 
   form, 
@@ -14,19 +14,19 @@ export default function LoginForm({
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
       <div>
         <label className="block text-xs font-bold uppercase tracking-wider text-blue-400 mb-2.5">
-          Email Address
+          Email or Username
         </label>
         <div className="relative rounded-xl shadow-sm transition-all duration-200 hover:shadow-md">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
-            <FiMail className="w-5 h-5" />
+            <FiAtSign className="w-5 h-5" />
           </div>
           <input
-            type="email"
+            type="text"
             value={form.email}
             onChange={onChange('email')}
             required
-            autoComplete="email"
-            placeholder="name@company.com"
+            autoComplete="username"
+            placeholder="name@email.com or username"
             className={`block w-full pl-11 pr-4 py-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${theme === 'dark' ? 'bg-slate-900/60 border-slate-700 text-white placeholder-slate-500 hover:border-slate-600' : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 hover:border-slate-400'}`}
           />
         </div>

@@ -166,17 +166,23 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    throw new AppError('Email and password are required.', 400);
+    throw new AppError('Email/username and password are required.', 400);
   }
 
-  const normalizedEmail = email.trim().toLowerCase();
+  const identifier = email.trim().toLowerCase();
+
+  // Determine whether the identifier looks like an email or a username
+  const isEmail = identifier.includes('@');
+  const query   = isEmail
+    ? { email: identifier }
+    : { $or: [{ email: identifier }, { username: identifier }] };
 
   // Search across all collections
   let user = null;
   let collection = null;
 
   for (const item of ALL_MODELS) {
-    const found = await item.model.findOne({ email: normalizedEmail }).select('+password');
+    const found = await item.model.findOne(query).select('+password');
     if (found) {
       user = found;
       collection = item.col;
@@ -185,12 +191,12 @@ exports.login = async (req, res) => {
   }
 
   if (!user) {
-    throw new AppError('Invalid email or password.', 401);
+    throw new AppError('Invalid email/username or password.', 401);
   }
 
   const isMatch = await user.matchPassword(password);
   if (!isMatch) {
-    throw new AppError('Invalid email or password.', 401);
+    throw new AppError('Invalid email/username or password.', 401);
   }
 
   if (!user.isVerified) {
