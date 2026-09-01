@@ -167,11 +167,12 @@ app.use('/api/chats',         require('./routes/chat.routes'));
 // ── Temporary SMTP debug — remove after verifying Render env vars ─────────────
 app.get('/api/debug-smtp', (_req, res) => {
   res.json({
-    SMTP_HOST: process.env.SMTP_HOST  || 'NOT SET',
-    SMTP_PORT: process.env.SMTP_PORT  || 'NOT SET',
-    SMTP_USER: process.env.SMTP_USER  || 'NOT SET',
-    SMTP_PASS: process.env.SMTP_PASS  ? `SET (${process.env.SMTP_PASS.length} chars, ends: ...${process.env.SMTP_PASS.slice(-6)})` : 'NOT SET',
-    NODE_ENV:  process.env.NODE_ENV   || 'NOT SET',
+    SMTP_HOST:     process.env.SMTP_HOST     || 'NOT SET',
+    SMTP_PORT:     process.env.SMTP_PORT     || 'NOT SET',
+    SMTP_USER:     process.env.SMTP_USER     || 'NOT SET',
+    SMTP_PASS:     process.env.SMTP_PASS     ? `SET (${process.env.SMTP_PASS.length} chars)` : 'NOT SET',
+    BREVO_API_KEY: process.env.BREVO_API_KEY ? `SET (${process.env.BREVO_API_KEY.length} chars, ends: ...${process.env.BREVO_API_KEY.slice(-6)})` : 'NOT SET',
+    NODE_ENV:      process.env.NODE_ENV      || 'NOT SET',
   });
 });
 
