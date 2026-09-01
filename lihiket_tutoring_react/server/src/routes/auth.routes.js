@@ -10,6 +10,7 @@ const {
   getMe,
   updateProfile,
   changePassword,
+  createFirstAdmin,
 } = require('../controllers/auth.controller');
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
@@ -18,6 +19,11 @@ const { uploadCV }        = require('../middleware/upload.middleware');
 // Public auth endpoints
 router.post('/register', uploadCV, register);
 router.post('/login', login);
+
+// ── First-time admin setup ────────────────────────────────────────────────────
+// Only works when NO admin exists in the database yet.
+// After first admin is created this endpoint returns 403.
+router.post('/create-admin', createFirstAdmin);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-otp', verifyOTP);
 router.post('/set-new-password', setNewPassword);

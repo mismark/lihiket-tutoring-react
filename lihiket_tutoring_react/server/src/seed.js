@@ -1,110 +1,156 @@
+/**
+ * Lihiket Tutoring — Database Seeder
+ *
+ * Creates default admin, teacher, student, parent accounts.
+ * Run: node src/seed.js
+ *
+ * Also supports creating ONLY admin:
+ * node src/seed.js --admin-only
+ */
+
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const dotenv   = require('dotenv');
 dotenv.config();
 
-const Admin = require('./models/Admin');
+const Admin   = require('./models/Admin');
 const Teacher = require('./models/Teacher');
 const Student = require('./models/Student');
-const Parent = require('./models/Parent');
+const Parent  = require('./models/Parent');
+
+const adminOnly = process.argv.includes('--admin-only');
 
 const seedUsers = async () => {
-  try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/lihiket_tutoring';
-    console.log(`Connecting to MongoDB at: ${mongoUri}`);
-    await mongoose.connect(mongoUri);
-    console.log('MongoDB connected successfully for seeding.');
+  const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/lihiket_tutoring';
 
-    // 1. Seed Super Admin
-    await Admin.deleteMany({ email: 'admin@lihiket.com' });
-    const admin = await Admin.create({
-      firstName: 'Super',
-      lastName: 'Admin',
-      username: 'superadmin',
-      email: 'admin@lihiket.com',
-      password: 'Admin@12345',
-      phone: '+251 911 000 001',
-      role: 'admin',
-      isVerified: true,
-      isActive: true,
+  console.log('\n🌱 Lihiket Seeder Starting...');
+  console.log(`📡 Connecting to: ${mongoUri.replace(/:([^:@]{1,})?@/, ':****@')}\n`);
+
+  await mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 10000,  // fail fast if Atlas blocks
+    connectTimeoutMS:         10000,
+  });
+
+  console.log('✅ MongoDB connected.\n');
+
+  // ── Super Admin ──────────────────────────────────────────────────────────────
+  await Admin.findOneAndUpdate(
+    { email: 'admin@lihiket.com' },
+    {
+      firstName:   'Super',
+      lastName:    'Admin',
+      username:    'superadmin',
+      email:       'admin@lihiket.com',
+      password:    'Admin@12345',
+      phone:       '+251 911 000 001',
+      role:        'admin',
+      isVerified:  true,
+      isActive:    true,
       permissions: ['manage_users', 'manage_courses', 'manage_subjects', 'view_analytics'],
-    });
-    console.log('✅ Super Admin created: admin@lihiket.com / Admin@12345');
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  console.log('✅ Admin:   admin@lihiket.com       / Admin@12345');
 
-    // 2. Seed Verified Teacher
-    await Teacher.deleteMany({ email: 'teacher@lihiket.com' });
-    const teacher = await Teacher.create({
-      firstName: 'Dr. Michael',
-      lastName: 'Kebede',
-      username: 'teacher.michael',
-      email: 'teacher@lihiket.com',
-      password: 'Teacher@12345',
-      phone: '+251 911 000 002',
-      role: 'teacher',
-      specializedSubject: 'Mathematics',
-      qualifications: 'PhD in Pure & Applied Mathematics',
-      experience: 10,
-      isVerified: true,
-      isActive: true,
-    });
-    console.log('✅ Verified Teacher created: teacher@lihiket.com / Teacher@12345');
+  if (adminOnly) {
+    console.log('\n🎉 Admin created successfully!');
+    console.log('   Login at: http://localhost:5173/login\n');
+    await mongoose.disconnect();
+    process.exit(0);
+  }
 
-    // 3. Seed Verified Student
-    await Student.deleteMany({ email: 'student@lihiket.com' });
-    const student = await Student.create({
-      firstName: 'Selam',
-      lastName: 'Alemu',
-      username: 'student.selam',
-      email: 'student@lihiket.com',
-      password: 'Student@12345',
-      phone: '+251 911 000 003',
-      role: 'student',
-      gradeLevel: 'G12',
+  // ── Teacher ──────────────────────────────────────────────────────────────────
+  await Teacher.findOneAndUpdate(
+    { email: 'teacher@lihiket.com' },
+    {
+      firstName:         'Zelalem',
+      lastName:          'Misganaw',
+      username:          'teacher.zelalem',
+      email:             'teacher@lihiket.com',
+      password:          'Teacher@12345',
+      phone:             '+251 911 000 002',
+      role:              'teacher',
+      specializedSubject:'Mathematics',
+      qualifications:    'MSc in Mathematics',
+      experience:        5,
+      isVerified:        true,
+      isActive:          true,
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  console.log('✅ Teacher: teacher@lihiket.com     / Teacher@12345');
+
+  // ── Student ──────────────────────────────────────────────────────────────────
+  const student = await Student.findOneAndUpdate(
+    { email: 'student@lihiket.com' },
+    {
+      firstName:      'Selam',
+      lastName:       'Alemu',
+      username:       'student.selam',
+      email:          'student@lihiket.com',
+      password:       'Student@12345',
+      phone:          '+251 911 000 003',
+      role:           'student',
+      gradeLevel:     'G12',
       parentFullName: 'Alemu Tadesse',
-      parentPhone: '+251 911 000 004',
-      isVerified: true,
-      isActive: true,
-    });
-    console.log('✅ Verified Student created: student@lihiket.com / Student@12345');
+      parentPhone:    '+251 911 000 004',
+      isVerified:     true,
+      isActive:       true,
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  console.log('✅ Student: student@lihiket.com     / Student@12345');
 
-    // 4. Seed Verified Parent
-    await Parent.deleteMany({ email: 'parent@lihiket.com' });
-    const parent = await Parent.create({
-      firstName: 'Alemu',
-      lastName: 'Tadesse',
-      username: 'parent.alemu',
-      email: 'parent@lihiket.com',
-      password: 'Parent@12345',
-      phone: '+251 911 000 004',
-      role: 'parent',
-      country: 'Ethiopia',
-      children: [student._id],
+  // ── Parent ───────────────────────────────────────────────────────────────────
+  await Parent.findOneAndUpdate(
+    { email: 'parent@lihiket.com' },
+    {
+      firstName:  'Alemu',
+      lastName:   'Tadesse',
+      username:   'parent.alemu',
+      email:      'parent@lihiket.com',
+      password:   'Parent@12345',
+      phone:      '+251 911 000 004',
+      role:       'parent',
+      country:    'Ethiopia',
+      children:   [student._id],
       isVerified: true,
-      isActive: true,
-    });
-    console.log('✅ Verified Parent created: parent@lihiket.com / Parent@12345');
+      isActive:   true,
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  console.log('✅ Parent:  parent@lihiket.com      / Parent@12345');
 
-    // 5. Seed Pending (Unverified) Student for verification testing
-    await Student.deleteMany({ email: 'pending.student@lihiket.com' });
-    await Student.create({
-      firstName: 'Dawit',
-      lastName: 'Haile',
-      username: 'dawit.pending',
-      email: 'pending.student@lihiket.com',
-      password: 'Student@12345',
-      phone: '+251 911 000 005',
-      role: 'student',
+  // ── Pending student (for testing admin approval) ──────────────────────────
+  await Student.findOneAndUpdate(
+    { email: 'pending.student@lihiket.com' },
+    {
+      firstName:  'Dawit',
+      lastName:   'Haile',
+      username:   'dawit.pending',
+      email:      'pending.student@lihiket.com',
+      password:   'Student@12345',
+      phone:      '+251 911 000 005',
+      role:       'student',
       gradeLevel: 'G11',
       isVerified: false,
-      isActive: true,
-    });
-    console.log('✅ Pending Student created (Unverified): pending.student@lihiket.com / Student@12345');
+      isActive:   true,
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  console.log('✅ Pending: pending.student@lihiket.com / Student@12345 (needs approval)');
 
-    console.log('\n🎉 Seeding completed successfully!');
-    process.exit(0);
-  } catch (error) {
-    console.error('❌ Seeding error:', error.message);
-    process.exit(1);
-  }
+  console.log('\n🎉 Seeding complete!');
+  console.log('   Admin login: http://localhost:5173/login');
+  console.log('   Email: admin@lihiket.com  |  Password: Admin@12345\n');
+  await mongoose.disconnect();
+  process.exit(0);
 };
 
-seedUsers();
+seedUsers().catch(err => {
+  console.error('\n❌ Seed failed:', err.message);
+  if (err.message.includes('whitelist') || err.message.includes('IP')) {
+    console.error('\n📋 Fix: Add 0.0.0.0/0 to MongoDB Atlas → Network Access');
+    console.error('   Or run: node src/seed.js (after whitelisting your IP)\n');
+  }
+  process.exit(1);
+});

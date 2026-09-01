@@ -588,3 +588,72 @@ exports.changePassword = async (req, res) => {
 
   res.json({ success: true, message: 'Password changed successfully.' });
 };
+
+// ── POST /api/auth/create-admin ───────────────────────────────────────────────
+// Creates the first admin account.
+// Only works when NO admin exists yet — auto-disables after first use.
+exports.createFirstAdmin = async (req, res, next) => {
+  try {
+    // Check if any admin already exists
+    const existing = await Admin.findOne({});
+    if (existing) {
+      return next(new AppError(
+        'An admin account already exists. Use the admin login instead.',
+        403
+      ));
+    }
+
+    const {
+      firstName, lastName, email, password, phone,
+      setupKey, // optional secret key for extra security
+    } = req.body;
+
+    // Optional: require a setup key set in .env
+    const requiredKey = process.env.ADMIN_SETUP_KEY;
+    if (requiredKey && setupKey !== requiredKey) {
+      return next(new AppError('Invalid setup key.', 403));
+    }
+
+    if (!firstName || !lastName || !email || !password) {
+      return next(new AppError('firstName, lastName, email, and password are required.', 400));
+    }
+
+    if (password.length < 8) {
+      return next(new AppError('Password must be at least 8 characters.', 400));
+    }
+
+    const admin = await Admin.create({
+      firstName:   firstName.trim(),
+      lastName:    lastName.trim(),
+      username:    `${firstName.toLowerCase()}.${lastName.toLowerCase()}`.replace(/\s+/g, ''),
+      email:       email.trim().toLowerCase(),
+      password,
+      phone:       phone || '',
+      role:        'admin',
+      isVerified:  true,
+      isActive:    true,
+      permissions: ['manage_users', 'manage_courses', 'manage_subjects', 'view_analytics'],
+    });
+
+    const token = generateToken(admin._id, 'admin', 'admins');
+
+    console.log(`\n✅ First admin created: ${admin.email}\n`);
+
+    res.status(201).json({
+      success: true,
+      message: `Admin account created for ${admin.firstName} ${admin.lastName}. You can now log in.`,
+      data: {
+        token,
+        user: {
+          id:        admin._id,
+          firstName: admin.firstName,
+          lastName:  admin.lastName,
+          email:     admin.email,
+          role:      'admin',
+        },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
