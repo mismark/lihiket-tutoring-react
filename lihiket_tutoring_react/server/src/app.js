@@ -37,17 +37,20 @@ app.use(
 const allowedOrigins = [
   config.clientUrl,
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-  // LAN / phone access — add any new IP here
+  // LAN / phone access
   'http://10.71.170.86:5173',
   'http://10.161.141.169:5173',
   'http://192.168.37.1:5173',
   'http://192.168.229.1:5173',
-  'http://10.161.141.169:5173/',
-
-  'https://lihiket-tutoring.vercel.app',      // 
+  // Vercel deployments
+  'https://lihiket-tutoring-blue.vercel.app',
+  'https://lihiket-tutoring.vercel.app',
+  'https://lihiket.vercel.app',
   'https://lihiket-api.onrender.com',
 ];
 
