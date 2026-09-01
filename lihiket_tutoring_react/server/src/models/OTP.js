@@ -17,8 +17,8 @@ const OTPSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      default: () => new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from creation
-      index: { expires: '10m' },
+      default: () => new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+      index: { expireAfterSeconds: 0 }, // TTL: delete document AT expiresAt time
     },
     isUsed: {
       type: Boolean,

@@ -253,31 +253,26 @@ exports.forgotPassword = async (req, res) => {
     ? { email: identifier }
     : { $or: [{ email: identifier }, { username: identifier }] };
 
-  // Find user across all collections
-  let userFound = null;
-
-  for (const item of ALL_MODELS) {
-    const found = await item.model.findOne(query);
-    if (found) { userFound = found; break; }
-  }
+  // Search all collections IN PARALLEL — faster than sequential loop
+  const results = await Promise.all(ALL_MODELS.map(item => item.model.findOne(query)));
+  const userFound = results.find(Boolean) || null;
 
   if (!userFound) {
     throw new AppError('No account found with that email or username.', 404);
   }
 
-  const normalizedEmail = userFound.email; // always use the real email for OTP delivery
+  const normalizedEmail = userFound.email;
 
-  // Generate 6-digit cryptographically secure OTP
-  const otpCode = generateOTP();
+  // Generate OTP
+  const otpCode   = generateOTP();
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-  // Invalidate any active OTPs for this email
-  await OTP.deleteMany({ email: normalizedEmail });
-
-  // Store new OTP
-  await OTP.create({
-    email: normalizedEmail,
-    otp: otpCode,
+  // Single atomic upsert — replaces deleteMany + create (2 round trips → 1)
+  await OTP.replaceOne(
+    { email: normalizedEmail },
+    { email: normalizedEmail, otp: otpCode, expiresAt, isUsed: false },
+    { upsert: true }
+  );
     expiresAt,
     isUsed: false,
   });
@@ -378,13 +373,17 @@ exports.forgotPassword = async (req, res) => {
 
   const text = `Hi ${userFound.firstName},\n\nYour Lihiket password reset verification code is:\n\n  ${otpCode}\n\nThis code expires in 15 minutes.\n\nIf you did not request this, ignore this email.\n\n— Lihiket Team`;
 
-  await sendEmail({
+  // Fire-and-forget email — respond to user immediately, don't block on email delivery
+  const emailPayload = {
     to:      normalizedEmail,
     toName:  `${userFound.firstName} ${userFound.lastName}`,
     subject: `${otpCode} is your Lihiket verification code`,
     html,
     text,
-  });
+  };
+  sendEmail(emailPayload).catch(err =>
+    console.error('❌ OTP email failed for', normalizedEmail, ':', err.message)
+  );
 
   res.json({
     success: true,
