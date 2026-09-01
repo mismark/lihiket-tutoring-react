@@ -273,9 +273,6 @@ exports.forgotPassword = async (req, res) => {
     { email: normalizedEmail, otp: otpCode, expiresAt, isUsed: false },
     { upsert: true }
   );
-    expiresAt,
-    isUsed: false,
-  });
 
   // Professional HTML email template
   const html = `<!DOCTYPE html>
