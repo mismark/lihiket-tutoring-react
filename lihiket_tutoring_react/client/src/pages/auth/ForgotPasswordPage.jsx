@@ -34,7 +34,12 @@ export default function ForgotPasswordPage() {
         state: { email: resolvedEmail },
       });
     } catch (err) {
-      setErrorMsg(err.message || 'Failed to send OTP code. Please try again.');
+      const msg = err.message || 'Failed to send OTP code. Please try again.';
+      if (msg.includes('No account') || msg.includes('404') || msg.includes('not found')) {
+        setErrorMsg('No account found with that email or username. Please check and try again.');
+      } else {
+        setErrorMsg(msg);
+      }
     } finally {
       setLoading(false);
     }

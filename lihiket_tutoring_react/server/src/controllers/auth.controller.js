@@ -262,11 +262,7 @@ exports.forgotPassword = async (req, res) => {
   }
 
   if (!userFound) {
-    // Return generic message so we don't leak whether an account exists
-    return res.json({
-      success: true,
-      message: 'If an account with that email or username exists, a verification code has been sent.',
-    });
+    throw new AppError('No account found with that email or username.', 404);
   }
 
   const normalizedEmail = userFound.email; // always use the real email for OTP delivery
