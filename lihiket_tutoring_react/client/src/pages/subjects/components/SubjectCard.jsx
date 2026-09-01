@@ -1,15 +1,5 @@
-﻿import { FiEdit2, FiTrash2, FiUsers, FiEye, FiDollarSign, FiBookOpen, FiUserCheck, FiBook } from 'react-icons/fi';
+﻿import { FiEdit2, FiTrash2, FiUsers, FiEye, FiDollarSign, FiBookOpen, FiUserCheck } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
-
-const GRAD = {
-  STEM:                'from-blue-500 to-indigo-600',
-  Languages:           'from-emerald-500 to-teal-600',
-  Arts:                'from-pink-500 to-rose-600',
-  'Social Studies':    'from-amber-500 to-orange-600',
-  'Physical Education':'from-green-500 to-emerald-600',
-  Other:               'from-slate-500 to-slate-600',
-};
-const grad = (cat) => GRAD[cat] || 'from-blue-500 to-indigo-600';
 
 export default function SubjectCard({
   subject, onEdit, onAssign, onDelete, onView,
@@ -25,25 +15,36 @@ export default function SubjectCard({
            : 'bg-white border-gray-200 hover:border-blue-300'
     }`}>
 
-      {/* ── Gradient banner ── */}
-      <div className={`relative h-24 bg-gradient-to-br ${grad(subject.category)} flex items-end p-4`}>
-        <div className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-        <div className="relative flex items-center justify-between w-full">
-          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <FiBook className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">
-              <FiDollarSign className="w-3 h-3 inline mr-0.5" />
-              {isFree ? 'Free' : `ETB ${Number(subject.price).toLocaleString()}`}
-            </span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-              subject.isActive ? 'bg-emerald-400/30 text-white' : 'bg-white/20 text-white/70'
-            }`}>
-              {subject.isActive ? 'Active' : 'Inactive'}
-            </span>
-          </div>
+      {/* ── Green banner with title, code & initials avatar ── */}
+      <div className="relative h-28 bg-gradient-to-br from-emerald-500 to-green-600 flex items-center p-4 gap-3">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+
+        {/* Initials avatar */}
+        <div className="relative w-12 h-12 rounded-xl bg-white/25 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-sm">
+          <span className="text-white font-extrabold text-base tracking-tight leading-none">
+            {(subject.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+          </span>
+        </div>
+
+        {/* Title + code */}
+        <div className="relative flex-1 min-w-0">
+          <h3 className="text-white font-extrabold text-base leading-tight truncate drop-shadow-sm">
+            {subject.name}
+          </h3>
+          <p className="text-white/80 text-xs font-mono mt-0.5 font-semibold">{subject.code}</p>
+        </div>
+
+        {/* Badges top-right */}
+        <div className="relative flex flex-col items-end gap-1 flex-shrink-0">
+          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">
+            {isFree ? 'Free' : `ETB ${Number(subject.price).toLocaleString()}`}
+          </span>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+            subject.isActive ? 'bg-white/25 text-white' : 'bg-white/10 text-white/60'
+          }`}>
+            {subject.isActive ? 'Active' : 'Inactive'}
+          </span>
         </div>
       </div>
 

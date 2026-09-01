@@ -6,25 +6,14 @@ import { getMyEnrollments, enrollInSubject, unenrollFromSubject } from '../../ap
 import toast from 'react-hot-toast';
 import {
   FiArrowLeft, FiSearch, FiX, FiBook, FiCheckCircle,
-  FiPlusCircle, FiMinusCircle, FiCreditCard, FiDollarSign,
+  FiPlusCircle, FiMinusCircle, FiCreditCard,
   FiUsers, FiFilter, FiEye, FiBookOpen,
   FiZap, FiAward, FiFileText, FiRadio, FiGrid, FiList,
-  FiLock, FiTag,
+  FiLock, FiTag, FiDollarSign,
 } from 'react-icons/fi';
 
 const GRADE_LEVELS = ['KG1','KG2','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','HL'];
 const CATEGORIES   = ['STEM','Languages','Arts','Social Studies','Physical Education','Other'];
-
-// ── Gradient colours per category ────────────────────────────────────────────
-const GRAD = {
-  STEM:               'from-blue-500 to-indigo-600',
-  Languages:          'from-emerald-500 to-teal-600',
-  Arts:               'from-pink-500 to-rose-600',
-  'Social Studies':   'from-amber-500 to-orange-600',
-  'Physical Education':'from-green-500 to-emerald-600',
-  Other:              'from-slate-500 to-slate-600',
-};
-const grad = (cat) => GRAD[cat] || 'from-blue-500 to-indigo-600';
 
 // ── Stat card ─────────────────────────────────────────────────────────────────
 function Stat({ value, label, color, icon: Icon }) {
@@ -91,34 +80,41 @@ function SubjectCard({ subject, enrolled, enrolling, onEnroll, onUnenroll, dark 
         : 'border-gray-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/40'
     } bg-white dark:bg-slate-800`}>
 
-      {/* Gradient banner */}
-      <div className={`relative h-24 bg-gradient-to-br ${grad(subject.category)} flex items-end p-4`}>
-        <div className="absolute inset-0 opacity-20"
-          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-        <div className="relative flex items-center justify-between w-full">
-          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <FiBook className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex flex-col items-end gap-1">
-            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-              isFree
-                ? 'bg-white/20 text-white'
-                : 'bg-white/20 text-white'
-            }`}>
-              <FiDollarSign className="w-3 h-3 inline mr-0.5" />
-              {isFree ? 'Free' : `ETB ${Number(subject.price).toLocaleString()}`}
+      {/* Green banner with initials avatar, title, code */}
+      <div className="relative h-28 bg-gradient-to-br from-emerald-500 to-green-600 flex items-center p-4 gap-3">
+        <div className="absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+
+        {/* Initials avatar */}
+        <div className="relative w-12 h-12 rounded-xl bg-white/25 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-sm">
+          <span className="text-white font-extrabold text-base tracking-tight leading-none">
+            {(subject.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+          </span>
+        </div>
+
+        {/* Title + code */}
+        <div className="relative flex-1 min-w-0">
+          <h3 className="text-white font-extrabold text-base leading-tight truncate drop-shadow-sm">
+            {subject.name}
+          </h3>
+          <p className="text-white/80 text-xs font-mono mt-0.5 font-semibold">{subject.code}</p>
+        </div>
+
+        {/* Badges */}
+        <div className="relative flex flex-col items-end gap-1 flex-shrink-0">
+          <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">
+            {isFree ? 'Free' : `ETB ${Number(subject.price).toLocaleString()}`}
+          </span>
+          {enrolled && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-white/25 text-white">
+              <FiCheckCircle className="w-3 h-3" /> Enrolled
             </span>
-            {enrolled && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-white/25 text-white">
-                <FiCheckCircle className="w-3 h-3" /> Enrolled
-              </span>
-            )}
-            {!enrolled && !isFree && (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-white/25 text-white">
-                <FiLock className="w-3 h-3" /> Paid
-              </span>
-            )}
-          </div>
+          )}
+          {!enrolled && !isFree && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">
+              <FiLock className="w-3 h-3" /> Paid
+            </span>
+          )}
         </div>
       </div>
 
