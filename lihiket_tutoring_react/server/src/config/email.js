@@ -35,11 +35,14 @@ const sendEmail = async ({ to, toName, subject, html, text }) => {
     const transporter = nodemailer.createTransport({
       host: config.email.smtpHost,
       port: config.email.smtpPort,
-      secure: config.email.smtpSecure, // true for 465, false for 587
+      secure: config.email.smtpSecure,
       auth: {
         user: config.email.smtpUser,
         pass: config.email.smtpPass,
       },
+      connectionTimeout: 8000,   // fail fast — 8s
+      greetingTimeout:   8000,
+      socketTimeout:     8000,
     });
 
     const mailOptions = {
@@ -55,10 +58,18 @@ const sendEmail = async ({ to, toName, subject, html, text }) => {
     return { success: true, messageId: info.messageId };
   } catch (err) {
     console.error('❌ Email sending error:', err.message);
-    // Don't throw fatal error on email failure in development
     if (config.nodeEnv === 'development') {
-      console.log(`[DEV FALLBACK] Email would have contained: ${subject} for ${to}`);
-      return { success: false, error: err.message };
+      console.log('\n──────────────────────────────────────────────');
+      console.log('📧 [DEV] SMTP failed — OTP delivered to console instead.');
+      console.log(`To:      ${to}`);
+      console.log(`Subject: ${subject}`);
+      if (text) {
+        // Extract OTP from the plain text (6-digit number)
+        const otpMatch = text.match(/\b\d{6}\b/);
+        if (otpMatch) console.log(`🔑 OTP CODE: ${otpMatch[0]}`);
+      }
+      console.log('──────────────────────────────────────────────\n');
+      return { success: true, devFallback: true };
     }
     throw err;
   }
