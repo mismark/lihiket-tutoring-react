@@ -48,7 +48,6 @@ const allowedOrigins = [
   'http://192.168.37.1:5173',
   'http://192.168.229.1:5173',
   // Vercel deployments
-  'https://lihiket-tutoring-blue.vercel.app',
   'https://lihiket-tutoring.vercel.app',
   'https://lihiket.vercel.app',
   'https://lihiket-api.onrender.com',
