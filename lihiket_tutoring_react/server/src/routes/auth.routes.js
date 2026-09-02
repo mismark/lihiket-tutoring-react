@@ -14,10 +14,10 @@ const {
 } = require('../controllers/auth.controller');
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
-const { uploadCV }        = require('../middleware/upload.middleware');
+const { uploadCVCloud }        = require('../middleware/upload.middleware');
 
 // Public auth endpoints
-router.post('/register', uploadCV, register);
+router.post('/register', ...uploadCVCloud, register);
 router.post('/login', login);
 
 // ── First-time admin setup ────────────────────────────────────────────────────
