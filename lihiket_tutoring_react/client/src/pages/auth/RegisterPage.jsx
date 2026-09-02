@@ -16,13 +16,9 @@ export default function RegisterPage() {
     setApiError('');
     try {
       const response = await registerUser(formData);
-      toast.success('Registration submitted! Awaiting admin approval.');
-      navigate('/pending-approval', {
-        state: {
-          email: formData.get('email'),
-          name: `${formData.get('firstName')} ${formData.get('lastName')}`,
-          role: formData.get('role'),
-        },
+      toast.success('Account created! You can now sign in.');
+      navigate('/login', {
+        state: { email: formData.get('email') },
       });
     } catch (err) {
       setApiError(err.message || 'Failed to submit registration. Please try again.');

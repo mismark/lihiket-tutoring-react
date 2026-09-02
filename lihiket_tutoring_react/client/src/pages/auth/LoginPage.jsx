@@ -19,15 +19,13 @@ export default function LoginPage() {
     email:    location.state?.email || '',
     password: '',
   });
-  const [showPassword,      setShowPassword]      = useState(false);
-  const [loading,           setLoading]           = useState(false);
-  const [errorMsg,          setErrorMsg]          = useState('');
-  const [isPendingApproval, setIsPendingApproval] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading,      setLoading]      = useState(false);
+  const [errorMsg,     setErrorMsg]     = useState('');
 
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
     setErrorMsg('');
-    setIsPendingApproval(false);
   };
 
   const handleSubmit = async (e) => {
@@ -38,7 +36,6 @@ export default function LoginPage() {
     }
     setLoading(true);
     setErrorMsg('');
-    setIsPendingApproval(false);
     try {
       const response = await loginUser({
         email:    form.email.trim(),
@@ -50,11 +47,7 @@ export default function LoginPage() {
         navigate('/dashboard', { replace: true });
       }
     } catch (err) {
-      const message = err.message || 'Failed to sign in. Please try again.';
-      setErrorMsg(message);
-      if (message.toLowerCase().includes('pending') || message.toLowerCase().includes('approval')) {
-        setIsPendingApproval(true);
-      }
+      setErrorMsg(err.message || 'Failed to sign in. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -117,12 +110,7 @@ export default function LoginPage() {
               </div>
 
               {/* Error banner */}
-              {errorMsg && (
-                <ErrorBanner
-                  message={errorMsg}
-                  isPendingApproval={isPendingApproval}
-                />
-              )}
+              {errorMsg && <ErrorBanner message={errorMsg} />}
 
               {/* Login form */}
               <LoginForm
