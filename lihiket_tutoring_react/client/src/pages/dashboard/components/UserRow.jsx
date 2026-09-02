@@ -16,9 +16,14 @@ const COLOR_MAP = {
 
 function cvUrl(cvDocument) {
   if (!cvDocument) return null;
-  const idx = cvDocument.replace(/\\/g, '/').indexOf('uploads/');
+  // Cloudinary URL — return as-is
+  if (cvDocument.startsWith('http://') || cvDocument.startsWith('https://')) return cvDocument;
+  // Legacy local path — build full server URL
+  const clean = cvDocument.replace(/\\/g, '/');
+  const idx   = clean.indexOf('uploads/');
   if (idx === -1) return null;
-  return `${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'}/${cvDocument.replace(/\\/g, '/').slice(idx)}`;
+  const base  = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  return `${base}/${clean.slice(idx)}`;
 }
 
 // ── Phone field with call + copy buttons ──────────────────────────────────────
@@ -221,17 +226,23 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
         <div className="flex items-center gap-2 flex-wrap">
 
           {/* CV — teachers only */}
-          {user.userType === 'teacher' && cv && (
-            <a
-              href={cv}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30 transition"
-              title="View CV"
-            >
-              <FiFileText className="w-3.5 h-3.5" />
-              CV <FiExternalLink className="w-3 h-3" />
-            </a>
+          {user.userType === 'teacher' && (
+            cv ? (
+              <a
+                href={cv}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30 transition"
+                title="View CV"
+              >
+                <FiFileText className="w-3.5 h-3.5" />
+                View CV <FiExternalLink className="w-3 h-3" />
+              </a>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500">
+                <FiFileText className="w-3.5 h-3.5" /> No CV
+              </span>
+            )
           )}
 
           {activeTab === 'pending' ? (
