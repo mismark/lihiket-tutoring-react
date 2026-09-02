@@ -17,9 +17,12 @@ async function resolveCourse(slugOrId) {
 // ── helpers ───────────────────────────────────────────────────────────────────
 function fileUrl(filePath) {
   if (!filePath) return null;
-  const idx = filePath.replace(/\\/g, '/').indexOf('uploads/');
-  if (idx === -1) return null;
-  return `/${filePath.replace(/\\/g, '/').slice(idx)}`;
+  // Cloudinary / external URL — return as-is
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
+  // Local disk path — strip to /uploads/...
+  const p   = filePath.replace(/\\/g, '/');
+  const idx = p.indexOf('uploads/');
+  return idx === -1 ? filePath : `/${p.slice(idx)}`;
 }
 
 // ── GET /api/lessons/course/:courseId ─────────────────────────────────────────

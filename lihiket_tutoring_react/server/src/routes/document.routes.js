@@ -4,7 +4,7 @@ const { getAll, getOne, create, update, remove } = require('../controllers/docum
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
 const { authorize }       = require('../middleware/role.middleware');
-const { uploadDocument }  = require('../middleware/upload.middleware');
+const { uploadDocumentCloud }  = require('../middleware/upload.middleware');
 
 const auth      = [protect, requireVerified];
 const readAll   = [...auth, authorize('admin', 'teacher', 'student', 'parent')];
@@ -12,8 +12,8 @@ const staffOnly = [...auth, authorize('admin', 'teacher')];
 
 router.get('/',       readAll,   getAll);
 router.get('/:id',    readAll,   getOne);
-router.post('/',      staffOnly, uploadDocument, create);
-router.put('/:id',    staffOnly, uploadDocument, update);
+router.post('/',      staffOnly, ...uploadDocumentCloud, create);
+router.put('/:id',    staffOnly, ...uploadDocumentCloud, update);
 router.delete('/:id', staffOnly, remove);
 
 module.exports = router;

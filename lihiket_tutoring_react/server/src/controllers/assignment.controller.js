@@ -10,9 +10,12 @@ const { EVENTS }           = require('../constants/events');
 
 function fileUrl(p) {
   if (!p) return null;
+  // Cloudinary / external URL — return as-is
+  if (p.startsWith('http://') || p.startsWith('https://')) return p;
+  // Local disk path — strip to /uploads/...
   const clean = p.replace(/\\/g, '/');
   const idx   = clean.indexOf('uploads/');
-  return idx === -1 ? null : `/${clean.slice(idx)}`;
+  return idx === -1 ? p : `/${clean.slice(idx)}`;
 }
 
 // ── GET /api/assignments ──────────────────────────────────────────────────────

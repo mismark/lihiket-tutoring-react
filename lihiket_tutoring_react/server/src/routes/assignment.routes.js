@@ -7,7 +7,7 @@ const {
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
 const { authorize }       = require('../middleware/role.middleware');
-const { uploadAssignment } = require('../middleware/upload.middleware');
+const { uploadAssignmentCloud } = require('../middleware/upload.middleware');
 
 const auth    = [protect, requireVerified];
 const all     = [...auth, authorize('admin','teacher','student')];
@@ -16,10 +16,10 @@ const student = [...auth, authorize('student')];
 
 router.get('/',                                          all,     getAll);
 router.get('/:id',                                       all,     getOne);
-router.post('/',                                         staff,   uploadAssignment, create);
-router.put('/:id',                                       staff,   uploadAssignment, update);
+router.post('/',                                         staff,   ...uploadAssignmentCloud, create);
+router.put('/:id',                                       staff,   ...uploadAssignmentCloud, update);
 router.delete('/:id',                                    staff,   remove);
-router.post('/:id/submit',                               student, uploadAssignment, submit);
+router.post('/:id/submit',                               student, ...uploadAssignmentCloud, submit);
 router.get('/:id/submissions',                           staff,   getSubmissions);
 router.put('/:id/submissions/:studentId/grade',          staff,   grade);
 
