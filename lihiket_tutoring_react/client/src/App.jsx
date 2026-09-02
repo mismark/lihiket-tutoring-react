@@ -223,6 +223,10 @@ export default function App() {
             <Route path="/users"         element={<PrivateRoute><AdminUsers /></PrivateRoute>} />
             <Route path="/my-subjects"   element={<PrivateRoute><TeacherSubjects /></PrivateRoute>} />
 
+            {/* Admin legacy URLs → redirect to current pages */}
+            <Route path="/admin/pending-users" element={<Navigate to="/users" replace />} />
+            <Route path="/admin/*"             element={<Navigate to="/dashboard" replace />} />
+
             {/* 404 */}
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
