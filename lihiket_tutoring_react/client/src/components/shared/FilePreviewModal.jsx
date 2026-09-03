@@ -17,8 +17,23 @@ import {
 import { useTheme } from '../../store/theme/ThemeContext';
 
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+const API    = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function resolveUrl(url) {
+  if (!url) return null;
+  // Cloudinary URLs — route through our proxy to avoid 401
+  if (url.includes('res.cloudinary.com')) {
+    const token = localStorage.getItem('token');
+    const API   = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    return `${API}/files/proxy?url=${encodeURIComponent(url)}&token=${encodeURIComponent(token || '')}`;
+  }
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const clean = url.startsWith('/') ? url : `/${url}`;
+  return `${SERVER}${clean}`;
+}
+
+// For download links, use the direct Cloudinary URL (not the proxy)
+function directUrl(url) {
   if (!url) return null;
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   const clean = url.startsWith('/') ? url : `/${url}`;
@@ -49,20 +64,20 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
   const { theme } = useTheme();
   const dark      = theme === 'dark';
 
-  const fullUrl = resolveUrl(url);
-  const ext     = getExt(fullUrl || url || '');
+  const fullUrl   = resolveUrl(url);  // proxy URL for display
+  const rawUrl    = directUrl(url);   // direct URL for download
+  const ext       = getExt(url || ''); // detect from original URL
 
   const isPdf    = PDF_EXTS.includes(ext);
   const isImage  = IMG_EXTS.includes(ext);
   const isVideo  = VIDEO_EXTS.includes(ext);
   const isOffice = OFFICE_EXTS.includes(ext);
 
-  // Cloudinary raw files cannot be embedded directly — use Google Docs Viewer
-  const isCloudinaryRaw = !!(fullUrl && fullUrl.includes('res.cloudinary.com') && fullUrl.includes('/raw/'));
-  const needsGoogleViewer = isOffice || isCloudinaryRaw;
-
-  const googleDocsUrl = needsGoogleViewer && fullUrl
-    ? `https://docs.google.com/viewer?url=${encodeURIComponent(fullUrl)}&embedded=true`
+  // All files go through proxy — no more Google Docs Viewer needed for Cloudinary
+  // Keep Google Docs Viewer only for Office files (docx, pptx, xlsx)
+  const needsGoogleViewer = isOffice;
+  const googleDocsUrl = isOffice && rawUrl
+    ? `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=true`
     : null;
 
   const [frameError, setFrameError] = useState(false);
@@ -75,8 +90,8 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
 
   const displayName = name || 'Document';
 
-  const OpenButton = () => fullUrl ? (
-    <a href={fullUrl} target="_blank" rel="noopener noreferrer"
+  const OpenButton = () => rawUrl ? (
+    <a href={rawUrl} target="_blank" rel="noopener noreferrer"
       className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition shadow-lg">
       <FiExternalLink className="w-4 h-4" /> Open File
     </a>
@@ -103,8 +118,8 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-          {allowDownload && fullUrl && (
-            <a href={fullUrl} download={displayName} target="_blank" rel="noopener noreferrer"
+          {allowDownload && rawUrl && (
+            <a href={rawUrl} download={displayName} target="_blank" rel="noopener noreferrer"
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 dark ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
                      : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
@@ -112,8 +127,8 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
               <FiDownload className="w-3.5 h-3.5" /> Download
             </a>
           )}
-          {fullUrl && (
-            <a href={fullUrl} target="_blank" rel="noopener noreferrer"
+          {rawUrl && (
+            <a href={rawUrl} target="_blank" rel="noopener noreferrer"
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
