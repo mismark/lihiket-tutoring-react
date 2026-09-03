@@ -13,7 +13,6 @@ import RegisterPage        from './pages/auth/RegisterPage';
 import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
 import VerifyOTPPage       from './pages/auth/VerifyOTPPage';
 import SetNewPasswordPage  from './pages/auth/SetNewPasswordPage';
-import PendingApprovalPage from './pages/auth/PendingApprovalPage';
 import SetupAdminPage      from './pages/auth/SetupAdminPage';
 
 // Main pages
@@ -178,9 +177,8 @@ export default function App() {
             <Route path="/forgot-password"  element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
             <Route path="/verify-otp"       element={<GuestRoute><VerifyOTPPage /></GuestRoute>} />
             <Route path="/set-new-password" element={<GuestRoute><SetNewPasswordPage /></GuestRoute>} />
-            <Route path="/pending-approval" element={<PendingApprovalPage />} />
 
-            {/* First-time admin setup — auto-disables after first admin created */}
+            {/* First-time admin setup */}
             <Route path="/setup" element={<SetupAdminPage />} />
 
             {/* Protected */}

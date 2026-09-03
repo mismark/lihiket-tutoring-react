@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { FiCheck, FiX, FiToggleLeft, FiToggleRight, FiShield,
-         FiBookOpen, FiUser, FiUsers, FiClock, FiFileText,
-         FiExternalLink, FiPhone, FiCopy, FiCheckCircle,
+import { FiToggleLeft, FiToggleRight, FiShield,
+         FiBookOpen, FiUser, FiUsers,
+         FiFileText, FiExternalLink, FiPhone, FiCopy, FiCheckCircle,
          FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 const ROLE_ICONS  = { teacher: FiBookOpen, student: FiUser, parent: FiUsers, admin: FiShield };
@@ -197,28 +197,22 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
 
       {/* Status */}
       <td className="px-6 py-4">
-        {activeTab === 'pending' ? (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
-            <FiClock className="w-3.5 h-3.5" /> Pending
+        <div className="flex flex-col gap-1.5">
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${
+            user.isVerified
+              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
+              : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400'
+          }`}>
+            {user.isVerified ? '✓ Verified' : '○ Unverified'}
           </span>
-        ) : (
-          <div className="flex flex-col gap-1.5">
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${
-              user.isVerified
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
-                : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400'
-            }`}>
-              {user.isVerified ? '✓ Verified' : '○ Unverified'}
-            </span>
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${
-              user.isActive
-                ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
-                : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
-            }`}>
-              {user.isActive ? '● Active' : '○ Inactive'}
-            </span>
-          </div>
-        )}
+          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${
+            user.isActive
+              ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+              : 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+          }`}>
+            {user.isActive ? '● Active' : '○ Inactive'}
+          </span>
+        </div>
       </td>
 
       {/* Actions */}
@@ -245,23 +239,7 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
             )
           )}
 
-          {activeTab === 'pending' ? (
-            <>
-              <button
-                onClick={() => onApprove(user._id, user.userType)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30 transition"
-              >
-                <FiCheck className="w-3.5 h-3.5" /> Approve
-              </button>
-              <button
-                onClick={() => onReject(user._id, user.userType)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/30 transition"
-              >
-                <FiX className="w-3.5 h-3.5" /> Reject
-              </button>
-            </>
-          ) : (
-            user.userType !== 'admin' && (
+          {user.userType !== 'admin' && (
               <button
                 onClick={() => onToggleActive(user._id, user.userType)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
@@ -275,8 +253,7 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
                   : <><FiToggleLeft  className="w-3.5 h-3.5" /> Activate</>
                 }
               </button>
-            )
-          )}
+            )}
 
           {/* Edit button — all roles */}
           <button

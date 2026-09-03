@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTheme } from '../../store/theme/ThemeContext';
 import {
-  getPendingUsers,
   getAllUsers,
-  approveUser,
-  rejectUser,
   toggleUserActive,
 } from '../../api/user.api';
 import toast from 'react-hot-toast';
@@ -15,9 +12,7 @@ import UserRow        from './components/UserRow';
 import UserEditModal  from './components/UserEditModal';
 import UserDeleteModal from './components/UserDeleteModal';
 
-// Which fields to include in the search index per role
 const SEARCH_FIELDS = {
-  pending: ['firstName', 'lastName', 'email', 'phone', 'specializedSubject', 'gradeLevel', 'parentFullName'],
   teacher: ['firstName', 'lastName', 'email', 'phone', 'specializedSubject', 'qualifications'],
   student: ['firstName', 'lastName', 'email', 'phone', 'gradeLevel', 'parentFullName', 'parentEmail', 'parentPhone'],
   parent:  ['firstName', 'lastName', 'email', 'phone', 'country'],
@@ -32,7 +27,6 @@ function matchesSearch(user, query, tab) {
 }
 
 const DETAILS_LABEL = {
-  pending: 'Info',
   teacher: 'Subject / Experience',
   student: 'Grade / Parent',
   parent:  'Country',
@@ -41,30 +35,22 @@ const DETAILS_LABEL = {
 
 export default function AdminUsers() {
   const { theme } = useTheme();
-  const [activeTab, setActiveTab] = useState('pending');
+  const [activeTab, setActiveTab] = useState('teacher');
   const [users, setUsers]         = useState([]);
-  const [counts, setCounts]       = useState({ pending: 0, teacher: 0, student: 0, parent: 0, admin: 0 });
+  const [counts, setCounts]       = useState({ teacher: 0, student: 0, parent: 0, admin: 0 });
   const [loading, setLoading]     = useState(true);
   const [filters, setFilters]     = useState({ isActive: '' });
   const [search, setSearch]       = useState('');
   const [editingUser, setEditingUser]   = useState(null);
   const [deletingUser, setDeletingUser] = useState(null);
 
-  // ── fetch list for active tab ───────────────────────────────────────────────
   const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
-      let data = [];
-      if (activeTab === 'pending') {
-        const res = await getPendingUsers({});
-        data = res.data;
-      } else {
-        const params = { role: activeTab };
-        if (filters.isActive !== '') params.isActive = filters.isActive;
-        const res = await getAllUsers(params);
-        data = res.data;
-      }
-      setUsers(data);
+      const params = { role: activeTab };
+      if (filters.isActive !== '') params.isActive = filters.isActive;
+      const res = await getAllUsers(params);
+      setUsers(res.data);
     } catch (err) {
       toast.error(err.message || 'Failed to fetch users');
     } finally {
@@ -72,18 +58,15 @@ export default function AdminUsers() {
     }
   }, [activeTab, filters]);
 
-  // ── fetch counts for all tabs ───────────────────────────────────────────────
   const fetchCounts = useCallback(async () => {
     try {
-      const [pendingRes, teacherRes, studentRes, parentRes, adminRes] = await Promise.all([
-        getPendingUsers({}),
+      const [teacherRes, studentRes, parentRes, adminRes] = await Promise.all([
         getAllUsers({ role: 'teacher' }),
         getAllUsers({ role: 'student' }),
         getAllUsers({ role: 'parent' }),
         getAllUsers({ role: 'admin' }),
       ]);
       setCounts({
-        pending: pendingRes.data.length,
         teacher: teacherRes.data.length,
         student: studentRes.data.length,
         parent:  parentRes.data.length,
@@ -102,23 +85,6 @@ export default function AdminUsers() {
   );
 
   // ── mutations ───────────────────────────────────────────────────────────────
-  const handleApprove = async (userId, userType) => {
-    try {
-      await approveUser(userId, userType);
-      toast.success('User approved');
-      fetchUsers(); fetchCounts();
-    } catch (err) { toast.error(err.message || 'Failed to approve user'); }
-  };
-
-  const handleReject = async (userId, userType) => {
-    if (!window.confirm('Reject this user? Their account will be permanently deleted.')) return;
-    try {
-      await rejectUser(userId, userType);
-      toast.success('User rejected and deleted');
-      fetchUsers(); fetchCounts();
-    } catch (err) { toast.error(err.message || 'Failed to reject user'); }
-  };
-
   const handleToggleActive = async (userId, userType) => {
     try {
       await toggleUserActive(userId, userType);
@@ -136,14 +102,12 @@ export default function AdminUsers() {
   const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value }));
   const resetFilters = () => { setFilters({ isActive: '' }); setSearch(''); };
 
-  // ── placeholder text per tab ────────────────────────────────────────────────
   const searchPlaceholder = {
-    pending: 'Search by name, email, subject, grade…',
     teacher: 'Search by name, email, subject…',
     student: 'Search by name, email, grade, parent…',
     parent:  'Search by name, email, country…',
     admin:   'Search by name or email…',
-  }[activeTab];
+  }[activeTab] || 'Search…';
 
   const detailsLabel = DETAILS_LABEL[activeTab] || 'Details';
   const isEmpty = !loading && filteredUsers.length === 0;
@@ -156,10 +120,10 @@ export default function AdminUsers() {
         <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
           <div>
             <h1 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-              👥 User Management
+              User Management
             </h1>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
-              Approve, reject, and manage platform users
+              Manage teachers, students, parents and admins
             </p>
           </div>
         </div>
@@ -206,16 +170,14 @@ export default function AdminUsers() {
           )}
         </div>
 
-        {/* Status filter — only for role tabs */}
-        {activeTab !== 'pending' && (
-          <UserFilters
+        {/* Status filter */}
+        <UserFilters
             filters={filters}
             onFilterChange={handleFilterChange}
             onReset={resetFilters}
             theme={theme}
             hideRoleFilter
           />
-        )}
 
         {/* Content */}
         {loading ? (
@@ -227,10 +189,10 @@ export default function AdminUsers() {
           <div className={`${theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} rounded-2xl border shadow-sm p-12 text-center`}>
             <FiUsers className={`w-12 h-12 mx-auto mb-4 ${theme === 'dark' ? 'text-slate-600' : 'text-gray-300'}`} />
             <p className={`font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-gray-700'}`}>
-              {search ? `No results for "${search}"` : activeTab === 'pending' ? 'No pending users' : `No ${activeTab}s found`}
+              {search ? `No results for "${search}"` : `No ${activeTab}s found`}
             </p>
             <p className={`text-sm mt-1 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
-              {search ? 'Try a different search term' : activeTab === 'pending' ? 'All registrations have been reviewed' : 'Try adjusting your filters'}
+              {search ? 'Try a different search term' : 'Try adjusting your filters'}
             </p>
             {search && (
               <button
@@ -260,8 +222,6 @@ export default function AdminUsers() {
                       key={user._id}
                       user={user}
                       activeTab={activeTab}
-                      onApprove={handleApprove}
-                      onReject={handleReject}
                       onToggleActive={handleToggleActive}
                       onEdit={setEditingUser}
                       onDelete={setDeletingUser}
@@ -273,8 +233,8 @@ export default function AdminUsers() {
             </div>
             <div className={`px-6 py-3 border-t text-xs ${theme === 'dark' ? 'border-slate-700 text-slate-400' : 'border-gray-200 text-gray-500'}`}>
               {search
-                ? `${filteredUsers.length} of ${users.length} ${activeTab === 'pending' ? 'pending' : activeTab + 's'} match "${search}"`
-                : `${users.length} ${activeTab === 'pending' ? 'pending registration' : activeTab}${users.length !== 1 ? 's' : ''}`
+                ? `${filteredUsers.length} of ${users.length} ${activeTab}s match "${search}"`
+                : `${users.length} ${activeTab}${users.length !== 1 ? 's' : ''}`
               }
             </div>
           </div>

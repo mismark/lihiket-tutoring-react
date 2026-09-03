@@ -122,21 +122,6 @@ const seedUsers = async () => {
   });
   console.log('✅ Parent:  parent@lihiket.com      / Parent@12345');
 
-  // ── Pending student (for testing admin approval) ──────────────────────────
-  await upsertUser(Student, { email: 'pending.student@lihiket.com' }, {
-    firstName:  'Dawit',
-    lastName:   'Haile',
-    username:   'dawit.pending',
-    email:      'pending.student@lihiket.com',
-    password:   'Student@12345',
-    phone:      '+251911000005',
-    role:       'student',
-    gradeLevel: 'G11',
-    isVerified: false,
-    isActive:   true,
-  });
-  console.log('✅ Pending: pending.student@lihiket.com / Student@12345 (needs approval)');
-
   console.log('\n🎉 Seeding complete!');
   console.log('   Admin login: http://localhost:5174/login');
   console.log('   Email: admin@lihiket.com  |  Password: Admin@12345\n');

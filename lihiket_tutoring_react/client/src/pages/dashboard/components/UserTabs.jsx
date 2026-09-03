@@ -1,7 +1,6 @@
-import { FiClock, FiBookOpen, FiUser, FiUsers, FiShield } from 'react-icons/fi';
+import { FiBookOpen, FiUser, FiUsers, FiShield } from 'react-icons/fi';
 
 const TABS = [
-  { key: 'pending',  label: 'Pending',  icon: FiClock,    color: 'amber'   },
   { key: 'teacher',  label: 'Teachers', icon: FiBookOpen, color: 'blue'    },
   { key: 'student',  label: 'Students', icon: FiUser,     color: 'emerald' },
   { key: 'parent',   label: 'Parents',  icon: FiUsers,    color: 'purple'  },
