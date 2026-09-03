@@ -37,13 +37,15 @@ const uploadAssignment = multer({ storage: memStorage, limits: { fileSize: MAX_B
 const pushToCloudinary = (folder, resourceType = 'raw') => async (req, res, next) => {
   if (!req.file) return next();
   try {
-    const ext = req.file.originalname.split('.').pop().toLowerCase();
+    const ext    = path.extname(req.file.originalname).replace('.', '').toLowerCase();
+    const baseId = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
     const url = await uploadToCloudinary(req.file.buffer, {
       folder,
-      resource_type: resourceType,
-      public_id:     `${Date.now()}-${Math.round(Math.random() * 1e6)}.${ext}`,
-      use_filename:  false,
-      unique_filename: false, // use our public_id exactly (with extension)
+      resource_type:   resourceType,
+      public_id:       baseId,
+      format:          ext || undefined,  // tells Cloudinary the file type
+      use_filename:    false,
+      unique_filename: false,
     });
     req.file.path = url;
     next();

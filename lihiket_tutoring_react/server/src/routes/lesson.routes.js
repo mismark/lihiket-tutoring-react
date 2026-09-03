@@ -23,12 +23,13 @@ const uploadLessonFile = multer({
 const pushLessonToCloudinary = async (req, res, next) => {
   if (!req.file) return next();
   try {
-    const ext     = req.file.originalname.split('.').pop().toLowerCase();
+    const ext     = path.extname(req.file.originalname).replace('.', '').toLowerCase();
     const isVideo = ['mp4', 'webm', 'mov', 'avi'].includes(ext);
     const url = await uploadToCloudinary(req.file.buffer, {
       folder:          isVideo ? 'lihiket/lessons' : 'lihiket/documents',
       resource_type:   isVideo ? 'video'           : 'raw',
-      public_id:       `${Date.now()}-${Math.round(Math.random() * 1e6)}.${ext}`,
+      public_id:       `${Date.now()}-${Math.round(Math.random() * 1e6)}`,
+      format:          ext || undefined,
       use_filename:    false,
       unique_filename: false,
     });
