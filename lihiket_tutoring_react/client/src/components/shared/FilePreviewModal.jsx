@@ -37,7 +37,18 @@ function resolveUrl(url) {
 
 function getExt(url) {
   if (!url) return '';
-  return url.split('.').pop().split('?')[0].toLowerCase();
+  // Extract extension from URL path, ignore query strings
+  const pathname = url.split('?')[0];
+  const parts    = pathname.split('.');
+  if (parts.length > 1) return parts.pop().toLowerCase();
+
+  // Cloudinary raw/upload URL without extension — treat as PDF by default
+  // (raw uploads are typically PDFs/docs; images/videos use different resource types)
+  if (url.includes('/raw/upload/')) return 'pdf';
+  if (url.includes('/video/upload/')) return 'mp4';
+  if (url.includes('/image/upload/')) return 'jpg';
+
+  return '';
 }
 
 const PDF_EXTS   = ['pdf'];

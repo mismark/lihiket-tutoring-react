@@ -26,9 +26,11 @@ const pushLessonToCloudinary = async (req, res, next) => {
     const ext     = req.file.originalname.split('.').pop().toLowerCase();
     const isVideo = ['mp4', 'webm', 'mov', 'avi'].includes(ext);
     const url = await uploadToCloudinary(req.file.buffer, {
-      folder:        isVideo ? 'lihiket/lessons' : 'lihiket/documents',
-      resource_type: isVideo ? 'video'           : 'raw',
-      public_id:     `${Date.now()}-${Math.round(Math.random() * 1e6)}`,
+      folder:          isVideo ? 'lihiket/lessons' : 'lihiket/documents',
+      resource_type:   isVideo ? 'video'           : 'raw',
+      public_id:       `${Date.now()}-${Math.round(Math.random() * 1e6)}.${ext}`,
+      use_filename:    false,
+      unique_filename: false,
     });
     req.file.path = url;
     next();
