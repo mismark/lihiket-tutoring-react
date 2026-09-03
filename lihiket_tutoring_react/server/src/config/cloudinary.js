@@ -8,19 +8,47 @@ cloudinary.config({
 });
 
 /**
- * Upload a buffer to Cloudinary.
- * @param {Buffer} buffer  - File buffer from multer memory storage
- * @param {Object} options - Cloudinary upload options (folder, resource_type, etc.)
- * @returns {Promise<string>} - Secure URL of the uploaded file
+ * Upload a buffer to Cloudinary with auto resource_type detection.
+ *
+ * For PDF/doc files:  resource_type = 'raw'  → stored at /raw/upload/
+ * For images:         resource_type = 'image' → stored at /image/upload/
+ * For videos:         resource_type = 'video' → stored at /video/upload/
+ * For auto-detect:    resource_type = 'auto'  → Cloudinary decides
  */
 const uploadToCloudinary = (buffer, options = {}) => {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
-      if (error) return reject(error);
-      resolve(result.secure_url);
-    });
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        type:        'upload',   // always public delivery
+        access_mode: 'public',   // explicitly public
+        ...options,
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result.secure_url);
+      }
+    );
     stream.end(buffer);
   });
 };
 
-module.exports = { cloudinary, uploadToCloudinary };
+/**
+ * Delete a file from Cloudinary by its URL.
+ * Extracts the public_id from the URL automatically.
+ */
+const deleteFromCloudinary = async (url) => {
+  if (!url || !url.includes('res.cloudinary.com')) return;
+  try {
+    // Extract public_id: everything between /upload/vXXXXX/ and the extension
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(\.\w+)?$/);
+    if (!match) return;
+    const publicId = match[1];
+    // Detect resource_type from URL
+    const resourceType = url.includes('/raw/') ? 'raw' : url.includes('/video/') ? 'video' : 'image';
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  } catch (err) {
+    console.error('Cloudinary delete error:', err.message);
+  }
+};
+
+module.exports = { cloudinary, uploadToCloudinary, deleteFromCloudinary };
