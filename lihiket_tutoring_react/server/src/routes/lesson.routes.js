@@ -28,6 +28,8 @@ const pushLessonToCloudinary = async (req, res, next) => {
     const url = await uploadToCloudinary(req.file.buffer, {
       folder:          isVideo ? 'lihiket/lessons' : 'lihiket/documents',
       resource_type:   isVideo ? 'video'           : 'raw',
+      type:            'upload',
+      access_mode:     'public',
       public_id:       `${Date.now()}-${Math.round(Math.random() * 1e6)}`,
       format:          ext || undefined,
       use_filename:    false,

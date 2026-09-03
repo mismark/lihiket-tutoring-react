@@ -42,8 +42,10 @@ const pushToCloudinary = (folder, resourceType = 'raw') => async (req, res, next
     const url = await uploadToCloudinary(req.file.buffer, {
       folder,
       resource_type:   resourceType,
+      type:            'upload',        // ensures public access (not authenticated)
+      access_mode:     'public',        // explicitly public
       public_id:       baseId,
-      format:          ext || undefined,  // tells Cloudinary the file type
+      format:          ext || undefined,
       use_filename:    false,
       unique_filename: false,
     });
