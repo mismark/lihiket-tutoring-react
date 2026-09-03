@@ -1,22 +1,13 @@
+import { useState } from 'react';
 import { FiX, FiDownload, FiExternalLink, FiLock, FiBook, FiUser, FiCalendar, FiTag, FiFileText } from 'react-icons/fi';
+import FilePreviewModal from '../../components/shared/FilePreviewModal';
 
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
 function fileHref(url) {
   if (!url) return null;
-  return url.startsWith('http') ? url : `${SERVER}${url}`;
-}
-
-function openViewer(href, fileName) {
-  if (!href) return;
-  let p = href;
-  try { p = new URL(href).pathname; } catch {}
-  p = p.replace(/^\//, '');
-  if (p.startsWith('uploads/')) {
-    window.open(`/view?p=${encodeURIComponent(p)}&name=${encodeURIComponent(fileName || 'Document')}`, '_blank', 'noopener,noreferrer');
-  } else {
-    window.open(href, '_blank', 'noopener,noreferrer');
-  }
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return url.startsWith('/') ? `${SERVER}${url}` : `${SERVER}/${url}`;
 }
 
 const CATEGORY_LABELS = {
@@ -33,11 +24,13 @@ function formatSize(bytes) {
 
 export default function DocumentView({ doc, onClose, theme }) {
   const dark = theme === 'dark';
+  const [showPreview, setShowPreview] = useState(false);
   if (!doc) return null;
 
   const href = fileHref(doc.fileUrl);
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`flex flex-col w-full max-w-lg max-h-[92vh] rounded-2xl border shadow-2xl ${
         dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
@@ -97,14 +90,14 @@ export default function DocumentView({ doc, onClose, theme }) {
               <p className={`text-xs font-bold uppercase tracking-wider mb-3 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>File</p>
               <div className="flex flex-wrap gap-2">
                 <button
-                  onClick={() => openViewer(href, doc.fileName || doc.title)}
+                  onClick={() => setShowPreview(true)}
                   className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${
-                    dark ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                    dark ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-600 text-white hover:bg-blue-700'
                   }`}
                 >
-                  <FiExternalLink className="w-4 h-4" /> View Document
+                  <FiFileText className="w-4 h-4" /> View Document
                 </button>
-                {doc.allowDownload && (
+                {doc.allowDownload && href && (
                   <a href={href} download={doc.fileName || true}
                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition">
                     <FiDownload className="w-4 h-4" /> Download
@@ -156,5 +149,16 @@ export default function DocumentView({ doc, onClose, theme }) {
         </div>
       </div>
     </div>
+
+    {/* File preview modal */}
+    {showPreview && href && (
+      <FilePreviewModal
+        url={href}
+        name={doc.fileName || doc.title}
+        allowDownload={doc.allowDownload}
+        onClose={() => setShowPreview(false)}
+      />
+    )}
+    </>
   );
 }

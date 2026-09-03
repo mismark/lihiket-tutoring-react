@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { FiToggleLeft, FiToggleRight, FiShield,
          FiBookOpen, FiUser, FiUsers,
-         FiFileText, FiExternalLink, FiPhone, FiCopy, FiCheckCircle,
+         FiFileText, FiPhone, FiCopy, FiCheckCircle,
          FiEdit2, FiTrash2 } from 'react-icons/fi';
+import FilePreviewModal from '../../../components/shared/FilePreviewModal';
 
 const ROLE_ICONS  = { teacher: FiBookOpen, student: FiUser, parent: FiUsers, admin: FiShield };
 const ROLE_COLORS = { teacher: 'blue', student: 'emerald', parent: 'purple', admin: 'amber' };
@@ -158,8 +159,10 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
   const roleColor = ROLE_COLORS[user.userType] || 'amber';
   const colors    = COLOR_MAP[roleColor];
   const cv        = cvUrl(user.cvDocument);
+  const [showCV,  setShowCV] = useState(false);
 
   return (
+    <>
     <tr className={`transition ${theme === 'dark' ? 'hover:bg-slate-700/40' : 'hover:bg-gray-50'}`}>
 
       {/* User */}
@@ -222,16 +225,12 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
           {/* CV — teachers only */}
           {user.userType === 'teacher' && (
             cv ? (
-              <a
-                href={cv}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => setShowCV(true)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 hover:bg-indigo-200 dark:bg-indigo-500/20 dark:text-indigo-300 dark:hover:bg-indigo-500/30 transition"
-                title="View CV"
               >
-                <FiFileText className="w-3.5 h-3.5" />
-                View CV <FiExternalLink className="w-3 h-3" />
-              </a>
+                <FiFileText className="w-3.5 h-3.5" /> View CV
+              </button>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500">
                 <FiFileText className="w-3.5 h-3.5" /> No CV
@@ -277,5 +276,16 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
         </div>
       </td>
     </tr>
+
+    {/* CV preview modal */}
+    {showCV && cv && (
+      <FilePreviewModal
+        url={cv}
+        name={`${user.firstName} ${user.lastName} — CV`}
+        allowDownload={true}
+        onClose={() => setShowCV(false)}
+      />
+    )}
+    </>
   );
 }

@@ -1,10 +1,17 @@
 ﻿import { useState, useEffect } from 'react';
 import { FiX, FiCalendar, FiAward, FiBook, FiUpload, FiEdit2,
-         FiExternalLink, FiCheckCircle, FiUsers, FiUser, FiAlertCircle } from 'react-icons/fi';
+         FiFileText, FiCheckCircle, FiUsers, FiAlertCircle } from 'react-icons/fi';
 import { getSubmissions, gradeSubmission } from '../../api/assignment.api';
 import toast from 'react-hot-toast';
+import FilePreviewModal from '../../components/shared/FilePreviewModal';
 
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
+function resolveFileUrl(url) {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  return `${SERVER}${url.startsWith('/') ? url : `/${url}`}`;
+}
 
 function fmt(dt) { return dt ? new Date(dt).toLocaleString() : 'â€”'; }
 
@@ -125,8 +132,9 @@ function GradePanel({ sub, totalMarks, onGraded, theme }) {
 
 export default function AssignmentView({ assignment: a, canManage, onClose, onEdit, onSubmit, theme }) {
   const dark = theme === 'dark';
-  const [subs, setSubs]   = useState([]);
+  const [subs, setSubs]         = useState([]);
   const [showSubs, setShowSubs] = useState(false);
+  const [preview, setPreview]   = useState(null); // { url, name }
   if (!a) return null;
   const sub = a.mySubmission;
 
@@ -138,6 +146,7 @@ export default function AssignmentView({ assignment: a, canManage, onClose, onEd
   useEffect(() => { if (canManage && showSubs) loadSubs(); }, [canManage, showSubs]);
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className={`flex flex-col w-full max-w-xl max-h-[92vh] rounded-2xl border shadow-2xl ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
 
@@ -173,10 +182,11 @@ export default function AssignmentView({ assignment: a, canManage, onClose, onEd
             </div>
           )}
           {a.attachmentUrl && (
-            <a href={`${SERVER}${a.attachmentUrl}`} target="_blank" rel="noopener noreferrer"
+            <button
+              onClick={() => setPreview({ url: resolveFileUrl(a.attachmentUrl), name: a.attachmentName || 'Attachment' })}
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition ${dark ? 'bg-slate-700 text-slate-200 hover:bg-slate-600' : 'bg-slate-100 text-gray-800 hover:bg-slate-200'}`}>
-              <FiExternalLink className="w-4 h-4" /> {a.attachmentName || 'Download Attachment'}
-            </a>
+              <FiFileText className="w-4 h-4" /> {a.attachmentName || 'View Attachment'}
+            </button>
           )}
 
           {/* Student submission */}
@@ -184,7 +194,13 @@ export default function AssignmentView({ assignment: a, canManage, onClose, onEd
             <div className={`p-4 rounded-xl border ${sub.status === 'graded' ? 'border-emerald-400/40 bg-emerald-50 dark:bg-emerald-500/10' : 'border-blue-400/40 bg-blue-50 dark:bg-blue-500/10'}`}>
               <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>My Submission</p>
               {sub.text && <p className={`text-sm mb-2 ${dark ? 'text-slate-300' : 'text-slate-700'}`}>{sub.text}</p>}
-              {sub.fileUrl && <a href={`${SERVER}${sub.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline block mb-2">{sub.fileName}</a>}
+              {sub.fileUrl && (
+                <button
+                  onClick={() => setPreview({ url: resolveFileUrl(sub.fileUrl), name: sub.fileName || 'Submission' })}
+                  className="text-xs text-blue-500 hover:text-blue-600 hover:underline block mb-2 text-left">
+                  <FiFileText className="w-3 h-3 inline mr-1" />{sub.fileName || 'View File'}
+                </button>
+              )}
               <div className="flex justify-between items-center">
                 <span className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{fmt(sub.submittedAt)}{sub.late ? ' Â· Late' : ''}</span>
                 {sub.marks != null && <span className={`text-sm font-extrabold ${dark ? 'text-white' : 'text-slate-900'}`}>{sub.marks} / {a.totalMarks}</span>}
@@ -213,7 +229,13 @@ export default function AssignmentView({ assignment: a, canManage, onClose, onEd
                     {s.marks != null && <span className={`ml-auto text-sm font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>{s.marks}/{a.totalMarks}</span>}
                   </div>
                   {s.text && <p className={`text-xs mb-2 ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{s.text}</p>}
-                  {s.fileUrl && <a href={`${SERVER}${s.fileUrl}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline block mb-3">{s.fileName}</a>}
+                  {s.fileUrl && (
+                    <button
+                      onClick={() => setPreview({ url: resolveFileUrl(s.fileUrl), name: s.fileName || 'Submission' })}
+                      className="text-xs text-blue-500 hover:text-blue-600 hover:underline block mb-3 text-left">
+                      <FiFileText className="w-3 h-3 inline mr-1" />{s.fileName || 'View File'}
+                    </button>
+                  )}
                   <GradePanel sub={{ ...s, assignment: a._id }} totalMarks={a.totalMarks} onGraded={loadSubs} theme={theme} />
                 </div>
               ))}
@@ -232,6 +254,17 @@ export default function AssignmentView({ assignment: a, canManage, onClose, onEd
         </div>
       </div>
     </div>
+
+    {/* File preview modal */}
+    {preview && (
+      <FilePreviewModal
+        url={preview.url}
+        name={preview.name}
+        allowDownload={true}
+        onClose={() => setPreview(null)}
+      />
+    )}
+    </>
   );
 }
 
