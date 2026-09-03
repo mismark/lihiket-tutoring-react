@@ -192,8 +192,8 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
           </div>
         )}
 
-        {/* Local PDF — direct iframe */}
-        {isPdf && !isCloudinaryRaw && !frameError && (
+        {/* PDF — embedded via proxy (works for both local and Cloudinary) */}
+        {isPdf && !frameError && (
           <iframe
             src={`${fullUrl}#toolbar=1&navpanes=0`}
             title={displayName}
@@ -203,8 +203,8 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
           />
         )}
 
-        {/* Local PDF iframe failed */}
-        {isPdf && !isCloudinaryRaw && frameError && (
+        {/* PDF iframe failed */}
+        {isPdf && frameError && (
           <div className="flex-1 flex items-center justify-center p-8">
             <div className={`rounded-2xl border p-8 text-center max-w-sm w-full ${
               dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
@@ -212,7 +212,7 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
               <FiAlertCircle className={`w-12 h-12 mx-auto mb-4 ${dark ? 'text-red-400' : 'text-red-500'}`} />
               <p className={`font-bold mb-2 ${dark ? 'text-white' : 'text-gray-900'}`}>Could not embed PDF</p>
               <p className={`text-sm mb-6 ${dark ? 'text-slate-400' : 'text-gray-500'}`}>
-                Open the file directly in your browser.
+                Click "Open" above to view in a new tab.
               </p>
               <OpenButton />
             </div>
