@@ -17,27 +17,18 @@ import {
 import { useTheme } from '../../store/theme/ThemeContext';
 
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-const API    = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function resolveUrl(url) {
   if (!url) return null;
-  // Cloudinary URLs — route through our proxy to avoid 401
-  if (url.includes('res.cloudinary.com')) {
-    const token = localStorage.getItem('token');
-    const API   = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    return `${API}/files/proxy?url=${encodeURIComponent(url)}&token=${encodeURIComponent(token || '')}`;
-  }
+  // Cloudinary URLs are publicly accessible — use them directly
   if (url.startsWith('http://') || url.startsWith('https://')) return url;
   const clean = url.startsWith('/') ? url : `/${url}`;
   return `${SERVER}${clean}`;
 }
 
-// For download links, use the direct Cloudinary URL (not the proxy)
+// Same as resolveUrl — kept for download button
 function directUrl(url) {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const clean = url.startsWith('/') ? url : `/${url}`;
-  return `${SERVER}${clean}`;
+  return resolveUrl(url);
 }
 
 function getExt(url) {
