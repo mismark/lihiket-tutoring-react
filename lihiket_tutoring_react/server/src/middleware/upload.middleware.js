@@ -33,7 +33,7 @@ function getResourceType(filename) {
 const uploadAvatar     = multer({ storage: mem, limits: { fileSize: AVATAR_MAX }, fileFilter: (_r, f, cb) => cb(null, EXT.image.test(f.originalname))    }).single('avatar');
 const uploadDocument   = multer({ storage: mem, limits: { fileSize: MAX_BYTES  }, fileFilter: (_r, f, cb) => cb(null, EXT.document.test(f.originalname)) }).single('file');
 const uploadVideo      = multer({ storage: mem, limits: { fileSize: MAX_BYTES  }, fileFilter: (_r, f, cb) => cb(null, EXT.video.test(f.originalname))    }).single('video');
-const uploadLesson     = multer({ storage: mem, limits: { fileSize: MAX_BYTES  }, fileFilter: (_r, f, cb) => cb(null, EXT.any.test(f.originalname))      }).single('file');
+const uploadLesson     = multer({ storage: mem, limits: { fileSize: 1000 * 1024 * 1024 }, fileFilter: (_r, f, cb) => cb(null, EXT.any.test(f.originalname))      }).single('file');
 const uploadCV         = multer({ storage: mem, limits: { fileSize: MAX_BYTES  }, fileFilter: (_r, f, cb) => cb(null, EXT.document.test(f.originalname)) }).single('cv');
 const uploadAssignment = multer({ storage: mem, limits: { fileSize: MAX_BYTES  }, fileFilter: (_r, f, cb) => cb(null, EXT.any.test(f.originalname))      }).single('file');
 

@@ -72,12 +72,12 @@ export default function LessonForm({
     const f = e.target.files?.[0] || null;
     if (!f) return;
 
-    // Warn about large videos before upload
     const ext = f.name.split('.').pop().toLowerCase();
     const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
 
-    if (isVideo && f.size > 100 * 1024 * 1024) {
-      alert(`⚠️ Video is ${(f.size / 1024 / 1024).toFixed(0)}MB — Cloudinary free plan limit is 100MB.\n\nPlease compress the video or use a shorter clip.`);
+    // Block files over 1000MB
+    if (f.size > 1000 * 1024 * 1024) {
+      alert(`⚠️ File is ${(f.size / 1024 / 1024).toFixed(0)}MB — maximum allowed is 1000MB.`);
       return;
     }
 
@@ -185,7 +185,7 @@ export default function LessonForm({
 
               {/* Size limits info */}
               <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                📎 Documents: up to 50MB &nbsp;|&nbsp; 🎬 Videos: up to 100MB (mp4, webm, mov)
+                📎 Documents: up to 50MB &nbsp;|&nbsp; 🎬 Videos: up to 1000MB (mp4, webm, mov)
               </p>
 
               <div onClick={() => fileInputRef.current?.click()}
