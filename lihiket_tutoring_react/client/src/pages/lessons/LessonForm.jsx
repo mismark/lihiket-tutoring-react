@@ -70,12 +70,26 @@ export default function LessonForm({
 
   const handleFile = e => {
     const f = e.target.files?.[0] || null;
-    setFile(f);
-    if (f) {
-      const ext = f.name.split('.').pop().toLowerCase();
-      if (['mp4','webm','mov','avi'].includes(ext))               set('type','video');
-      else if (['pdf','doc','docx','ppt','pptx','xls','xlsx'].includes(ext)) set('type','document');
+    if (!f) return;
+
+    // Warn about large videos before upload
+    const ext = f.name.split('.').pop().toLowerCase();
+    const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
+
+    if (isVideo && f.size > 100 * 1024 * 1024) {
+      alert(`⚠️ Video is ${(f.size / 1024 / 1024).toFixed(0)}MB — Cloudinary free plan limit is 100MB.\n\nPlease compress the video or use a shorter clip.`);
+      return;
     }
+
+    // Set both file and type in one batch update
+    setFile(f);
+    setForm(prev => ({
+      ...prev,
+      type: isVideo ? 'video'
+          : ['pdf','doc','docx','ppt','pptx','xls','xlsx','txt','csv','zip'].includes(ext) ? 'document'
+          : ['png','jpg','jpeg','gif','webp'].includes(ext) ? 'document'
+          : prev.type,
+    }));
   };
 
   const clearFile = e => {
@@ -168,6 +182,12 @@ export default function LessonForm({
               <label className={lbl}>
                 File <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
               </label>
+
+              {/* Size limits info */}
+              <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+                📎 Documents: up to 50MB &nbsp;|&nbsp; 🎬 Videos: up to 100MB (mp4, webm, mov)
+              </p>
+
               <div onClick={() => fileInputRef.current?.click()}
                 className={`flex items-center gap-3 p-4 rounded-xl border-2 border-dashed cursor-pointer transition ${
                   file
@@ -176,10 +196,16 @@ export default function LessonForm({
                 }`}>
                 <FiUpload className={`w-5 h-5 flex-shrink-0 ${file ? 'text-emerald-500' : dark ? 'text-slate-400' : 'text-slate-400'}`} />
                 <span className={`text-sm flex-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {file
-                    ? <span className={`font-semibold ${dark ? 'text-emerald-400' : 'text-emerald-600'}`}>{file.name}</span>
-                    : form.type === 'video' ? 'Click to upload MP4 / WebM / MOV'
-                    : 'Click to upload PDF / DOC / DOCX / image'
+                  {file ? (
+                    <span className="flex flex-col gap-0.5">
+                      <span className={`font-semibold ${dark ? 'text-emerald-400' : 'text-emerald-600'}`}>{file.name}</span>
+                      <span className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </span>
+                    </span>
+                  ) : form.type === 'video'
+                    ? 'Click to upload MP4 / WebM / MOV (max 100MB)'
+                    : 'Click to upload PDF / DOC / DOCX / PPT / image'
                   }
                 </span>
                 {file && (
@@ -189,7 +215,7 @@ export default function LessonForm({
                 )}
               </div>
               <input ref={fileInputRef} type="file" className="hidden"
-                accept={form.type === 'video' ? 'video/*' : '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,image/*'}
+                accept=".mp4,.webm,.mov,.avi,.mkv,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.png,.jpg,.jpeg,video/*,image/*"
                 onChange={handleFile} />
 
               {/* Live preview */}
