@@ -10,16 +10,25 @@ const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 20000,
+  timeout: 30000, // 30s for regular requests
+  withCredentials: false,
+});
+
+// ── Separate instance for file uploads (longer timeout) ───────────────────────
+export const uploadApi = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10 * 60 * 1000, // 10 min for file uploads
   withCredentials: false,
 });
 
 // ── Request: attach JWT token ─────────────────────────────────────────────────
-api.interceptors.request.use((config) => {
+const attachToken = (config) => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
-});
+};
+api.interceptors.request.use(attachToken);
+uploadApi.interceptors.request.use(attachToken);
 
 // ── Response: global error handling ──────────────────────────────────────────
 api.interceptors.response.use(

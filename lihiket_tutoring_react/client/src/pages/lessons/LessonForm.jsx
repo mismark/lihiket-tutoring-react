@@ -188,22 +188,9 @@ export default function LessonForm({
         setUploadedUrl(result.url);
         setUploading(false);
       } catch (err) {
-        // If browser direct upload fails, try server-side upload as fallback
-        console.warn('Direct Cloudinary upload failed:', err.message, '— trying server upload...');
-        try {
-          setUploadPct(0);
-          const serverFd = new FormData();
-          Object.entries(form).forEach(([k, v]) => serverFd.append(k, v));
-          serverFd.append('file', file);
-          const { createLesson } = await import('../../api/lesson.api');
-          await onSubmit(serverFd);
-          setUploading(false);
-          return; // submitted via server — done
-        } catch (serverErr) {
-          setUploadError(`Upload failed: ${err.message}. Server fallback also failed: ${serverErr.message}`);
-          setUploading(false);
-          return;
-        }
+        setUploadError(`Upload failed: ${err.message}`);
+        setUploading(false);
+        return;
       }
     }
 
