@@ -31,7 +31,6 @@ async function uploadToCloudinaryDirect(file, onProgress) {
   fd.append('file', file);
   fd.append('upload_preset', UPLOAD_PRESET);
 
-  // Use XHR for progress tracking (fetch doesn't support upload progress yet)
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', uploadUrl);
@@ -47,16 +46,24 @@ async function uploadToCloudinaryDirect(file, onProgress) {
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve({ url: r.secure_url, resourceType: r.resource_type });
         } else {
-          reject(new Error(r.error?.message || `Cloudinary error ${xhr.status}`));
+          // Show the actual Cloudinary error
+          const msg = r.error?.message || `Cloudinary rejected the file (error ${xhr.status})`;
+          reject(new Error(msg));
         }
       } catch {
-        reject(new Error(`Unexpected response from Cloudinary (${xhr.status})`));
+        reject(new Error(`Unexpected response from Cloudinary (${xhr.status}): ${xhr.responseText?.slice(0, 200)}`));
       }
     });
 
-    xhr.addEventListener('error', (e) => {
-      console.error('XHR error event:', e);
-      reject(new Error('Upload failed — the file may be too large or Cloudinary rejected it.'));
+    xhr.addEventListener('error', () => {
+      // XHR onerror fires when the connection itself fails (CORS, DNS, etc.)
+      // Try to read any response body for more info
+      try {
+        const r = JSON.parse(xhr.responseText);
+        reject(new Error(r.error?.message || 'Connection to Cloudinary failed'));
+      } catch {
+        reject(new Error('Connection to Cloudinary failed. This is usually caused by the file size exceeding the free plan limit (100MB for videos).'));
+      }
     });
 
     xhr.addEventListener('timeout', () => {
@@ -67,11 +74,7 @@ async function uploadToCloudinaryDirect(file, onProgress) {
       reject(new Error('Upload was cancelled.'));
     });
 
-    try {
-      xhr.send(fd);
-    } catch (err) {
-      reject(new Error(`Failed to start upload: ${err.message}`));
-    }
+    xhr.send(fd);
   });
 }
 
@@ -96,6 +99,7 @@ export default function LessonForm({
     order:         '',
     allowDownload: false,
     isPublished:   true,
+    videoUrl:      '', // external video URL (YouTube, Vimeo, etc.)
   });
 
   const [file,        setFile]        = useState(null);
@@ -117,6 +121,7 @@ export default function LessonForm({
       order:         initial.order         ?? '',
       allowDownload: initial.allowDownload ?? false,
       isPublished:   initial.isPublished   !== false,
+      videoUrl:      initial.videoUrl      || '',
     });
   }, [initial]);
 
@@ -141,16 +146,30 @@ export default function LessonForm({
 
     const ext     = f.name.split('.').pop().toLowerCase();
     const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
+    const sizeMB  = f.size / 1024 / 1024;
 
-    // Block files over 1000MB
-    if (f.size > 1000 * 1024 * 1024) {
-      alert(`⚠️ File is ${(f.size / 1024 / 1024).toFixed(0)}MB — maximum allowed is 1000MB.`);
+    // Cloudinary free plan: 100MB max for videos
+    if (isVideo && sizeMB > 100) {
+      setUploadError(
+        `⚠️ Video is ${sizeMB.toFixed(0)}MB — Cloudinary free plan only supports videos up to 100MB.\n\n` +
+        `Options:\n` +
+        `1. Upload your video to YouTube, then paste the YouTube URL in the "External Video URL" field below.\n` +
+        `2. Compress the video to under 100MB using a tool like HandBrake (free).`
+      );
+      setFile(null);
+      if (e.target) e.target.value = '';
       return;
     }
 
+    // Block files over 1000MB
+    if (sizeMB > 1000) {
+      setUploadError(`File is ${sizeMB.toFixed(0)}MB — maximum allowed is 1000MB.`);
+      return;
+    }
+
+    setUploadError('');
     setFile(f);
     setUploadedUrl(null);
-    setUploadError('');
     setUploadPct(0);
     setForm(prev => ({
       ...prev,
@@ -286,14 +305,14 @@ export default function LessonForm({
                 File <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
               </label>
               <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                📎 Documents up to 50MB &nbsp;|&nbsp; 🎬 Videos up to 1000MB — uploaded directly to Cloudinary
+                📎 Documents up to 50MB &nbsp;|&nbsp; 🎬 Videos up to <strong>100MB</strong> (mp4, webm, mov) — for larger videos use YouTube URL below
               </p>
 
               {/* Upload error */}
               {uploadError && (
                 <div className="mb-2 flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 text-xs">
                   <FiAlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{uploadError}</span>
+                  <span className="whitespace-pre-line">{uploadError}</span>
                 </div>
               )}
 
@@ -347,7 +366,7 @@ export default function LessonForm({
                   ) : (
                     <span>
                       {form.type === 'video'
-                        ? 'Click to select video (MP4 / WebM / MOV, up to 1000MB)'
+                        ? 'Click to select video (MP4 / WebM / MOV, max 100MB)'
                         : 'Click to select file (PDF / DOC / PPT / image)'}
                     </span>
                   )}
@@ -398,6 +417,27 @@ export default function LessonForm({
                 </div>
               )}
             </div>
+
+            {/* External Video URL — for videos > 100MB */}
+            {form.type === 'video' && (
+              <div>
+                <label className={lbl}>
+                  External Video URL <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(YouTube / Vimeo — for videos over 100MB)</span>
+                </label>
+                <input
+                  name="videoUrl"
+                  value={form.videoUrl}
+                  onChange={handleChange}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className={inputCls}
+                />
+                {form.videoUrl && (
+                  <p className={`text-xs mt-1 ${dark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                    ✓ External URL will be used — no file upload needed
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Allow Download */}
             <div className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-slate-600 bg-slate-900/50' : 'border-slate-200 bg-slate-50'}`}>
