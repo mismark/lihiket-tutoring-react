@@ -14,22 +14,28 @@ const TYPES = [
 ];
 
 const CLOUD_NAME    = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'rxobiazb';
-const UPLOAD_PRESET = 'lihiket_lessons'; // unsigned preset — created via API
+const UPLOAD_PRESET = 'lihiket_lessons';
 
 /**
- * Upload a file directly from browser to Cloudinary with progress tracking.
- * Uses fetch + ReadableStream for progress, falls back to XHR for older browsers.
+ * Upload file directly to Cloudinary from browser.
+ * Videos are uploaded as 'raw' resource type to bypass free plan video restrictions.
+ * Raw files still play in browser via <video> tag with the direct URL.
  */
 async function uploadToCloudinaryDirect(file, onProgress) {
-  const ext        = file.name.split('.').pop().toLowerCase();
-  const isVideo    = ['mp4','webm','mov','avi','mkv'].includes(ext);
-  const isImage    = ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
-  const resType    = isVideo ? 'video' : isImage ? 'image' : 'raw';
-  const uploadUrl  = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`;
+  const ext     = file.name.split('.').pop().toLowerCase();
+  const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
+  const isImage = ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
+
+  // Use 'raw' for videos to bypass Cloudinary free plan video restriction
+  // Raw files are still served publicly and play in <video> tags
+  const resType   = isVideo ? 'raw' : isImage ? 'image' : 'raw';
+  const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`;
 
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', UPLOAD_PRESET);
+  // Include original filename extension so URL has correct extension
+  fd.append('public_id', `${Date.now()}-${Math.round(Math.random()*1e6)}.${ext}`);
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -46,33 +52,24 @@ async function uploadToCloudinaryDirect(file, onProgress) {
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve({ url: r.secure_url, resourceType: r.resource_type });
         } else {
-          // Show the actual Cloudinary error
-          const msg = r.error?.message || `Cloudinary rejected the file (error ${xhr.status})`;
-          reject(new Error(msg));
+          reject(new Error(r.error?.message || `Upload failed (${xhr.status})`));
         }
       } catch {
-        reject(new Error(`Unexpected response from Cloudinary (${xhr.status}): ${xhr.responseText?.slice(0, 200)}`));
+        reject(new Error(`Unexpected Cloudinary response (${xhr.status})`));
       }
     });
 
     xhr.addEventListener('error', () => {
-      // XHR onerror fires when the connection itself fails (CORS, DNS, etc.)
-      // Try to read any response body for more info
       try {
         const r = JSON.parse(xhr.responseText);
-        reject(new Error(r.error?.message || 'Connection to Cloudinary failed'));
+        reject(new Error(r.error?.message || 'Upload connection failed'));
       } catch {
-        reject(new Error('Connection to Cloudinary failed. This is usually caused by the file size exceeding the free plan limit (100MB for videos).'));
+        reject(new Error('Upload connection failed — check your internet connection'));
       }
     });
 
-    xhr.addEventListener('timeout', () => {
-      reject(new Error('Upload timed out after 30 minutes.'));
-    });
-
-    xhr.addEventListener('abort', () => {
-      reject(new Error('Upload was cancelled.'));
-    });
+    xhr.addEventListener('timeout', () => reject(new Error('Upload timed out')));
+    xhr.addEventListener('abort',   () => reject(new Error('Upload cancelled')));
 
     xhr.send(fd);
   });
@@ -147,25 +144,6 @@ export default function LessonForm({
     const ext     = f.name.split('.').pop().toLowerCase();
     const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
     const sizeMB  = f.size / 1024 / 1024;
-
-    // Cloudinary free plan: 100MB max for videos
-    if (isVideo && sizeMB > 100) {
-      setUploadError(
-        `⚠️ Video is ${sizeMB.toFixed(0)}MB — Cloudinary free plan only supports videos up to 100MB.\n\n` +
-        `Options:\n` +
-        `1. Upload your video to YouTube, then paste the YouTube URL in the "External Video URL" field below.\n` +
-        `2. Compress the video to under 100MB using a tool like HandBrake (free).`
-      );
-      setFile(null);
-      if (e.target) e.target.value = '';
-      return;
-    }
-
-    // Block files over 1000MB
-    if (sizeMB > 1000) {
-      setUploadError(`File is ${sizeMB.toFixed(0)}MB — maximum allowed is 1000MB.`);
-      return;
-    }
 
     setUploadError('');
     setFile(f);
@@ -305,7 +283,7 @@ export default function LessonForm({
                 File <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
               </label>
               <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                📎 Documents up to 50MB &nbsp;|&nbsp; 🎬 Videos up to <strong>100MB</strong> (mp4, webm, mov) — for larger videos use YouTube URL below
+                📎 Documents &amp; 🎬 Videos up to 1000MB — uploaded directly to Cloudinary
               </p>
 
               {/* Upload error */}
@@ -366,7 +344,7 @@ export default function LessonForm({
                   ) : (
                     <span>
                       {form.type === 'video'
-                        ? 'Click to select video (MP4 / WebM / MOV, max 100MB)'
+                        ? 'Click to select video (MP4 / WebM / MOV, up to 1000MB)'
                         : 'Click to select file (PDF / DOC / PPT / image)'}
                     </span>
                   )}

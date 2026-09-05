@@ -28,3 +28,9 @@ export const deleteLesson = async (id) => {
   const res = await api.delete(`/lessons/${id}`);
   return res.data;
 };
+
+// Get Cloudinary signed upload params (for large video uploads)
+export const getCloudinarySignature = async (folder = 'lihiket/lessons') => {
+  const res = await api.get(`/files/sign?folder=${folder}`);
+  return res.data;
+};

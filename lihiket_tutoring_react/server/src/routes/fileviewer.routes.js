@@ -2,8 +2,31 @@ const express = require('express');
 const router  = express.Router();
 const path    = require('path');
 const fs      = require('fs');
+const { cloudinary } = require('../config/cloudinary');
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
+
+// ── GET /api/files/sign — generate a signed Cloudinary upload signature ────────
+// Used by the browser to upload large videos directly to Cloudinary
+router.get('/sign', protect, requireVerified, (req, res) => {
+  const timestamp  = Math.round(Date.now() / 1000);
+  const folder     = req.query.folder || 'lihiket/lessons';
+  const params     = { folder, timestamp };
+
+  const signature = cloudinary.utils.api_sign_request(
+    params,
+    process.env.CLOUDINARY_API_SECRET
+  );
+
+  res.json({
+    success:    true,
+    signature,
+    timestamp,
+    folder,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:    process.env.CLOUDINARY_API_KEY,
+  });
+});
 
 // Serve a file inline (no download) — strips filename so browser can't infer it
 // GET /api/files/view?p=uploads/lessons/12345.pdf
