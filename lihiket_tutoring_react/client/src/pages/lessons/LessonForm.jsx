@@ -13,48 +13,56 @@ const TYPES = [
   { value: 'mixed',    label: 'Mixed'          },
 ];
 
-const CLOUD_NAME   = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'rxobiazb';
-const UPLOAD_PRESET = 'lihiket_lessons'; // unsigned preset
-const CLOUD_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
-function fileHref(url) {
-  if (!url) return null;
-  return url.startsWith('http') ? url : `${SERVER}${url}`;
-}
+const CLOUD_NAME    = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'rxobiazb';
+const UPLOAD_PRESET = 'lihiket_lessons'; // unsigned preset — created via API
 
 /**
  * Upload a file directly from browser to Cloudinary with progress tracking.
- * Returns { url, resourceType }
+ * Uses correct resource_type per file extension.
  */
 function uploadToCloudinaryDirect(file, onProgress) {
   return new Promise((resolve, reject) => {
+    const ext        = file.name.split('.').pop().toLowerCase();
+    const isVideo    = ['mp4','webm','mov','avi','mkv'].includes(ext);
+    const isImage    = ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
+    const resType    = isVideo ? 'video' : isImage ? 'image' : 'raw';
+    const uploadUrl  = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`;
+
     const fd = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', UPLOAD_PRESET);
 
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', CLOUD_UPLOAD_URL);
+    xhr.open('POST', uploadUrl);
 
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) {
-        onProgress(Math.round((e.loaded / e.total) * 100));
-      }
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     };
 
     xhr.onload = () => {
-      if (xhr.status === 200) {
+      try {
         const r = JSON.parse(xhr.responseText);
-        resolve({ url: r.secure_url, resourceType: r.resource_type, publicId: r.public_id });
-      } else {
-        const err = JSON.parse(xhr.responseText);
-        reject(new Error(err.error?.message || 'Upload failed'));
+        if (xhr.status === 200) {
+          resolve({ url: r.secure_url, resourceType: r.resource_type });
+        } else {
+          reject(new Error(r.error?.message || `Upload failed (${xhr.status})`));
+        }
+      } catch {
+        reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText?.slice(0, 100)}`));
       }
     };
 
-    xhr.onerror = () => reject(new Error('Network error during upload'));
+    xhr.onerror  = () => reject(new Error('Network error — check your internet connection and try again.'));
+    xhr.ontimeout = () => reject(new Error('Upload timed out — file may be too large. Try a smaller file.'));
+    xhr.timeout  = 30 * 60 * 1000; // 30 min timeout for large videos
     xhr.send(fd);
   });
+}
+
+const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+function fileHref(url) {
+  if (!url) return null;
+  return url.startsWith('http') ? url : `${SERVER}${url}`;
 }
 
 export default function LessonForm({
