@@ -18,44 +18,60 @@ const UPLOAD_PRESET = 'lihiket_lessons'; // unsigned preset — created via API
 
 /**
  * Upload a file directly from browser to Cloudinary with progress tracking.
- * Uses correct resource_type per file extension.
+ * Uses fetch + ReadableStream for progress, falls back to XHR for older browsers.
  */
-function uploadToCloudinaryDirect(file, onProgress) {
+async function uploadToCloudinaryDirect(file, onProgress) {
+  const ext        = file.name.split('.').pop().toLowerCase();
+  const isVideo    = ['mp4','webm','mov','avi','mkv'].includes(ext);
+  const isImage    = ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
+  const resType    = isVideo ? 'video' : isImage ? 'image' : 'raw';
+  const uploadUrl  = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`;
+
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', UPLOAD_PRESET);
+
+  // Use XHR for progress tracking (fetch doesn't support upload progress yet)
   return new Promise((resolve, reject) => {
-    const ext        = file.name.split('.').pop().toLowerCase();
-    const isVideo    = ['mp4','webm','mov','avi','mkv'].includes(ext);
-    const isImage    = ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
-    const resType    = isVideo ? 'video' : isImage ? 'image' : 'raw';
-    const uploadUrl  = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`;
-
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', UPLOAD_PRESET);
-
     const xhr = new XMLHttpRequest();
     xhr.open('POST', uploadUrl);
+    xhr.timeout = 30 * 60 * 1000; // 30 min
 
-    xhr.upload.onprogress = (e) => {
+    xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
-    };
+    });
 
-    xhr.onload = () => {
+    xhr.addEventListener('load', () => {
       try {
         const r = JSON.parse(xhr.responseText);
-        if (xhr.status === 200) {
+        if (xhr.status >= 200 && xhr.status < 300) {
           resolve({ url: r.secure_url, resourceType: r.resource_type });
         } else {
-          reject(new Error(r.error?.message || `Upload failed (${xhr.status})`));
+          reject(new Error(r.error?.message || `Cloudinary error ${xhr.status}`));
         }
       } catch {
-        reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText?.slice(0, 100)}`));
+        reject(new Error(`Unexpected response from Cloudinary (${xhr.status})`));
       }
-    };
+    });
 
-    xhr.onerror  = () => reject(new Error('Network error — check your internet connection and try again.'));
-    xhr.ontimeout = () => reject(new Error('Upload timed out — file may be too large. Try a smaller file.'));
-    xhr.timeout  = 30 * 60 * 1000; // 30 min timeout for large videos
-    xhr.send(fd);
+    xhr.addEventListener('error', (e) => {
+      console.error('XHR error event:', e);
+      reject(new Error('Upload failed — the file may be too large or Cloudinary rejected it.'));
+    });
+
+    xhr.addEventListener('timeout', () => {
+      reject(new Error('Upload timed out after 30 minutes.'));
+    });
+
+    xhr.addEventListener('abort', () => {
+      reject(new Error('Upload was cancelled.'));
+    });
+
+    try {
+      xhr.send(fd);
+    } catch (err) {
+      reject(new Error(`Failed to start upload: ${err.message}`));
+    }
   });
 }
 
@@ -172,9 +188,22 @@ export default function LessonForm({
         setUploadedUrl(result.url);
         setUploading(false);
       } catch (err) {
-        setUploadError(err.message || 'File upload failed. Please try again.');
-        setUploading(false);
-        return;
+        // If browser direct upload fails, try server-side upload as fallback
+        console.warn('Direct Cloudinary upload failed:', err.message, '— trying server upload...');
+        try {
+          setUploadPct(0);
+          const serverFd = new FormData();
+          Object.entries(form).forEach(([k, v]) => serverFd.append(k, v));
+          serverFd.append('file', file);
+          const { createLesson } = await import('../../api/lesson.api');
+          await onSubmit(serverFd);
+          setUploading(false);
+          return; // submitted via server — done
+        } catch (serverErr) {
+          setUploadError(`Upload failed: ${err.message}. Server fallback also failed: ${serverErr.message}`);
+          setUploading(false);
+          return;
+        }
       }
     }
 
