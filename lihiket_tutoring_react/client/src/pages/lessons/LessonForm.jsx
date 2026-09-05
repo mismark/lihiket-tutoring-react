@@ -1,9 +1,10 @@
 ﻿/**
  * Shared form used by LessonCreate and LessonEdit.
- * Handles all lesson types, file upload with live preview, allow-download toggle.
+ * Files are uploaded DIRECTLY from the browser to Cloudinary (no server proxy),
+ * which allows videos up to 1000MB without Render/server size limits.
  */
 import { useState, useEffect, useRef } from 'react';
-import { FiX, FiSave, FiUpload, FiFileText, FiVideo } from 'react-icons/fi';
+import { FiX, FiSave, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
 const TYPES = [
   { value: 'text',     label: 'Text / Notes'  },
@@ -12,10 +13,48 @@ const TYPES = [
   { value: 'mixed',    label: 'Mixed'          },
 ];
 
+const CLOUD_NAME   = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'rxobiazb';
+const UPLOAD_PRESET = 'lihiket_lessons'; // unsigned preset
+const CLOUD_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 function fileHref(url) {
   if (!url) return null;
   return url.startsWith('http') ? url : `${SERVER}${url}`;
+}
+
+/**
+ * Upload a file directly from browser to Cloudinary with progress tracking.
+ * Returns { url, resourceType }
+ */
+function uploadToCloudinaryDirect(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', UPLOAD_PRESET);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', CLOUD_UPLOAD_URL);
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      if (xhr.status === 200) {
+        const r = JSON.parse(xhr.responseText);
+        resolve({ url: r.secure_url, resourceType: r.resource_type, publicId: r.public_id });
+      } else {
+        const err = JSON.parse(xhr.responseText);
+        reject(new Error(err.error?.message || 'Upload failed'));
+      }
+    };
+
+    xhr.onerror = () => reject(new Error('Network error during upload'));
+    xhr.send(fd);
+  });
 }
 
 export default function LessonForm({
@@ -35,8 +74,12 @@ export default function LessonForm({
     isPublished:   true,
   });
 
-  const [file,       setFile]       = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [file,        setFile]        = useState(null);
+  const [previewUrl,  setPreviewUrl]  = useState(null);
+  const [uploading,   setUploading]   = useState(false);
+  const [uploadPct,   setUploadPct]   = useState(0);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadedUrl, setUploadedUrl] = useState(null); // final Cloudinary URL
 
   /* Pre-fill when editing */
   useEffect(() => {
@@ -72,7 +115,7 @@ export default function LessonForm({
     const f = e.target.files?.[0] || null;
     if (!f) return;
 
-    const ext = f.name.split('.').pop().toLowerCase();
+    const ext     = f.name.split('.').pop().toLowerCase();
     const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
 
     // Block files over 1000MB
@@ -81,8 +124,10 @@ export default function LessonForm({
       return;
     }
 
-    // Set both file and type in one batch update
     setFile(f);
+    setUploadedUrl(null);
+    setUploadError('');
+    setUploadPct(0);
     setForm(prev => ({
       ...prev,
       type: isVideo ? 'video'
@@ -96,15 +141,51 @@ export default function LessonForm({
     e.stopPropagation();
     setFile(null);
     setPreviewUrl(null);
+    setUploadedUrl(null);
+    setUploadError('');
+    setUploadPct(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title.trim()) return;
+
+    setUploadError('');
+
+    // If there's a file to upload, upload to Cloudinary first
+    let finalUrl = uploadedUrl;
+    if (file && !uploadedUrl) {
+      setUploading(true);
+      setUploadPct(0);
+      try {
+        const result = await uploadToCloudinaryDirect(file, setUploadPct);
+        finalUrl = result.url;
+        setUploadedUrl(result.url);
+        setUploading(false);
+      } catch (err) {
+        setUploadError(err.message || 'File upload failed. Please try again.');
+        setUploading(false);
+        return;
+      }
+    }
+
+    // Build FormData — send Cloudinary URL instead of file
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-    if (file) fd.append('file', file);
+
+    // Pass the Cloudinary URL as the file URL field
+    if (finalUrl) {
+      const ext     = file?.name?.split('.').pop().toLowerCase() || '';
+      const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
+      if (isVideo) {
+        fd.append('videoUrl', finalUrl);
+      } else {
+        fd.append('fileUrl', finalUrl);
+        fd.append('fileName', file?.name || '');
+      }
+    }
+
     onSubmit(fd);
   };
 
@@ -114,9 +195,10 @@ export default function LessonForm({
   }`;
   const lbl = `block text-xs font-semibold mb-1.5 ${dark ? 'text-slate-300' : 'text-slate-600'}`;
 
-  const isVid   = file && /\.(mp4|webm|mov)$/i.test(file.name);
+  const isVid   = file && /\.(mp4|webm|mov|avi|mkv)$/i.test(file.name);
   const isPdf   = file && /\.pdf$/i.test(file.name);
   const isImage = file && /\.(png|jpg|jpeg|gif|webp)$/i.test(file.name);
+  const isBusy  = saving || uploading;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -127,8 +209,8 @@ export default function LessonForm({
         {/* Header */}
         <div className={`flex items-center justify-between px-6 py-4 border-b flex-shrink-0 ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
           <h2 className={`text-lg font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>{title}</h2>
-          <button type="button" onClick={onCancel}
-            className={`p-2 rounded-lg ${dark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}>
+          <button type="button" onClick={onCancel} disabled={isBusy}
+            className={`p-2 rounded-lg ${dark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'} disabled:opacity-40`}>
             <FiX className="w-5 h-5" />
           </button>
         </div>
@@ -136,15 +218,13 @@ export default function LessonForm({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
 
-            {/* Course selector (only when courses list provided & not editing) */}
+            {/* Course selector */}
             {courses?.length > 0 && !initial && (
               <div>
                 <label className={lbl}>Course *</label>
                 <select name="courseId" value={form.courseId} onChange={handleChange} required className={inputCls}>
-                  <option value="">â€” Select course â€”</option>
-                  {courses.map(c => (
-                    <option key={c._id} value={c._id}>{c.title}</option>
-                  ))}
+                  <option value="">— Select course —</option>
+                  {courses.map(c => <option key={c._id} value={c._id}>{c.title}</option>)}
                 </select>
               </div>
             )}
@@ -153,8 +233,7 @@ export default function LessonForm({
             <div>
               <label className={lbl}>Title *</label>
               <input name="title" value={form.title} onChange={handleChange} required
-                placeholder="e.g., Introduction to Algebra"
-                className={inputCls} />
+                placeholder="e.g., Introduction to Algebra" className={inputCls} />
             </div>
 
             {/* Type + Duration + Order */}
@@ -182,44 +261,88 @@ export default function LessonForm({
               <label className={lbl}>
                 File <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
               </label>
-
-              {/* Size limits info */}
               <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                📎 Documents: up to 50MB &nbsp;|&nbsp; 🎬 Videos: up to 1000MB (mp4, webm, mov)
+                📎 Documents up to 50MB &nbsp;|&nbsp; 🎬 Videos up to 1000MB — uploaded directly to Cloudinary
               </p>
 
-              <div onClick={() => fileInputRef.current?.click()}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 border-dashed cursor-pointer transition ${
+              {/* Upload error */}
+              {uploadError && (
+                <div className="mb-2 flex items-start gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-400 text-xs">
+                  <FiAlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>{uploadError}</span>
+                </div>
+              )}
+
+              {/* Upload progress */}
+              {uploading && (
+                <div className="mb-2 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className={dark ? 'text-slate-300' : 'text-slate-700'}>
+                      Uploading to Cloudinary… {uploadPct}%
+                    </span>
+                    <span className={dark ? 'text-slate-400' : 'text-slate-500'}>
+                      {file ? (file.size / 1024 / 1024).toFixed(1) + ' MB' : ''}
+                    </span>
+                  </div>
+                  <div className={`w-full h-2 rounded-full overflow-hidden ${dark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                    <div
+                      className="h-full bg-blue-600 transition-all duration-300 rounded-full"
+                      style={{ width: `${uploadPct}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Uploaded success badge */}
+              {uploadedUrl && !uploading && (
+                <div className="mb-2 flex items-center gap-2 p-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-xs">
+                  <FiCheckCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>Uploaded successfully — will save with lesson</span>
+                </div>
+              )}
+
+              {/* Drop zone */}
+              <div onClick={() => !isBusy && fileInputRef.current?.click()}
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 border-dashed transition ${
+                  isBusy ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'
+                } ${
                   file
                     ? dark ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-emerald-400 bg-emerald-50'
                     : dark ? 'border-slate-600 hover:border-slate-500' : 'border-gray-300 hover:border-blue-400'
                 }`}>
                 <FiUpload className={`w-5 h-5 flex-shrink-0 ${file ? 'text-emerald-500' : dark ? 'text-slate-400' : 'text-slate-400'}`} />
-                <span className={`text-sm flex-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <span className={`text-sm flex-1 min-w-0 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {file ? (
                     <span className="flex flex-col gap-0.5">
-                      <span className={`font-semibold ${dark ? 'text-emerald-400' : 'text-emerald-600'}`}>{file.name}</span>
+                      <span className={`font-semibold truncate ${dark ? 'text-emerald-400' : 'text-emerald-600'}`}>{file.name}</span>
                       <span className={`text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
                         {(file.size / 1024 / 1024).toFixed(2)} MB
+                        {uploadedUrl ? ' · ✅ Ready' : ' · Click Save to upload'}
                       </span>
                     </span>
-                  ) : form.type === 'video'
-                    ? 'Click to upload MP4 / WebM / MOV (max 100MB)'
-                    : 'Click to upload PDF / DOC / DOCX / PPT / image'
-                  }
+                  ) : (
+                    <span>
+                      {form.type === 'video'
+                        ? 'Click to select video (MP4 / WebM / MOV, up to 1000MB)'
+                        : 'Click to select file (PDF / DOC / PPT / image)'}
+                    </span>
+                  )}
                 </span>
-                {file && (
-                  <button type="button" onClick={clearFile} className="text-red-400 hover:text-red-600">
+                {file && !isBusy && (
+                  <button type="button" onClick={clearFile} className="text-red-400 hover:text-red-600 flex-shrink-0">
                     <FiX className="w-4 h-4" />
                   </button>
                 )}
               </div>
+
               <input ref={fileInputRef} type="file" className="hidden"
                 accept=".mp4,.webm,.mov,.avi,.mkv,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.png,.jpg,.jpeg,video/*,image/*"
-                onChange={handleFile} />
+                onChange={handleFile}
+                disabled={isBusy}
+              />
 
-              {/* Live preview */}
-              {previewUrl && (
+              {/* Live preview (local only, before upload) */}
+              {previewUrl && !uploading && (
                 <div className={`mt-3 rounded-xl overflow-hidden border ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
                   <div className={`flex items-center justify-between px-3 py-2 ${dark ? 'bg-slate-700' : 'bg-slate-100'}`}>
                     <span className={`text-xs font-semibold ${dark ? 'text-slate-300' : 'text-slate-600'}`}>Preview</span>
@@ -229,13 +352,13 @@ export default function LessonForm({
                   </div>
                   {isVid   && <video src={previewUrl} controls className="w-full max-h-40 bg-black" />}
                   {isImage && <img src={previewUrl} alt="preview" className="w-full max-h-40 object-contain bg-gray-900" />}
-                  {isPdf   && <iframe src={previewUrl} className="w-full h-40" style={{ border:'none' }} title="PDF preview" />}
+                  {isPdf   && <iframe src={previewUrl} className="w-full h-40" style={{ border:'none' }} title="preview" />}
                   {!isVid && !isImage && !isPdf && (
                     <div className={`flex items-center gap-3 p-3 ${dark ? 'bg-slate-800' : 'bg-white'}`}>
-                      <FiFileText className={`w-8 h-8 ${dark ? 'text-amber-400' : 'text-amber-500'}`} />
+                      <FiFileText className={`w-8 h-8 flex-shrink-0 ${dark ? 'text-amber-400' : 'text-amber-500'}`} />
                       <div>
                         <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{file.name}</p>
-                        <p className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Ready to upload</p>
+                        <p className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Will upload on save</p>
                       </div>
                     </div>
                   )}
@@ -245,16 +368,14 @@ export default function LessonForm({
               {/* Show current file when editing */}
               {initial && !file && (initial.videoUrl || initial.fileUrl) && (
                 <div className={`mt-2 p-3 rounded-xl text-xs ${dark ? 'bg-slate-700/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
-                  Current:{' '}
-                  <a href={fileHref(initial.videoUrl || initial.fileUrl)} target="_blank" rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline">
-                    {initial.fileName || 'view file'}
-                  </a>{' '}â€” upload a new file to replace
+                  Current: <a href={fileHref(initial.videoUrl || initial.fileUrl)} target="_blank" rel="noopener noreferrer"
+                    className="text-blue-500 hover:underline">{initial.fileName || 'view file'}</a>
+                  {' '}— select a new file to replace
                 </div>
               )}
             </div>
 
-            {/* Allow Download toggle */}
+            {/* Allow Download */}
             <div className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-slate-600 bg-slate-900/50' : 'border-slate-200 bg-slate-50'}`}>
               <div>
                 <p className={`text-sm font-semibold ${dark ? 'text-slate-200' : 'text-gray-800'}`}>Allow Download</p>
@@ -266,7 +387,7 @@ export default function LessonForm({
               </label>
             </div>
 
-            {/* Published toggle */}
+            {/* Published */}
             <div className={`flex items-center justify-between p-3 rounded-xl border ${dark ? 'border-slate-600 bg-slate-900/50' : 'border-slate-200 bg-slate-50'}`}>
               <div>
                 <p className={`text-sm font-semibold ${dark ? 'text-slate-200' : 'text-gray-800'}`}>Published</p>
@@ -282,21 +403,23 @@ export default function LessonForm({
             <div>
               <label className={lbl}>Notes / Content</label>
               <textarea name="content" value={form.content} onChange={handleChange} rows={4}
-                placeholder="Write lesson notes, explanations, or instructions hereâ€¦"
+                placeholder="Write lesson notes, explanations, or instructions here…"
                 className={`${inputCls} resize-none`} />
             </div>
           </div>
 
           {/* Footer */}
           <div className={`flex gap-3 px-6 py-4 border-t flex-shrink-0 ${dark ? 'border-slate-700' : 'border-slate-200'}`}>
-            <button type="button" onClick={onCancel}
-              className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition ${dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+            <button type="button" onClick={onCancel} disabled={isBusy}
+              className={`flex-1 py-2.5 rounded-xl font-semibold text-sm transition disabled:opacity-40 ${dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
               Cancel
             </button>
-            <button type="submit" disabled={saving}
+            <button type="submit" disabled={isBusy}
               className="flex-1 py-2.5 rounded-xl font-semibold text-sm bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50 flex items-center justify-center gap-2">
-              {saving
-                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Savingâ€¦</>
+              {uploading
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Uploading {uploadPct}%…</>
+                : saving
+                ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Saving…</>
                 : <><FiSave className="w-4 h-4" /> Save Lesson</>
               }
             </button>
@@ -306,4 +429,3 @@ export default function LessonForm({
     </div>
   );
 }
-

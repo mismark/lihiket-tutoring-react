@@ -72,7 +72,7 @@ exports.getLesson = async (req, res, next) => {
 // ── POST /api/lessons ─────────────────────────────────────────────────────────
 exports.createLesson = async (req, res, next) => {
   try {
-    const { title, content, courseId, order, type, duration, videoUrl: externalVideo } = req.body;
+    const { title, content, courseId, order, type, duration, videoUrl: externalVideo, fileUrl: externalFileUrl, fileName: externalFileName } = req.body;
     if (!title || !courseId) return next(new AppError('title and courseId are required', 400));
 
     const course = await resolveCourse(courseId);
@@ -82,22 +82,15 @@ exports.createLesson = async (req, res, next) => {
       return next(new AppError('You can only add lessons to your own courses', 403));
     }
 
-    // Handle uploaded files
+    // Handle files — priority: direct Cloudinary URL (from browser upload) > multer file > external URL
     let videoPath = externalVideo || null;
-    let filePath  = null;
-    let fileName  = null;
+    let filePath  = externalFileUrl || null;
+    let fileName  = externalFileName || null;
 
-    if (req.files?.video?.[0]) {
-      videoPath = fileUrl(req.files.video[0].path);
-    }
-    if (req.files?.file?.[0]) {
-      filePath = fileUrl(req.files.file[0].path);
-      fileName = req.files.file[0].originalname;
-    }
-    // Single file upload (multer single)
+    // Multer file upload (server-side, fallback for small files)
     if (req.file) {
-      const ext = path.extname(req.file.originalname).toLowerCase();
-      const isVideo = ['.mp4', '.webm', '.mov', '.avi'].includes(ext);
+      const ext     = path.extname(req.file.originalname).toLowerCase();
+      const isVideo = ['.mp4', '.webm', '.mov', '.avi', '.mkv'].includes(ext);
       if (isVideo) videoPath = fileUrl(req.file.path);
       else {
         filePath = fileUrl(req.file.path);
@@ -145,7 +138,7 @@ exports.updateLesson = async (req, res, next) => {
       return next(new AppError('You can only edit your own lessons', 403));
     }
 
-    const { title, content, order, type, duration, isPublished } = req.body;
+    const { title, content, order, type, duration, isPublished, videoUrl: bodyVideoUrl, fileUrl: bodyFileUrl, fileName: bodyFileName } = req.body;
     if (title       !== undefined) lesson.title       = title.trim();
     if (content     !== undefined) lesson.content     = content;
     if (order       !== undefined) lesson.order       = Number(order);
@@ -155,9 +148,14 @@ exports.updateLesson = async (req, res, next) => {
     if (req.body.allowDownload !== undefined)
       lesson.allowDownload = req.body.allowDownload === 'true' || req.body.allowDownload === true;
 
+    // Direct Cloudinary URL from browser upload (priority)
+    if (bodyVideoUrl) lesson.videoUrl = bodyVideoUrl;
+    if (bodyFileUrl)  { lesson.fileUrl = bodyFileUrl; lesson.fileName = bodyFileName || lesson.fileName; }
+
+    // Multer file (server-side fallback for small files)
     if (req.file) {
       const ext     = path.extname(req.file.originalname).toLowerCase();
-      const isVideo = ['.mp4', '.webm', '.mov', '.avi'].includes(ext);
+      const isVideo = ['.mp4', '.webm', '.mov', '.avi', '.mkv'].includes(ext);
       if (isVideo) lesson.videoUrl = fileUrl(req.file.path);
       else { lesson.fileUrl = fileUrl(req.file.path); lesson.fileName = req.file.originalname; }
     }
