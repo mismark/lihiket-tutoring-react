@@ -32,15 +32,15 @@ export default function Footer() {
 
   if (isInner) {
     return (
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(2,8,23,0.9)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-4 flex-wrap">
-          <p className="text-xs text-slate-500 dark:text-slate-500">
+          <p className="text-xs text-slate-600">
             © {currentYear} Lihiket. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-xs text-slate-400 dark:text-slate-600">
-            <a href="#privacy" className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Privacy</a>
-            <span aria-hidden="true">·</span>
-            <a href="#terms"   className="hover:text-slate-600 dark:hover:text-slate-400 transition-colors">Terms</a>
+          <div className="flex items-center gap-4 text-xs text-slate-700">
+            <a href="#privacy" className="hover:text-slate-400 transition-colors">Privacy</a>
+            <span>·</span>
+            <a href="#terms" className="hover:text-slate-400 transition-colors">Terms</a>
           </div>
         </div>
       </footer>
@@ -49,7 +49,7 @@ export default function Footer() {
 
   // Full footer for public/marketing pages
   return (
-    <footer className="bg-slate-900 dark:bg-slate-950 text-slate-300">
+    <footer style={{ background: 'rgba(2,8,23,0.98)', borderTop: '1px solid rgba(255,255,255,0.07)', color: '#94a3b8' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-8">
 
         {/* Grid */}
@@ -58,11 +58,12 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link to="/" className="inline-flex items-center gap-2.5 mb-4 group">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm group-hover:bg-blue-500 transition-colors">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform"
+                style={{ background: 'linear-gradient(135deg, #10b981, #0d9488)' }}>
                 <FiBookOpen className="w-4 h-4 text-white" />
               </div>
               <span className="text-lg font-extrabold text-white">
-                Lihiket<span className="text-blue-400">.</span>
+                Lihiket<span style={{ color: '#34d399' }}>.</span>
               </span>
             </Link>
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
@@ -83,7 +84,10 @@ export default function Footer() {
                   target={href.startsWith('http') ? '_blank' : undefined}
                   rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
                   aria-label={label}
-                  className="w-8 h-8 rounded-lg bg-slate-800 dark:bg-slate-800 text-slate-400 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all duration-150"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 text-slate-500 hover:text-white"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+                  onMouseEnter={e => { e.currentTarget.style.background='linear-gradient(135deg,#10b981,#0d9488)'; e.currentTarget.style.borderColor='transparent'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.08)'; }}
                 >
                   <Icon className="w-3.5 h-3.5" />
                 </a>
@@ -93,7 +97,7 @@ export default function Footer() {
 
           {/* Product links */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Product</h4>
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Product</h4>
             <ul className="space-y-2.5">
               {[
                 { label: 'Home',     href: '/'         },
@@ -112,7 +116,7 @@ export default function Footer() {
 
           {/* Company links */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Company</h4>
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Company</h4>
             <ul className="space-y-2.5">
               {[
                 { label: 'About Us', href: '#about'   },
@@ -131,7 +135,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Contact</h4>
+          <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Contact</h4>
             <ul className="space-y-3">
               <li>
                 <a href="mailto:info@lihiket.com"
@@ -156,7 +160,8 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"
+          style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
           <p className="text-xs text-slate-500">
             © {currentYear} <span className="text-slate-400 font-medium">Lihiket</span>. All rights reserved.
           </p>

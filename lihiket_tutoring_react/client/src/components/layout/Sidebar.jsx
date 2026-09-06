@@ -109,30 +109,24 @@ function SidebarPanel({ onClose }) {
   const handleLogout = () => { logout(); onClose?.(); };
 
   return (
-    <div className={`flex flex-col h-full w-64 ${
-      dark ? 'bg-slate-900 border-r border-slate-800' : 'bg-white border-r border-slate-200'
-    }`}>
+    <div className="flex flex-col h-full w-64"
+      style={{ background: 'rgba(2,8,23,0.95)', borderRight: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}>
 
       {/* ── Logo header ── */}
-      <div className={`flex items-center justify-between px-4 py-4 border-b flex-shrink-0 ${
-        dark ? 'border-slate-800' : 'border-slate-200'
-      }`}>
+      <div className="flex items-center justify-between px-4 py-4 border-b flex-shrink-0"
+        style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow group-hover:scale-105 transition-transform"
+            style={{ background: 'linear-gradient(135deg, #10b981, #0d9488)' }}>
             <FiBookOpen className="w-4 h-4" />
           </div>
-          <span className={`text-base font-extrabold ${dark ? 'text-white' : 'text-gray-900'}`}>
-            Lihiket<span className="text-blue-600">.</span>
+          <span className="text-base font-extrabold text-white">
+            Lihiket<span style={{ color: '#34d399' }}>.</span>
           </span>
         </Link>
-        {/* Close button — visible on mobile only */}
         {onClose && (
-          <button
-            onClick={onClose}
-            className={`lg:hidden p-1.5 rounded-lg transition ${
-              dark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-gray-100 text-gray-500'
-            }`}
-          >
+          <button onClick={onClose}
+            className="lg:hidden p-1.5 rounded-lg transition text-slate-400 hover:text-white hover:bg-white/[0.07]">
             <FiX className="w-5 h-5" />
           </button>
         )}
@@ -140,23 +134,15 @@ function SidebarPanel({ onClose }) {
 
       {/* ── User profile strip ── */}
       {user && (
-        <Link
-          to="/profile"
-          onClick={() => onClose?.()}
-          className={`flex items-center gap-3 px-4 py-3 border-b flex-shrink-0 transition ${
-            dark ? 'border-slate-800 hover:bg-slate-800' : 'border-slate-200 hover:bg-slate-50'
-          }`}
-        >
+        <Link to="/profile" onClick={() => onClose?.()}
+          className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0 transition hover:bg-white/[0.04]"
+          style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
           <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow`}>
             {user.firstName?.[0]}{user.lastName?.[0]}
           </div>
           <div className="min-w-0">
-            <p className={`text-sm font-bold truncate ${dark ? 'text-white' : 'text-gray-900'}`}>
-              {user.firstName} {user.lastName}
-            </p>
-            <p className={`text-xs capitalize ${dark ? 'text-slate-400' : 'text-gray-500'}`}>
-              {role}
-            </p>
+            <p className="text-sm font-bold truncate text-white">{user.firstName} {user.lastName}</p>
+            <p className="text-xs capitalize text-slate-400">{role}</p>
           </div>
         </Link>
       )}
@@ -166,73 +152,46 @@ function SidebarPanel({ onClose }) {
         {items.map((item, idx) => {
           if (item.section) {
             return (
-              <p key={idx} className={`px-3 pt-4 pb-1 text-xs font-bold uppercase tracking-widest first:pt-1 ${
-                dark ? 'text-slate-500' : 'text-gray-400'
-              }`}>
+              <p key={idx} className="px-3 pt-4 pb-1 text-xs font-bold uppercase tracking-widest first:pt-1 text-slate-600">
                 {item.section}
               </p>
             );
           }
-
           const Icon   = item.icon;
           const active = isActive(item.to);
-
           return (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => onClose?.()}
+            <Link key={item.to} to={item.to} onClick={() => onClose?.()}
               aria-current={active ? 'page' : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                active
-                  ? dark
-                    ? 'bg-blue-500/15 text-blue-400 font-semibold'
-                    : 'bg-blue-50 text-blue-700 font-semibold'
-                  : dark
-                    ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-              }`}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+              style={{
+                color: active ? '#34d399' : '#94a3b8',
+                background: active ? 'rgba(16,185,129,0.1)' : 'transparent',
+                fontWeight: active ? 600 : 500,
+              }}
+              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#fff'; }}}
+              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}}
             >
-              <Icon className={`w-4 h-4 flex-shrink-0 ${
-                active
-                  ? dark ? 'text-blue-400' : 'text-blue-600'
-                  : dark ? 'text-slate-400' : 'text-gray-400'
-              }`} />
+              <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? '#34d399' : '#64748b' }} />
               <span className="truncate">{item.label}</span>
-              {active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
-              )}
+              {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />}
             </Link>
           );
         })}
       </nav>
 
       {/* ── Footer ── */}
-      <div className={`px-2 py-3 border-t space-y-0.5 flex-shrink-0 ${
-        dark ? 'border-slate-800' : 'border-slate-200'
-      }`}>
-        <button
-          onClick={toggleTheme}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-            dark
-              ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
-              : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-          }`}
-        >
+      <div className="px-2 py-3 border-t space-y-0.5 flex-shrink-0"
+        style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+        <button onClick={toggleTheme}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-white hover:bg-white/[0.06]">
           {dark
             ? <><FiSun  className="w-4 h-4 text-amber-400" /><span>Light Mode</span></>
-            : <><FiMoon className="w-4 h-4 text-slate-500" /><span>Dark Mode</span></>
+            : <><FiMoon className="w-4 h-4 text-indigo-400" /><span>Dark Mode</span></>
           }
         </button>
-
         {user && (
-          <button
-            onClick={handleLogout}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${
-              dark
-                ? 'text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                : 'text-red-600 hover:bg-red-50 hover:text-red-700'
-            }`}          >
+          <button onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition text-red-400 hover:bg-red-500/10 hover:text-red-300">
             <FiLogOut className="w-4 h-4" />
             <span>Logout</span>
           </button>
@@ -267,20 +226,17 @@ export default function Sidebar() {
   return (
     <>
       {/* ── DESKTOP: persistent fixed sidebar ── */}
-      <div className={`hidden lg:flex flex-col fixed top-0 left-0 h-full z-30 shadow-xl transition-transform duration-300 ease-in-out ${
+      <div className={`hidden lg:flex flex-col fixed top-0 left-0 h-full z-30 shadow-2xl transition-transform duration-300 ease-in-out ${
         open ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <SidebarPanel onClose={null} />
       </div>
 
       {/* ── MOBILE: backdrop ── */}
-      <div
-        onClick={closeMobile}
-        aria-hidden="true"
-        className={`lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+      <div onClick={closeMobile} aria-hidden="true"
+        className={`lg:hidden fixed inset-0 backdrop-blur-sm z-40 transition-opacity duration-300 ${
           mobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
-      />
+        }`} style={{ background: 'rgba(2,8,23,0.7)' }} />
 
       {/* ── MOBILE: slide-in drawer ── */}
       <div className={`lg:hidden fixed top-0 left-0 h-full z-50 shadow-2xl transition-transform duration-300 ease-in-out ${
