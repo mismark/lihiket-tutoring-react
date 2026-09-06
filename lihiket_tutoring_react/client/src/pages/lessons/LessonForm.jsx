@@ -34,8 +34,8 @@ async function uploadToCloudinaryDirect(file, onProgress) {
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', UPLOAD_PRESET);
-  // Include original filename extension so URL has correct extension
-  fd.append('public_id', `${Date.now()}-${Math.round(Math.random()*1e6)}.${ext}`);
+  // Set folder explicitly — don't include extension in public_id (Cloudinary handles it)
+  fd.append('folder', 'lihiket/lessons');
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
