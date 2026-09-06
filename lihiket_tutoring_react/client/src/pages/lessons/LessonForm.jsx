@@ -196,28 +196,32 @@ export default function LessonForm({
 
     // Build FormData — send Cloudinary URL instead of file
     const fd = new FormData();
-    // Append form fields EXCEPT videoUrl (we handle it separately below)
+    // Append all form fields EXCEPT videoUrl (handled separately below)
     Object.entries(form).forEach(([k, v]) => {
-      if (k !== 'videoUrl') fd.append(k, v);
+      if (k !== 'videoUrl') fd.append(k, String(v));
     });
 
-    // Pass the Cloudinary URL OR the external URL from form
-    const videoUrlToUse = finalUrl && ['mp4','webm','mov','avi','mkv'].includes(file?.name?.split('.').pop().toLowerCase() || '') 
-      ? finalUrl 
-      : form.videoUrl || null;
-    
+    // Ensure courseId is set (may come from defaultCourseId prop)
+    if (!fd.get('courseId') || fd.get('courseId') === '') {
+      const courseFromInitial = initial?.course?._id || initial?.course || '';
+      if (courseFromInitial) fd.set('courseId', courseFromInitial);
+    }
+
+    // Pass the Cloudinary URL or external URL
     if (finalUrl) {
       const ext     = file?.name?.split('.').pop().toLowerCase() || '';
       const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
       if (isVideo) {
-        fd.append('videoUrl', finalUrl);
+        fd.set('videoUrl', finalUrl);
+        fd.set('type', 'video');
       } else {
-        fd.append('fileUrl', finalUrl);
-        fd.append('fileName', file?.name || '');
+        fd.set('fileUrl', finalUrl);
+        fd.set('fileName', file?.name || '');
       }
     } else if (form.videoUrl) {
       // External YouTube/Vimeo URL
-      fd.append('videoUrl', form.videoUrl);
+      fd.set('videoUrl', form.videoUrl);
+      fd.set('type', 'video');
     }
 
     onSubmit(fd);
