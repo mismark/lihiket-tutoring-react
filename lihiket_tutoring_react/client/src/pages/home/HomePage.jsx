@@ -6,6 +6,7 @@ import {
   FiAward, FiZap, FiVideo, FiFileText, FiTrendingUp,
   FiShield, FiTarget,
 } from 'react-icons/fi';
+import FeatureCard from './components/FeatureCard';
 
 // ── Gallery images ────────────────────────────────────────────────────────────
 const GALLERY_ROW1 = [
