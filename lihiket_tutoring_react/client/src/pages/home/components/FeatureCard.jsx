@@ -25,17 +25,18 @@ export default function FeatureCard({ icon: Icon, title, desc, color, glow, dela
       onMouseMove={handleMouseMove}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      style={{ rotateX: rotX, rotateY: rotY, scale, transformStyle: 'preserve-3d', transformPerspective: 800 }}
-      initial={{ opacity: 0, y: 50 }}
-      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-      transition={{ duration: 0.7, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="relative p-6 rounded-3xl border cursor-default"
       style={{
+        rotateX: rotX, rotateY: rotY, scale,
+        transformStyle: 'preserve-3d', transformPerspective: 800,
         background: 'rgba(15, 23, 42, 0.6)',
         backdropFilter: 'blur(16px)',
         borderColor: hovered ? `${color}40` : 'rgba(255,255,255,0.06)',
         boxShadow: hovered ? `0 0 40px ${glow}` : '0 4px 24px rgba(0,0,0,0.3)',
       }}
+      initial={{ opacity: 0, y: 50 }}
+      animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      transition={{ duration: 0.7, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="relative p-6 rounded-3xl border cursor-default"
     >
       {/* Glow overlay */}
       <motion.div

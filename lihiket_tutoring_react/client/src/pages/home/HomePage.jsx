@@ -6,8 +6,74 @@ import {
   FiAward, FiZap, FiVideo, FiFileText, FiTrendingUp,
   FiShield, FiTarget, FiCheck,
 } from 'react-icons/fi';
-import MagneticButton   from './components/MagneticButton';
-import FeatureCard       from './components/FeatureCard';
+import MagneticButton    from './components/MagneticButton';
+import FeatureCard        from './components/FeatureCard';
+
+// ── Gallery data — curated Unsplash teaching images ───────────────────────────
+const GALLERY_ROW1 = [
+  { src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=480&h=320&fit=crop&auto=format', label: 'Group Study Session',    tag: 'Collaboration' },
+  { src: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=480&h=320&fit=crop&auto=format', label: 'Classroom Learning',     tag: 'Teaching' },
+  { src: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=480&h=320&fit=crop&auto=format', label: 'One-on-One Tutoring',     tag: 'Mentorship' },
+  { src: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=480&h=320&fit=crop&auto=format', label: 'Students Collaborating',  tag: 'Teamwork' },
+  { src: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=480&h=320&fit=crop&auto=format', label: 'Digital Learning',        tag: 'Technology' },
+  { src: 'https://images.unsplash.com/photo-1488190211105-8b0e65b80b4e?w=480&h=320&fit=crop&auto=format', label: 'Taking Notes',            tag: 'Focus' },
+  { src: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=480&h=320&fit=crop&auto=format', label: 'Classroom Engagement',    tag: 'Interactive' },
+  { src: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?w=480&h=320&fit=crop&auto=format', label: 'Friendly Teaching',       tag: 'Support' },
+];
+const GALLERY_ROW2 = [
+  { src: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=480&h=320&fit=crop&auto=format', label: 'Inspiring Students',      tag: 'Motivation' },
+  { src: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=480&h=320&fit=crop&auto=format', label: 'Online Class',             tag: 'Live Learning' },
+  { src: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=480&h=320&fit=crop&auto=format', label: 'Campus Study',             tag: 'University' },
+  { src: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=480&h=320&fit=crop&auto=format', label: 'Focused Learning',         tag: 'Achievement' },
+  { src: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=480&h=320&fit=crop&auto=format', label: 'Library Research',         tag: 'Knowledge' },
+  { src: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=480&h=320&fit=crop&auto=format', label: 'Interactive Lesson',       tag: 'Engagement' },
+  { src: 'https://images.unsplash.com/photo-1596495577886-d920f1fb7238?w=480&h=320&fit=crop&auto=format', label: 'Joyful Learning',          tag: 'Happiness' },
+  { src: 'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=480&h=320&fit=crop&auto=format', label: 'Group Discussion',         tag: 'Community' },
+];
+
+// ── Gallery card ────────────���─────────────────────────────────────────────────
+function GalleryCard({ src, label, tag }) {
+  return (
+    <motion.div
+      className="relative flex-shrink-0 rounded-2xl overflow-hidden cursor-default group"
+      style={{ width: 320, height: 210 }}
+      whileHover={{ scale: 1.03, zIndex: 10 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+    >
+      <img
+        src={src}
+        alt={label}
+        loading="lazy"
+        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        style={{ filter: 'brightness(0.75)' }}
+      />
+      {/* Overlay gradient */}
+      <div className="absolute inset-0 transition-opacity duration-300 group-hover:opacity-70"
+        style={{ background: 'linear-gradient(to top, rgba(2,8,23,0.9) 0%, rgba(2,8,23,0.2) 50%, transparent 100%)' }} />
+
+      {/* Tag pill */}
+      <div className="absolute top-3 left-3">
+        <span className="px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-sm"
+          style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(16,185,129,0.4)', color: '#6ee7b7' }}>
+          {tag}
+        </span>
+      </div>
+
+      {/* Label */}
+      <div className="absolute bottom-0 left-0 right-0 px-4 py-3">
+        <p className="text-white font-semibold text-sm truncate">{label}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+          <span className="text-emerald-400 text-xs">Lihiket Learning</span>
+        </div>
+      </div>
+
+      {/* Glow border on hover */}
+      <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{ boxShadow: 'inset 0 0 0 1.5px rgba(16,185,129,0.5)' }} />
+    </motion.div>
+  );
+}
 
 // Lazy-load heavy 3D components
 const Scene              = lazy(() => import('./components/Scene'));
@@ -302,6 +368,76 @@ export default function HomePage() {
                 <div className="text-sm font-medium" style={{ color: '#64748b' }}>{s.label}</div>
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          TEACHING MOMENTS — Auto-scroll gallery
+      ══════════════════════════════════════════ */}
+      <section style={{ padding: '4rem 0', overflow: 'hidden' }}>
+        {/* Label */}
+        <div className="text-center mb-10 px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.5 }}
+            transition={{ duration: 0.7 }}
+          >
+            <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold mb-3"
+              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#34d399' }}>
+              Real Learning, Real Results
+            </span>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-3">
+              Where Teachers &amp; Students{' '}
+              <span style={{ background: 'linear-gradient(90deg, #34d399, #60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Connect
+              </span>
+            </h2>
+            <p className="text-slate-400 max-w-xl mx-auto">
+              Friendly, engaging, and effective — the way learning should always feel.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Row 1 — scroll left */}
+        <div className="relative mb-4">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to right, #020817, transparent)' }} />
+          <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to left, #020817, transparent)' }} />
+
+          <div className="flex gap-4 overflow-hidden">
+            <motion.div
+              className="flex gap-4 flex-shrink-0"
+              animate={{ x: [0, -2600] }}
+              transition={{ duration: 35, repeat: Infinity, ease: 'linear', repeatType: 'loop' }}
+            >
+              {[...GALLERY_ROW1, ...GALLERY_ROW1].map((img, i) => (
+                <GalleryCard key={i} {...img} />
+              ))}
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Row 2 — scroll right */}
+        <div className="relative">
+          <div className="absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to right, #020817, transparent)' }} />
+          <div className="absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to left, #020817, transparent)' }} />
+
+          <div className="flex gap-4 overflow-hidden">
+            <motion.div
+              className="flex gap-4 flex-shrink-0"
+              animate={{ x: [-2600, 0] }}
+              transition={{ duration: 38, repeat: Infinity, ease: 'linear', repeatType: 'loop' }}
+            >
+              {[...GALLERY_ROW2, ...GALLERY_ROW2].map((img, i) => (
+                <GalleryCard key={i} {...img} />
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
