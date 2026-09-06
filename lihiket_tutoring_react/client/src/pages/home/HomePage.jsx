@@ -1,32 +1,49 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense, lazy } from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../../store/theme/ThemeContext';
+import { motion, useScroll, useTransform, useSpring, AnimatePresence } from 'framer-motion';
 import {
-  FiArrowRight, FiStar, FiPlay,
-  FiBookOpen, FiUsers, FiAward, FiZap,
-  FiVideo, FiFileText, FiTrendingUp, FiShield,
-  FiTarget, FiGlobe, FiHeart, FiClock,
+  FiArrowRight, FiStar, FiPlay, FiBookOpen, FiUsers,
+  FiAward, FiZap, FiVideo, FiFileText, FiTrendingUp,
+  FiShield, FiTarget, FiCheck,
 } from 'react-icons/fi';
+import MagneticButton   from './components/MagneticButton';
+import FeatureCard       from './components/FeatureCard';
+
+// Lazy-load heavy 3D components
+const Scene              = lazy(() => import('./components/Scene'));
+const InteractiveShowcase = lazy(() => import('./components/InteractiveShowcase'));
 
 // ── Animated counter ──────────────────────────────────────────────────────────
-function useCounter(end, duration = 2000, start = false) {
-  const [count, setCount] = useState(0);
+function Counter({ end, suffix = '+', duration = 2000 }) {
+  const [val, setVal] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef();
+
   useEffect(() => {
-    if (!start) return;
-    let startTime = null;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setStarted(true); obs.disconnect(); }
+    }, { threshold: 0.5 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!started) return;
+    let start = null;
     const step = (ts) => {
-      if (!startTime) startTime = ts;
-      const p = Math.min((ts - startTime) / duration, 1);
-      setCount(Math.floor((1 - Math.pow(1 - p, 3)) * end));
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      setVal(Math.floor((1 - Math.pow(1 - p, 3)) * end));
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-  }, [end, duration, start]);
-  return count;
+  }, [started, end, duration]);
+
+  return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
-// ── IntersectionObserver ──────────────────────────────────────────────────────
-function useInView(threshold = 0.1) {
+// ── useInView ─────────────────────────────────────────────────────────────────
+function useInView(threshold = 0.15) {
   const ref = useRef();
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -39,474 +56,619 @@ function useInView(threshold = 0.1) {
   return [ref, inView];
 }
 
-export default function HomePage() {
-  const { theme }   = useTheme();
-  const dark        = theme === 'dark';
+const FEATURES = [
+  { icon: FiVideo,      title: 'Live Interactive Classes',  desc: 'Join real-time sessions with expert teachers. Ask questions, get instant answers, collaborate live.',          color: '#3b82f6', glow: 'rgba(59,130,246,0.15)' },
+  { icon: FiZap,        title: 'Smart Quiz Engine',         desc: 'Auto-graded adaptive quizzes with instant feedback, score tracking, and personalised learning paths.',         color: '#8b5cf6', glow: 'rgba(139,92,246,0.15)' },
+  { icon: FiFileText,   title: 'Assignment Management',     desc: 'Submit work digitally. Teachers grade with rich feedback. Track every submission and grade in one place.',     color: '#f59e0b', glow: 'rgba(245,158,11,0.15)' },
+  { icon: FiAward,      title: 'Verified Certificates',     desc: 'Earn recognised certificates on completion. Showcase achievements to universities and employers worldwide.',   color: '#10b981', glow: 'rgba(16,185,129,0.15)' },
+  { icon: FiTrendingUp, title: 'Deep Analytics',            desc: 'Detailed performance dashboards showing trends, strength areas, and exactly where to improve.',                color: '#ec4899', glow: 'rgba(236,72,153,0.15)' },
+  { icon: FiShield,     title: 'Secure & Private',          desc: 'End-to-end encrypted. Your data stays protected. Access everything from any device, anywhere.',               color: '#06b6d4', glow: 'rgba(6,182,212,0.15)' },
+];
 
-  const [statsRef,    statsInView]    = useInView(0.3);
-  const [featRef,     featInView]     = useInView(0.1);
-  const [goalsRef,    goalsInView]    = useInView(0.2);
-  const [testiRef,    testiInView]    = useInView(0.1);
-  const [heroLoaded,  setHeroLoaded]  = useState(false);
+const STATS = [
+  { value: 500, suffix: '+', label: 'Students',     icon: FiUsers,      color: '#3b82f6' },
+  { value: 50,  suffix: '+', label: 'Teachers',     icon: FiStar,       color: '#8b5cf6' },
+  { value: 100, suffix: '+', label: 'Courses',      icon: FiBookOpen,   color: '#10b981' },
+  { value: 95,  suffix: '%', label: 'Success Rate', icon: FiTrendingUp, color: '#f59e0b' },
+];
+
+const GOALS = [
+  { title: 'Bridge the Education Gap',   desc: 'Make quality education accessible to every Ethiopian student regardless of location or economic background.' },
+  { title: 'Empower Educators',          desc: 'Provide teachers with powerful tools to create content, track progress, and deliver better learning outcomes.' },
+  { title: 'Personalised Learning',      desc: 'Adapt to each student\'s unique pace and style with tailored content, smart quizzes, and personal feedback.' },
+  { title: 'Future-Ready Skills',        desc: 'Prepare students for universities and careers with rigorous curriculum and certified achievement records.' },
+];
+
+export default function HomePage() {
+  const containerRef  = useRef();
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
+
+  const [scrollY,   setScrollY]   = useState(0);
+  const [mouse,     setMouse]     = useState([0, 0]);
+  const [clicked,   setClicked]   = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+
+  const [featRef,   featInView]   = useInView(0.1);
+  const [goalsRef,  goalsInView]  = useInView(0.15);
+
+  // Hero parallax
+  const heroY      = useTransform(smoothProgress, [0, 0.3], [0, -120]);
+  const heroOpacity = useTransform(smoothProgress, [0, 0.25], [1, 0]);
+  const heroScale  = useTransform(smoothProgress, [0, 0.3], [1, 0.85]);
 
   useEffect(() => {
-    const t = setTimeout(() => setHeroLoaded(true), 100);
+    const t = setTimeout(() => setHeroLoaded(true), 200);
     return () => clearTimeout(t);
   }, []);
 
-  // ── Theme tokens ──────────────────────────────────────────────────────────
-  const bg        = dark ? 'bg-slate-950'   : 'bg-white';
-  const bgSub     = dark ? 'bg-slate-900'   : 'bg-slate-50';
-  const bgCard    = dark ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200';
-  const heading   = dark ? 'text-white'     : 'text-slate-900';
-  const sub       = dark ? 'text-slate-400' : 'text-slate-600';
-  const muted     = dark ? 'text-slate-500' : 'text-slate-500';
-  const divider   = dark ? 'border-white/10' : 'border-slate-200';
-  const cardHover = dark ? 'hover:bg-slate-700/50' : 'hover:bg-slate-50';
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    const handleMouse  = (e) => {
+      setMouse([
+        (e.clientX / window.innerWidth  - 0.5) * 2,
+        (e.clientY / window.innerHeight - 0.5) * 2,
+      ]);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('mousemove', handleMouse);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('mousemove', handleMouse);
+    };
+  }, []);
 
-  // ── Stat card ─────────────────────────────────────────────────────────────
-  const StatCard = ({ value, label, suffix = '+', icon: Icon, color, start }) => {
-    const count = useCounter(value, 2000, start);
-    return (
-      <div className="text-center group">
-        <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="w-7 h-7 text-white" />
-        </div>
-        <div className={`text-4xl font-black mb-1 ${heading}`}>{count.toLocaleString()}{suffix}</div>
-        <div className={`text-sm font-medium ${sub}`}>{label}</div>
-      </div>
-    );
-  };
-
-  const FEATURES = [
-    { icon: FiVideo,      title: 'Live Interactive Classes',  desc: 'Join real-time sessions with expert teachers. Ask questions, get instant answers, and learn together.',        color: 'bg-blue-500/10 text-blue-500 dark:text-blue-400',    border: 'hover:border-blue-400/40' },
-    { icon: FiZap,        title: 'Smart Quiz System',         desc: 'Auto-graded quizzes with instant results, score tracking, and personalised feedback for every student.',       color: 'bg-violet-500/10 text-violet-500 dark:text-violet-400', border: 'hover:border-violet-400/40' },
-    { icon: FiFileText,   title: 'Assignment Tracking',       desc: 'Submit assignments digitally. Teachers grade with feedback. Students see results instantly.',                   color: 'bg-amber-500/10 text-amber-500 dark:text-amber-400',   border: 'hover:border-amber-400/40' },
-    { icon: FiAward,      title: 'Verified Certificates',     desc: 'Earn certificates on course completion. Showcase achievements to universities and employers.',                  color: 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400', border: 'hover:border-emerald-400/40' },
-    { icon: FiTrendingUp, title: 'Progress Analytics',        desc: 'Detailed dashboards showing performance trends, strength areas, and improvement opportunities.',               color: 'bg-pink-500/10 text-pink-500 dark:text-pink-400',      border: 'hover:border-pink-400/40' },
-    { icon: FiShield,     title: 'Secure & Private',          desc: 'End-to-end encrypted. Your data is protected. Access from any device, anywhere, anytime.',                    color: 'bg-teal-500/10 text-teal-500 dark:text-teal-400',      border: 'hover:border-teal-400/40' },
-  ];
-
-  const GOALS = [
-    { n: '01', title: 'Bridge the Education Gap',    desc: 'Make quality education accessible to every Ethiopian student regardless of location or background.',          grad: 'from-blue-500 to-indigo-600' },
-    { n: '02', title: 'Empower Teachers',            desc: 'Give educators powerful tools to create content, track student progress, and deliver better outcomes.',         grad: 'from-emerald-500 to-teal-600' },
-    { n: '03', title: 'Personalised Learning Paths', desc: 'Adapt to each student\'s pace and style with customised content, quizzes, and feedback.',                     grad: 'from-violet-500 to-purple-600' },
-    { n: '04', title: 'Build Future-Ready Skills',   desc: 'Prepare students for universities and careers with rigorous curriculum and certified achievements.',           grad: 'from-amber-500 to-orange-600' },
-  ];
-
-  const TESTI = [
-    { name: 'Selam Alemu',   role: 'Grade 12 Student',   text: 'The live classes and instant quiz results helped me improve my scores dramatically. I passed my entrance exam with top marks!', av: 'from-pink-500 to-rose-600' },
-    { name: 'Dawit Haile',   role: 'Mathematics Teacher', text: 'Creating lessons and tracking student progress has never been easier. The grading system saves me hours every week.',             av: 'from-blue-500 to-indigo-600' },
-    { name: 'Meron Tadesse', role: 'Parent',              text: 'I can see exactly how my child is progressing. Notifications keep me updated on every submission and grade.',                    av: 'from-emerald-500 to-teal-600' },
-  ];
-
-  const fadeUp = (i = 0) => ({
-    opacity: featInView ? 1 : 0,
-    transform: featInView ? 'translateY(0)' : 'translateY(30px)',
-    transition: `opacity 0.6s ease ${i * 0.1}s, transform 0.6s ease ${i * 0.1}s`,
-  });
+  // Reduce motion
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = window.innerWidth < 768;
 
   return (
-    <div className={`min-h-screen overflow-x-hidden transition-colors duration-300 ${bg}`}>
+    <div ref={containerRef} style={{ background: '#020817', color: 'white', overflowX: 'hidden' }}>
 
-      {/* ── Keyframes ── */}
-      <style>{`
-        @keyframes floatY {
-          0%,100% { transform: translateY(0px); }
-          50%      { transform: translateY(-14px); }
-        }
-        @keyframes glowPulse {
-          0%,100% { opacity:.3; transform:scale(1); }
-          50%     { opacity:.6; transform:scale(1.1); }
-        }
-        @keyframes rotateSlow {
-          from { transform:rotate(0deg); }
-          to   { transform:rotate(360deg); }
-        }
-        @keyframes shimmer {
-          0%   { background-position:-200% center; }
-          100% { background-position: 200% center; }
-        }
-        .float-anim { animation: floatY 6s ease-in-out infinite; }
-        .glow-anim  { animation: glowPulse 4s ease-in-out infinite; }
-        .spin-slow  { animation: rotateSlow 20s linear infinite; }
-        .spin-rev   { animation: rotateSlow 15s linear infinite reverse; }
-        .shimmer-text {
-          background: linear-gradient(90deg,#10b981,#3b82f6,#8b5cf6,#10b981);
-          background-size:200% auto;
-          -webkit-background-clip:text;
-          -webkit-text-fill-color:transparent;
-          background-clip:text;
-          animation: shimmer 4s linear infinite;
-        }
-      `}</style>
+      {/* ══════════════════════════════════════════
+          HERO SECTION
+      ══════════════════════════════════════════ */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
-      {/* ════════════════════════════════════════════════════════
-          HERO
-      ════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-
-        {/* BG */}
-        <div className={`absolute inset-0 ${dark
-          ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950'
-          : 'bg-gradient-to-br from-blue-50 via-white to-emerald-50'}`} />
-
-        {/* Orbs */}
-        <div className={`absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl glow-anim ${dark ? 'bg-blue-600/20' : 'bg-blue-400/15'}`} />
-        <div className={`absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-3xl glow-anim ${dark ? 'bg-violet-600/20' : 'bg-violet-400/15'}`} style={{ animationDelay: '2s' }} />
-
-        {/* Rings */}
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full border spin-slow ${dark ? 'border-white/5' : 'border-slate-200/60'}`} />
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border spin-rev ${dark ? 'border-white/5' : 'border-slate-200/60'}`} />
-
-        {/* Floating cards — desktop only */}
-        {/* Top-left: quiz score */}
-        <div className="absolute top-32 left-8 md:left-24 hidden md:block z-10 float-anim" style={{ animationDelay: '0s' }}>
-          <div className={`rounded-2xl p-4 shadow-2xl w-44 border backdrop-blur-sm ${dark ? 'bg-slate-800/80 border-slate-700' : 'bg-white/90 border-slate-200'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-500 flex items-center justify-center">
-                <FiZap className="w-4 h-4 text-white" />
-              </div>
-              <span className={`text-xs font-bold ${heading}`}>Quiz Score</span>
-            </div>
-            <div className={`text-3xl font-black ${heading}`}>95%</div>
-            <div className="text-emerald-500 text-xs mt-1">↑ 12% this week</div>
-            <div className={`mt-2 h-1.5 rounded-full overflow-hidden ${dark ? 'bg-slate-700' : 'bg-slate-200'}`}>
-              <div className="h-full w-[95%] bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" />
-            </div>
-          </div>
+        {/* 3D Canvas — full background */}
+        <div className="absolute inset-0 z-0">
+          <Suspense fallback={<div style={{ background: '#020817', width: '100%', height: '100%' }} />}>
+            <Scene scrollY={scrollY} mouse={prefersReduced ? [0,0] : mouse} clicked={clicked} />
+          </Suspense>
         </div>
 
-        {/* Top-right: students */}
-        <div className="absolute top-44 right-8 md:right-24 hidden md:block z-10 float-anim" style={{ animationDelay: '1s' }}>
-          <div className={`rounded-2xl p-4 shadow-2xl w-44 border backdrop-blur-sm ${dark ? 'bg-slate-800/80 border-slate-700' : 'bg-white/90 border-slate-200'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center">
-                <FiUsers className="w-4 h-4 text-white" />
-              </div>
-              <span className={`text-xs font-bold ${heading}`}>Students</span>
-            </div>
-            <div className={`text-3xl font-black ${heading}`}>500+</div>
-            <div className={`text-xs mt-1 ${sub}`}>Active learners</div>
-            <div className="flex -space-x-2 mt-2">
-              {['bg-pink-500','bg-blue-500','bg-amber-500','bg-violet-500'].map((c,i) => (
-                <div key={i} className={`w-6 h-6 rounded-full ${c} border-2 ${dark ? 'border-slate-800' : 'border-white'}`} />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom-left: certificates */}
-        <div className="absolute bottom-32 left-8 md:left-32 hidden md:block z-10 float-anim" style={{ animationDelay: '2s' }}>
-          <div className={`rounded-2xl p-4 shadow-2xl w-40 border backdrop-blur-sm ${dark ? 'bg-slate-800/80 border-slate-700' : 'bg-white/90 border-slate-200'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center">
-                <FiAward className="w-4 h-4 text-white" />
-              </div>
-              <span className={`text-xs font-bold ${heading}`}>Certs</span>
-            </div>
-            <div className={`text-3xl font-black ${heading}`}>120</div>
-            <div className={`text-xs mt-1 ${sub}`}>This month</div>
-          </div>
-        </div>
-
-        {/* Bottom-right: live */}
-        <div className="absolute bottom-40 right-8 md:right-28 hidden md:block z-10 float-anim" style={{ animationDelay: '1.5s' }}>
-          <div className={`rounded-2xl p-4 shadow-2xl w-40 border backdrop-blur-sm ${dark ? 'bg-slate-800/80 border-slate-700' : 'bg-white/90 border-slate-200'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-xl bg-violet-500 flex items-center justify-center">
-                <FiVideo className="w-4 h-4 text-white" />
-              </div>
-              <span className={`text-xs font-bold ${heading}`}>Live Now</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              <span className={`text-sm font-bold ${heading}`}>3 Classes</span>
-            </div>
-            <div className="text-violet-500 text-xs mt-1">Join now →</div>
-          </div>
-        </div>
+        {/* Gradient overlays for readability */}
+        <div className="absolute inset-0 z-[1]" style={{ background: 'radial-gradient(ellipse at center, transparent 30%, rgba(2,8,23,0.6) 70%)' }} />
+        <div className="absolute bottom-0 left-0 right-0 h-48 z-[1]" style={{ background: 'linear-gradient(to top, #020817, transparent)' }} />
 
         {/* Hero content */}
-        <div className="relative z-20 max-w-5xl mx-auto px-4 text-center">
-
+        <motion.div
+          className="relative z-10 max-w-5xl mx-auto px-4 text-center"
+          style={{ y: prefersReduced ? 0 : heroY, opacity: heroOpacity, scale: heroScale }}
+        >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-500 text-sm font-semibold mb-8"
-            style={{ opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.6s ease 0.1s' }}>
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <motion.div
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full mb-8 text-sm font-semibold"
+            style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={heroLoaded ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <motion.div className="w-2 h-2 rounded-full bg-emerald-400"
+              animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
             Ethiopia's #1 Online Tutoring Platform
-            <FiStar className="w-4 h-4" />
-          </div>
+            <FiStar className="w-3.5 h-3.5" />
+          </motion.div>
 
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-6 leading-[1.05] tracking-tight"
-            style={{ opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? 'translateY(0)' : 'translateY(30px)', transition: 'all 0.8s ease 0.2s' }}>
-            <span className={heading}>Learn Without</span>
-            <br />
-            <span className="shimmer-text">Limits</span>
-          </h1>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={heroLoaded ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 1, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <h1 className="font-black leading-[1.02] tracking-tight mb-6"
+              style={{ fontSize: 'clamp(3rem, 8vw, 6rem)' }}>
+              <span style={{ color: 'white' }}>Experience</span>
+              <br />
+              <span style={{
+                background: 'linear-gradient(90deg, #34d399, #60a5fa, #a78bfa, #34d399)',
+                backgroundSize: '200% auto',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                animation: 'shimmerText 4s linear infinite',
+              }}>
+                the Future
+              </span>
+            </h1>
+          </motion.div>
 
           {/* Sub */}
-          <p className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed ${sub}`}
-            style={{ opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.8s ease 0.4s' }}>
+          <motion.p
+            className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
+            style={{ color: '#94a3b8' }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={heroLoaded ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.9, delay: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
             Connect with expert teachers. Master any subject. Earn verified certificates.
-            Join thousands of Ethiopian students achieving their academic goals with Lihiket.
-          </p>
+            Join thousands of Ethiopian students transforming their future with Lihiket.
+          </motion.p>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
-            style={{ opacity: heroLoaded ? 1 : 0, transform: heroLoaded ? 'translateY(0)' : 'translateY(20px)', transition: 'all 0.8s ease 0.6s' }}>
-            <Link to="/register"
-              className="group inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-lg transition-all duration-300 hover:-translate-y-1 shadow-xl shadow-emerald-500/25">
-              Start Learning Free
-              <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link to="/login"
-              className={`inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl border font-bold text-lg transition-all duration-300 hover:-translate-y-1 ${
-                dark
-                  ? 'border-white/20 bg-white/5 text-white hover:bg-white/10 hover:border-white/40'
-                  : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50 hover:border-slate-400 shadow-md'
-              }`}>
-              <FiPlay className="w-5 h-5" />
-              Sign In
-            </Link>
-          </div>
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ opacity: 0, y: 30 }}
+            animate={heroLoaded ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.9, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <MagneticButton>
+              <Link to="/register">
+                <motion.div
+                  className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981, #0d9488)',
+                    boxShadow: '0 0 30px rgba(16,185,129,0.4), 0 8px 32px rgba(16,185,129,0.2)',
+                  }}
+                  whileHover={{ boxShadow: '0 0 50px rgba(16,185,129,0.6), 0 12px 40px rgba(16,185,129,0.3)' }}
+                  transition={{ duration: 0.3 }}
+                >
+                  Get Started Free
+                  <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </motion.div>
+              </Link>
+            </MagneticButton>
 
-          {/* Trust */}
-          <div className={`flex flex-wrap items-center justify-center gap-6 text-sm ${muted}`}
-            style={{ opacity: heroLoaded ? 1 : 0, transition: 'all 0.8s ease 0.8s' }}>
-            {['✓ Free to start', '✓ No credit card needed', '✓ 500+ students', '✓ Expert teachers'].map(t => (
-              <span key={t}>{t}</span>
-            ))}
-          </div>
-        </div>
+            <MagneticButton>
+              <Link to="/login">
+                <motion.div
+                  className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    backdropFilter: 'blur(12px)',
+                  }}
+                  whileHover={{
+                    background: 'rgba(255,255,255,0.1)',
+                    borderColor: 'rgba(255,255,255,0.3)',
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <FiPlay className="w-5 h-5" />
+                  Explore
+                </motion.div>
+              </Link>
+            </MagneticButton>
+          </motion.div>
+
+          {/* Click 3D hint */}
+          <motion.p
+            className="mt-8 text-sm"
+            style={{ color: '#475569' }}
+            initial={{ opacity: 0 }}
+            animate={heroLoaded ? { opacity: 1 } : {}}
+            transition={{ delay: 1.2 }}
+          >
+            Move your mouse around · Click the 3D object to interact
+          </motion.p>
+        </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 2 }}
+        >
+          <span className="text-xs" style={{ color: '#475569' }}>Scroll to explore</span>
+          <motion.div
+            className="w-6 h-10 rounded-full border flex items-start justify-center pt-1.5"
+            style={{ borderColor: 'rgba(255,255,255,0.15)' }}
+          >
+            <motion.div
+              className="w-1.5 h-3 rounded-full bg-emerald-400"
+              animate={{ y: [0, 14, 0], opacity: [1, 0, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
+      {/* ══════════════════════════════════════════
           STATS
-      ════════════════════════════════════════════════════════ */}
-      <section ref={statsRef} className={`py-20 ${dark ? 'bg-slate-900/50' : 'bg-slate-50 border-y border-slate-100'}`}>
-        <div className="max-w-5xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCard value={500} suffix="+"  label="Active Students"    icon={FiUsers}      color="bg-gradient-to-br from-blue-500 to-indigo-600"   start={statsInView} />
-            <StatCard value={50}  suffix="+"  label="Expert Teachers"    icon={FiStar}       color="bg-gradient-to-br from-emerald-500 to-teal-600"  start={statsInView} />
-            <StatCard value={100} suffix="+"  label="Courses & Subjects"  icon={FiBookOpen}   color="bg-gradient-to-br from-violet-500 to-purple-600" start={statsInView} />
-            <StatCard value={95}  suffix="%"  label="Success Rate"        icon={FiTrendingUp} color="bg-gradient-to-br from-amber-500 to-orange-600"  start={statsInView} />
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════
-          FEATURES
-      ════════════════════════════════════════════════════════ */}
-      <section ref={featRef} className={`py-24 px-4 ${bg}`}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4 border ${dark ? 'bg-violet-500/10 border-violet-500/20 text-violet-400' : 'bg-violet-50 border-violet-200 text-violet-600'}`}>
-              Everything You Need
-            </span>
-            <h2 className={`text-4xl md:text-5xl font-black mb-4 ${heading}`}>
-              Powerful Features for<br /><span className="shimmer-text">Modern Learning</span>
-            </h2>
-            <p className={`text-lg max-w-2xl mx-auto ${sub}`}>
-              From live classes to smart analytics — every tool designed to help you learn faster.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map((f, i) => (
-              <div key={i} className={`group p-6 rounded-3xl border transition-all duration-500 hover:-translate-y-2 hover:shadow-xl ${bgCard} ${f.border} ${cardHover}`}
-                style={fadeUp(i)}>
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${f.color} group-hover:scale-110 transition-transform duration-300`}>
-                  <f.icon className="w-6 h-6" />
+      ══════════════════════════════════════════ */}
+      <section style={{ padding: '5rem 1rem', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+            {STATS.map((s, i) => (
+              <motion.div
+                key={i}
+                className="text-center"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+              >
+                <motion.div
+                  className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+                  style={{ background: `${s.color}15`, border: `1px solid ${s.color}30` }}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                >
+                  <s.icon style={{ color: s.color, width: 24, height: 24 }} />
+                </motion.div>
+                <div className="text-4xl font-black text-white mb-1" style={{ textShadow: `0 0 20px ${s.color}60` }}>
+                  <Counter end={s.value} suffix={s.suffix} />
                 </div>
-                <h3 className={`font-bold text-lg mb-2 ${heading}`}>{f.title}</h3>
-                <p className={`text-sm leading-relaxed ${sub}`}>{f.desc}</p>
-              </div>
+                <div className="text-sm font-medium" style={{ color: '#64748b' }}>{s.label}</div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          GOALS & OBJECTIVES
-      ════════════════════════════════════════════════════════ */}
-      <section ref={goalsRef} className={`py-24 px-4 ${dark ? 'bg-slate-900/40' : 'bg-slate-50'} border-y ${divider}`}>
+      {/* ══════════════════════════════════════════
+          INTRODUCTION
+      ══════════════════════════════════════════ */}
+      <section style={{ padding: '7rem 1rem' }}>
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold mb-6"
+              style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.3)', color: '#818cf8' }}>
+              Why Lihiket?
+            </span>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
+              A New Standard for<br />
+              <span style={{ background: 'linear-gradient(90deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Online Education
+              </span>
+            </h2>
+            <p className="text-lg leading-relaxed mb-10" style={{ color: '#94a3b8' }}>
+              We built Lihiket because Ethiopian students deserve world-class education tools.
+              Live classes, smart assessments, progress tracking, and certified achievements — all in one platform.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { icon: FiTarget, title: 'Goal-Oriented', desc: 'Every feature built around measurable student outcomes', color: '#3b82f6' },
+              { icon: FiUsers,  title: 'Community',     desc: 'Learn together with students and teachers across Ethiopia', color: '#10b981' },
+              { icon: FiAward,  title: 'Recognised',    desc: 'Certificates and results that matter to employers and universities', color: '#f59e0b' },
+            ].map((c, i) => (
+              <motion.div key={i}
+                className="p-6 rounded-2xl text-center"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ duration: 0.6, delay: i * 0.15 }}
+                whileHover={{ y: -4, borderColor: `${c.color}40` }}
+              >
+                <div className="w-12 h-12 rounded-xl mx-auto mb-4 flex items-center justify-center"
+                  style={{ background: `${c.color}15`, border: `1px solid ${c.color}30` }}>
+                  <c.icon style={{ color: c.color, width: 22, height: 22 }} />
+                </div>
+                <h4 className="text-white font-bold mb-2">{c.title}</h4>
+                <p className="text-sm" style={{ color: '#64748b' }}>{c.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          FEATURES
+      ══════════════════════════════════════════ */}
+      <section ref={featRef} style={{ padding: '7rem 1rem', background: 'rgba(255,255,255,0.015)' }}>
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4"
+              style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', color: '#a78bfa' }}>
+              Platform Features
+            </span>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
+              Everything You Need<br />
+              <span style={{ background: 'linear-gradient(90deg, #a78bfa, #60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                to Excel
+              </span>
+            </h2>
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: '#94a3b8' }}>
+              Hover each card to interact. Every tool designed to help you learn faster and achieve more.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {FEATURES.map((f, i) => (
+              <FeatureCard key={i} {...f} delay={i * 0.08} inView={featInView} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          INTERACTIVE SHOWCASE
+      ══════════════════════════════════════════ */}
+      <section style={{ padding: '7rem 1rem' }}>
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            className="text-center mb-10"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.8 }}
+          >
+            <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4"
+              style={{ background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', color: '#22d3ee' }}>
+              Interactive Experience
+            </span>
+            <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
+              <span style={{ background: 'linear-gradient(90deg, #22d3ee, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Explore
+              </span>{' '}
+              the Platform
+            </h2>
+            <p style={{ color: '#94a3b8' }}>Drag, rotate, and discover what Lihiket has to offer</p>
+          </motion.div>
+
+          <motion.div
+            className="rounded-3xl overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.8 }}
+          >
+            <Suspense fallback={
+              <div className="w-full h-[500px] flex items-center justify-center" style={{ color: '#475569' }}>
+                Loading 3D experience…
+              </div>
+            }>
+              <InteractiveShowcase />
+            </Suspense>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════
+          GOALS
+      ══════════════════════════════════════════ */}
+      <section ref={goalsRef} style={{ padding: '7rem 1rem', background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
             <div>
-              <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-6 border ${dark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}>
-                Our Mission
-              </span>
-              <h2 className={`text-4xl md:text-5xl font-black mb-4 ${heading}`}>
-                Goals &<br /><span className="shimmer-text">Objectives</span>
-              </h2>
-              <p className={`mb-10 leading-relaxed ${sub}`}>
-                Lihiket Tutoring was founded with one clear vision: make quality education accessible to every Ethiopian student, regardless of where they live.
-              </p>
-              <div className="space-y-6">
+              <motion.div
+                initial={{ opacity: 0, x: -40 }}
+                animate={goalsInView ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.8 }}
+              >
+                <span className="inline-block px-4 py-2 rounded-full text-sm font-semibold mb-6"
+                  style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }}>
+                  Our Mission
+                </span>
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+                  Goals &<br />
+                  <span style={{ background: 'linear-gradient(90deg, #34d399, #60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    Objectives
+                  </span>
+                </h2>
+                <p className="mb-10 leading-relaxed" style={{ color: '#94a3b8' }}>
+                  We founded Lihiket with one clear vision: make quality education accessible to every Ethiopian student, regardless of location or background.
+                </p>
+              </motion.div>
+
+              <div className="space-y-5">
                 {GOALS.map((g, i) => (
-                  <div key={i} className="flex gap-4 group"
-                    style={{ opacity: goalsInView ? 1 : 0, transform: goalsInView ? 'translateX(0)' : 'translateX(-30px)', transition: `opacity .6s ease ${i * .15}s, transform .6s ease ${i * .15}s` }}>
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${g.grad} flex items-center justify-center flex-shrink-0 text-xl font-black text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                      {g.n}
+                  <motion.div
+                    key={i}
+                    className="flex gap-4 p-4 rounded-2xl"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={goalsInView ? { opacity: 1, x: 0 } : {}}
+                    transition={{ duration: 0.6, delay: i * 0.12 }}
+                    whileHover={{ x: 4, borderColor: 'rgba(16,185,129,0.3)' }}
+                  >
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-sm font-black text-white"
+                      style={{ background: `linear-gradient(135deg, ${['#3b82f6','#10b981','#8b5cf6','#f59e0b'][i]}, ${['#6366f1','#0d9488','#7c3aed','#d97706'][i]})` }}>
+                      {i + 1}
                     </div>
                     <div>
-                      <h4 className={`font-bold mb-1 ${heading}`}>{g.title}</h4>
-                      <p className={`text-sm leading-relaxed ${sub}`}>{g.desc}</p>
+                      <h4 className="text-white font-bold mb-1">{g.title}</h4>
+                      <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{g.desc}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
 
-            {/* 3D hub visual */}
-            <div className="hidden lg:flex items-center justify-center">
-              <div className="relative w-80 h-80">
-                <div className={`absolute inset-0 rounded-full border-2 border-dashed spin-slow ${dark ? 'border-white/10' : 'border-slate-300/60'}`} />
-                <div className={`absolute inset-4 rounded-full border spin-rev ${dark ? 'border-white/5' : 'border-slate-200/60'}`} />
-                <div className={`absolute inset-8 rounded-3xl border flex flex-col items-center justify-center p-6 shadow-2xl ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-3 shadow-lg shadow-emerald-500/30">
-                    <FiBookOpen className="w-8 h-8 text-white" />
+            {/* Right: value props */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              animate={goalsInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="grid grid-cols-2 gap-4"
+            >
+              {[
+                { label: 'Students Enrolled', value: '500+',  color: '#3b82f6', icon: FiUsers },
+                { label: 'Courses Available', value: '100+',  color: '#10b981', icon: FiBookOpen },
+                { label: 'Live Sessions/Mo',  value: '200+',  color: '#8b5cf6', icon: FiVideo },
+                { label: 'Success Rate',      value: '95%',   color: '#f59e0b', icon: FiTrendingUp },
+                { label: 'Certificates',      value: '300+',  color: '#ec4899', icon: FiAward },
+                { label: 'Expert Teachers',   value: '50+',   color: '#06b6d4', icon: FiShield },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  className="p-5 rounded-2xl"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                  whileHover={{ scale: 1.03, borderColor: `${item.color}40` }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                  <item.icon style={{ color: item.color, width: 20, height: 20 }} className="mb-2" />
+                  <div className="text-2xl font-black text-white" style={{ textShadow: `0 0 12px ${item.color}60` }}>
+                    {item.value}
                   </div>
-                  <div className={`font-black text-2xl ${heading}`}>Lihiket</div>
-                  <div className={`text-xs mt-1 ${muted}`}>Online Tutoring</div>
-                </div>
-                {[
-                  { Icon: FiTarget, grad: 'from-blue-500 to-indigo-600',   style: { top: '-16px', left: '50%', marginLeft: '-20px' } },
-                  { Icon: FiGlobe,  grad: 'from-emerald-500 to-teal-600',  style: { top: '50%',   right: '-16px', marginTop: '-20px' } },
-                  { Icon: FiHeart,  grad: 'from-pink-500 to-rose-600',     style: { bottom: '-16px', left: '50%', marginLeft: '-20px' } },
-                  { Icon: FiClock,  grad: 'from-amber-500 to-orange-600',  style: { top: '50%',   left: '-16px', marginTop: '-20px' } },
-                ].map(({ Icon, grad, style }, i) => (
-                  <div key={i} className="absolute" style={style}>
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shadow-lg float-anim`}
-                      style={{ animationDelay: `${i * 0.5}s` }}>
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+                  <div className="text-xs mt-1" style={{ color: '#64748b' }}>{item.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          TESTIMONIALS
-      ════════════════════════════════════════════════════════ */}
-      <section ref={testiRef} className={`py-24 px-4 ${bg}`}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-4 border ${dark ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-amber-50 border-amber-200 text-amber-600'}`}>
-              Student Stories
+      {/* ══════════════════════════════════════════
+          CTA — FINAL
+      ══════════════════════════════════════════ */}
+      <section className="relative overflow-hidden" style={{ padding: '8rem 1rem' }}>
+        {/* Background 3D effect via CSS */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.08), transparent 70%)' }} />
+        <motion.div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse at 30% 70%, rgba(99,102,241,0.06), transparent 60%)' }}
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 8, repeat: Infinity }}
+        />
+
+        <div className="relative max-w-3xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold mb-8"
+              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#34d399' }}>
+              <FiZap className="w-4 h-4" />
+              Free to get started — no credit card required
             </span>
-            <h2 className={`text-4xl md:text-5xl font-black mb-4 ${heading}`}>
-              Loved by Students<br /><span className="shimmer-text">Across Ethiopia</span>
+
+            <h2 className="font-black text-white mb-6 leading-tight"
+              style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}>
+              Ready to Experience<br />
+              <span style={{
+                background: 'linear-gradient(90deg, #34d399, #60a5fa, #a78bfa)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
+                the Future?
+              </span>
             </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TESTI.map((t, i) => (
-              <div key={i} className={`p-6 rounded-3xl border shadow-sm ${bgCard}`}
-                style={{ opacity: testiInView ? 1 : 0, transform: testiInView ? 'translateY(0)' : 'translateY(20px)', transition: `opacity .6s ease ${i * .15}s, transform .6s ease ${i * .15}s` }}>
-                <div className="flex gap-1 mb-3">
-                  {[1,2,3,4,5].map(s => <FiStar key={s} className="w-4 h-4 text-amber-400 fill-amber-400" />)}
-                </div>
-                <p className={`text-sm leading-relaxed mb-4 ${sub}`}>"{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${t.av} flex items-center justify-center text-white font-bold text-sm`}>
-                    {t.name[0]}
+
+            <p className="text-lg mb-10" style={{ color: '#94a3b8' }}>
+              Join thousands of Ethiopian students who are already achieving their dreams.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+              <MagneticButton strength={0.25}>
+                <Link to="/register">
+                  <motion.div
+                    className="flex items-center gap-3 px-10 py-5 rounded-2xl font-bold text-lg text-white"
+                    style={{
+                      background: 'linear-gradient(135deg, #10b981, #0d9488)',
+                      boxShadow: '0 0 40px rgba(16,185,129,0.5), 0 12px 40px rgba(16,185,129,0.25)',
+                    }}
+                    whileHover={{
+                      boxShadow: '0 0 60px rgba(16,185,129,0.7), 0 16px 50px rgba(16,185,129,0.35)',
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    Create Free Account
+                    <motion.div
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <FiArrowRight className="w-5 h-5" />
+                    </motion.div>
+                  </motion.div>
+                </Link>
+              </MagneticButton>
+
+              <MagneticButton strength={0.25}>
+                <Link to="/login">
+                  <motion.div
+                    className="flex items-center gap-3 px-10 py-5 rounded-2xl font-bold text-lg text-white"
+                    style={{
+                      background: 'rgba(255,255,255,0.05)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      backdropFilter: 'blur(12px)',
+                    }}
+                    whileHover={{
+                      background: 'rgba(255,255,255,0.1)',
+                      borderColor: 'rgba(255,255,255,0.3)',
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                  >
+                    Sign In
+                  </motion.div>
+                </Link>
+              </MagneticButton>
+            </div>
+
+            {/* Social proof */}
+            <motion.div
+              className="flex items-center justify-center gap-4"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="flex -space-x-3">
+                {['#ec4899','#3b82f6','#10b981','#f59e0b'].map((c,i) => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 flex items-center justify-center text-white text-xs font-bold"
+                    style={{ background: `linear-gradient(135deg, ${c}, ${c}99)`, borderColor: '#020817' }}>
+                    {['S','D','M','A'][i]}
                   </div>
-                  <div>
-                    <p className={`font-semibold text-sm ${heading}`}>{t.name}</p>
-                    <p className={`text-xs ${muted}`}>{t.role}</p>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+              <div className="text-left">
+                <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <FiStar key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />)}</div>
+                <div className="text-sm" style={{ color: '#64748b' }}>Trusted by 500+ students</div>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════
-          HOW IT WORKS
-      ════════════════════════════════════════════════════════ */}
-      <section className={`py-24 px-4 ${dark ? 'bg-slate-900/40' : 'bg-slate-50'} border-y ${divider}`}>
-        <div className="max-w-5xl mx-auto text-center">
-          <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-6 border ${dark ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' : 'bg-blue-50 border-blue-200 text-blue-600'}`}>
-            Get Started in Minutes
-          </span>
-          <h2 className={`text-4xl md:text-5xl font-black mb-4 ${heading}`}>
-            How Lihiket <span className="shimmer-text">Works</span>
-          </h2>
-          <p className={`mb-16 text-lg ${sub}`}>Three simple steps to transform your learning.</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            <div className={`hidden md:block absolute top-10 left-[16%] right-[16%] h-px ${dark ? 'bg-gradient-to-r from-blue-500/50 via-violet-500/50 to-emerald-500/50' : 'bg-gradient-to-r from-blue-300 via-violet-300 to-emerald-300'}`} />
-            {[
-              { step: '1', title: 'Create Account',  desc: 'Sign up free as student, teacher, or parent in under 2 minutes.',        color: 'from-blue-500 to-indigo-600',   glow: 'shadow-blue-500/20' },
-              { step: '2', title: 'Choose Subjects', desc: 'Browse subjects, preview teachers, and enroll in courses you need.',      color: 'from-violet-500 to-purple-600', glow: 'shadow-violet-500/20' },
-              { step: '3', title: 'Start Learning',  desc: 'Attend live classes, take quizzes, submit work, and track your growth.', color: 'from-emerald-500 to-teal-600',  glow: 'shadow-emerald-500/20' },
-            ].map(({ step, title, desc, color, glow }, i) => (
-              <div key={i} className="flex flex-col items-center text-center group">
-                <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl font-black text-white shadow-2xl ${glow} mb-6 group-hover:scale-110 transition-transform duration-300 relative z-10`}>
-                  {step}
-                </div>
-                <h3 className={`font-bold text-xl mb-3 ${heading}`}>{title}</h3>
-                <p className={`text-sm leading-relaxed ${sub}`}>{desc}</p>
+      {/* ══════════════════════════════════════════
+          FOOTER
+      ══════════════════════════════════════════ */}
+      <footer style={{ padding: '3rem 1rem 2rem', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #10b981, #0d9488)' }}>
+                <FiBookOpen className="w-4 h-4 text-white" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════════════════
-          CTA
-      ════════════════════════════════════════════════════════ */}
-      <section className={`py-24 px-4 ${bg}`}>
-        <div className="max-w-3xl mx-auto text-center">
-          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mb-8 border ${dark ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-600'}`}>
-            <FiZap className="w-4 h-4" />
-            Free to get started — no credit card required
-          </span>
-          <h2 className={`text-5xl md:text-6xl font-black mb-6 leading-tight ${heading}`}>
-            Your Future Starts<br /><span className="shimmer-text">Today</span>
-          </h2>
-          <p className={`text-lg mb-10 max-w-xl mx-auto ${sub}`}>
-            Join thousands of Ethiopian students who are already achieving their dreams with Lihiket Tutoring.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register"
-              className="group inline-flex items-center justify-center gap-3 px-10 py-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold text-lg transition-all duration-300 hover:-translate-y-1 shadow-2xl shadow-emerald-500/25">
-              Create Free Account
-              <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link to="/login"
-              className={`inline-flex items-center justify-center gap-3 px-10 py-5 rounded-2xl border font-bold text-lg transition-all duration-300 hover:-translate-y-0.5 ${
-                dark
-                  ? 'border-white/20 bg-white/5 text-white hover:bg-white/10'
-                  : 'border-slate-300 bg-white text-slate-900 hover:bg-slate-50 shadow-md'
-              }`}>
-              Sign In
-            </Link>
-          </div>
-
-          {/* Social proof */}
-          <div className="mt-10 flex items-center justify-center gap-3">
-            <div className="flex -space-x-3">
-              {['from-pink-500 to-rose-600','from-blue-500 to-indigo-600','from-emerald-500 to-teal-600','from-amber-500 to-orange-600'].map((g,i) => (
-                <div key={i} className={`w-10 h-10 rounded-full bg-gradient-to-br ${g} border-2 ${dark ? 'border-slate-950' : 'border-white'} flex items-center justify-center text-white text-xs font-bold`}>
-                  {['S','D','M','A'][i]}
-                </div>
+              <span className="text-white font-bold text-lg">Lihiket<span style={{ color: '#34d399' }}>.</span></span>
+            </div>
+            <div className="flex items-center gap-6 text-sm" style={{ color: '#64748b' }}>
+              {['Subjects','Documents','Assignments','Quizzes'].map(l => (
+                <Link key={l} to="/" className="hover:text-white transition-colors">{l}</Link>
               ))}
             </div>
-            <div className="text-left">
-              <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <FiStar key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />)}</div>
-              <div className={`text-sm ${sub}`}>Trusted by 500+ students</div>
-            </div>
+            <p className="text-sm" style={{ color: '#475569' }}>
+              © {new Date().getFullYear()} Lihiket Tutoring. All rights reserved.
+            </p>
           </div>
         </div>
-      </section>
+      </footer>
 
+      {/* Global shimmer keyframe */}
+      <style>{`
+        @keyframes shimmerText {
+          0%   { background-position: 0% center; }
+          100% { background-position: 200% center; }
+        }
+      `}</style>
     </div>
   );
 }
