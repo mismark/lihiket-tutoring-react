@@ -52,10 +52,13 @@ async function uploadToCloudinaryDirect(file, onProgress) {
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve({ url: r.secure_url, resourceType: r.resource_type });
         } else {
-          reject(new Error(r.error?.message || `Upload failed (${xhr.status})`));
+          // Log full response for debugging
+          console.error('Cloudinary 400 response:', xhr.responseText);
+          reject(new Error(r.error?.message || `Cloudinary error ${xhr.status}: ${xhr.responseText?.slice(0, 200)}`));
         }
       } catch {
-        reject(new Error(`Unexpected Cloudinary response (${xhr.status})`));
+        console.error('Cloudinary raw response:', xhr.responseText);
+        reject(new Error(`Cloudinary response (${xhr.status}): ${xhr.responseText?.slice(0, 200)}`));
       }
     });
 
@@ -193,9 +196,16 @@ export default function LessonForm({
 
     // Build FormData — send Cloudinary URL instead of file
     const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    // Append form fields EXCEPT videoUrl (we handle it separately below)
+    Object.entries(form).forEach(([k, v]) => {
+      if (k !== 'videoUrl') fd.append(k, v);
+    });
 
-    // Pass the Cloudinary URL as the file URL field
+    // Pass the Cloudinary URL OR the external URL from form
+    const videoUrlToUse = finalUrl && ['mp4','webm','mov','avi','mkv'].includes(file?.name?.split('.').pop().toLowerCase() || '') 
+      ? finalUrl 
+      : form.videoUrl || null;
+    
     if (finalUrl) {
       const ext     = file?.name?.split('.').pop().toLowerCase() || '';
       const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
@@ -205,6 +215,9 @@ export default function LessonForm({
         fd.append('fileUrl', finalUrl);
         fd.append('fileName', file?.name || '');
       }
+    } else if (form.videoUrl) {
+      // External YouTube/Vimeo URL
+      fd.append('videoUrl', form.videoUrl);
     }
 
     onSubmit(fd);
