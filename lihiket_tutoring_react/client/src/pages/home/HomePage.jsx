@@ -644,10 +644,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #10b981, #0d9488)' }}>
-                <FiBookOpen className="w-4 h-4 text-white" />
-              </div>
+              <img src="/logo.jpg" alt="Lihiket" className="w-8 h-8 rounded-xl object-cover" />
               <span className="text-white font-bold text-lg">Lihiket<span style={{ color: '#34d399' }}>.</span></span>
             </div>
             <div className="flex items-center gap-6 text-sm" style={{ color: '#64748b' }}>

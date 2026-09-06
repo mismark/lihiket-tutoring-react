@@ -116,10 +116,7 @@ function SidebarPanel({ onClose }) {
       <div className="flex items-center justify-between px-4 py-4 border-b flex-shrink-0"
         style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow group-hover:scale-105 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #10b981, #0d9488)' }}>
-            <FiBookOpen className="w-4 h-4" />
-          </div>
+          <img src="/logo.jpg" alt="Lihiket" className="w-8 h-8 rounded-lg object-cover shadow group-hover:scale-105 transition-transform" />
           <span className="text-base font-extrabold text-white">
             Lihiket<span style={{ color: '#34d399' }}>.</span>
           </span>

@@ -63,10 +63,7 @@ export default function Header() {
           {/* ── Logo ── */}
           {!searchOpen && (
             <Link to="/" className="flex items-center gap-2 group flex-shrink-0 ml-1">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform"
-                style={{ background: 'linear-gradient(135deg, #10b981, #0d9488)' }}>
-                <FiBook className="w-4 h-4" />
-              </div>
+              <img src="/logo.jpg" alt="Lihiket" className="w-8 h-8 rounded-lg object-cover shadow-sm group-hover:scale-105 transition-transform" />
               <span className="hidden sm:block text-lg font-extrabold text-white">
                 Lihiket<span style={{ color: '#34d399' }}>.</span>
               </span>
