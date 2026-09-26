@@ -7,7 +7,7 @@ import {
   FiX, FiHome, FiGrid, FiUsers, FiBook, FiBookOpen,
   FiUser, FiCreditCard, FiList, FiDatabase, FiLogOut,
   FiSun, FiMoon, FiFileText, FiAward, FiZap, FiVideo,
-  FiBell, FiSearch, FiMessageSquare,
+  FiBell, FiSearch, FiMessageSquare, FiMapPin,
 } from 'react-icons/fi';
 
 // ── Role-based nav config ─────────────────────────────────────────────────────
@@ -25,6 +25,7 @@ const NAV = {
     { label: 'Quizzes',         to: '/quizzes',                icon: FiZap       },
     { label: 'Exams',           to: '/exams',                  icon: FiAward     },
     { label: 'Live Classes',    to: '/live-classes',           icon: FiVideo     },
+    { label: 'Home Tutoring',   to: '/home-tutoring-requests', icon: FiMapPin    },
     { section: 'Account' },
     { label: 'Search',          to: '/search',                 icon: FiSearch    },
     { label: 'Notifications',   to: '/notifications',          icon: FiBell      },

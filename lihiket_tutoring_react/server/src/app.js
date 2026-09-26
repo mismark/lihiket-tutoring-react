@@ -161,6 +161,7 @@ app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/payments',      require('./routes/payment.routes'));
 app.use('/api/search',        require('./routes/search.routes'));
 app.use('/api/chats',         require('./routes/chat.routes'));
+app.use('/api/home-tutoring', require('./routes/hometutoring.routes'));
 
 // â”€â”€â”€ 404 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

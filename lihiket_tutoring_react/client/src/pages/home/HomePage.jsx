@@ -8,6 +8,7 @@ import {
   FiShield, FiTarget,
 } from 'react-icons/fi';
 import FeatureCard from './components/FeatureCard';
+import HomeTutoringSection from './components/HomeTutoringSection';
 
 // ── Gallery images ────────────────────────────────────────────────────────────
 const GALLERY_ROW1 = [
@@ -534,6 +535,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════ HOME TUTORING ═══════════════════════ */}
+      <div style={{ background: bgAlt, borderTop: `1px solid ${bdSect}`, borderBottom: `1px solid ${bdSect}` }}>
+        <HomeTutoringSection dark={dark} />
+      </div>
 
       {/* ═══════════════════════════════ CTA ═══════════════════════════════════ */}
       <section className="relative overflow-hidden" style={{ padding: '8rem 1rem', background: bgAlt, borderTop: `1px solid ${bdSect}` }}>

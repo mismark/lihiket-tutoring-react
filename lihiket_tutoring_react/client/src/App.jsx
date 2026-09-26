@@ -25,6 +25,9 @@ import TeacherDashboard from './pages/dashboard/TeacherDashboard';
 import StudentDashboard from './pages/dashboard/StudentDashboard';
 import ParentDashboard  from './pages/dashboard/ParentDashboard';
 
+// Home Tutoring admin
+import HomeTutoringAdmin from './pages/admin/HomeTutoringAdmin';
+
 // Subjects
 import AdminSubjects    from './pages/subjects/AdminSubjects';
 import TeacherSubjects  from './pages/subjects/TeacherSubjects';
@@ -220,6 +223,7 @@ export default function App() {
             <Route path="/chats"         element={<PrivateRoute><ChatPage /></PrivateRoute>} />
             <Route path="/users"         element={<PrivateRoute><AdminUsers /></PrivateRoute>} />
             <Route path="/my-subjects"   element={<PrivateRoute><TeacherSubjects /></PrivateRoute>} />
+            <Route path="/home-tutoring-requests" element={<PrivateRoute><HomeTutoringAdmin /></PrivateRoute>} />
 
             {/* Admin legacy URLs → redirect to current pages */}
             <Route path="/admin/pending-users" element={<Navigate to="/users" replace />} />
