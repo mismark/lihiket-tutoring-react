@@ -36,16 +36,16 @@ const optionalAuth = (req, res, next) => {
 
 // ── Subject routes ────────────────────────────────────────────────────────────
 
-// Public — active subjects only
-router.get('/subjects',     getActiveSubjects);
-router.get('/subjects/:id', getSubjectById);
-
-// Admin — full catalogue (incl. inactive)
+// Admin — full catalogue MUST be before /:id to avoid 'admin' matching as param
 router.get(
   '/subjects/admin/all',
   protect, requireVerified, authorize('admin'),
   getAllSubjects
 );
+
+// Public — active subjects only
+router.get('/subjects',     getActiveSubjects);
+router.get('/subjects/:id', getSubjectById);
 router.post(
   '/subjects',
   protect, requireVerified, authorize('admin'),
