@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import { useTheme } from '../../store/theme/ThemeContext';
 import {
   FiArrowRight, FiStar, FiPlay, FiBookOpen, FiUsers,
   FiAward, FiZap, FiVideo, FiFileText, FiTrendingUp,
@@ -138,6 +139,18 @@ const GOALS = [
 ];
 
 export default function HomePage() {
+  const { theme }     = useTheme();
+  const dark          = theme === 'dark';
+
+  // Theme tokens
+  const bg      = dark ? '#020817'        : '#ffffff';
+  const bgSub   = dark ? 'rgba(255,255,255,0.02)' : '#f8fafc';
+  const bgCard  = dark ? 'rgba(15,23,42,0.6)'     : 'rgba(255,255,255,0.9)';
+  const bdCard  = dark ? 'rgba(255,255,255,0.06)'  : 'rgba(0,0,0,0.08)';
+  const txt     = dark ? 'white'          : '#0f172a';
+  const txtSub  = dark ? '#94a3b8'        : '#475569';
+  const txtMute = dark ? '#64748b'        : '#94a3b8';
+  const bdSect  = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
   const [heroLoaded,  setHeroLoaded]  = useState(false);
   const [mouse,       setMouse]       = useState({ x: 0, y: 0 });
   const [featRef,     featInView]     = useInView(0.1);
@@ -160,7 +173,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div ref={containerRef} style={{ background: '#020817', color: 'white', overflowX: 'hidden' }}>
+    <div ref={containerRef} style={{ background: bg, color: txt, overflowX: 'hidden' }}>
       <style>{`
         @keyframes shimTxt { 0%{background-position:0%}100%{background-position:200%} }
         @keyframes floatY  { 0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)} }
@@ -175,12 +188,27 @@ export default function HomePage() {
 
       {/* ═══════════════ HERO ═══════════════ */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        {/* BG */}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg,#020817 0%,#0f172a 50%,#020817 100%)' }} />
-        {/* Orbs */}
-        <div className="absolute glowa" style={{ top:'20%',left:'15%',width:400,height:400,borderRadius:'50%',background:'rgba(59,130,246,0.12)',filter:'blur(60px)' }} />
-        <div className="absolute glowa" style={{ bottom:'20%',right:'15%',width:350,height:350,borderRadius:'50%',background:'rgba(139,92,246,0.12)',filter:'blur(60px)',animationDelay:'2s' }} />
-        <div className="absolute glowa" style={{ top:'50%',left:'50%',transform:'translate(-50%,-50%)',width:600,height:300,borderRadius:'50%',background:'rgba(16,185,129,0.05)',filter:'blur(80px)',animationDelay:'1s' }} />
+        {/* Background photo — teacher teaching students */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&h=1080&fit=crop&auto=format&q=80"
+            alt="Teacher teaching students in a classroom"
+            className="w-full h-full object-cover object-center"
+            style={{ filter: 'brightness(0.38) saturate(0.85)' }}
+          />
+          {/* Deep gradient overlay to ensure text is readable */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(180deg, rgba(2,8,23,0.55) 0%, rgba(2,8,23,0.35) 35%, rgba(2,8,23,0.6) 70%, rgba(2,8,23,0.92) 100%)',
+          }} />
+          {/* Subtle color tint for brand feel */}
+          <div className="absolute inset-0" style={{
+            background: 'linear-gradient(135deg, rgba(16,185,129,0.06) 0%, transparent 40%, rgba(59,130,246,0.06) 100%)',
+          }} />
+        </div>
+
+        {/* Orbs — layered on top of photo for depth */}
+        <div className="absolute glowa" style={{ top:'20%',left:'15%',width:400,height:400,borderRadius:'50%',background:'rgba(59,130,246,0.09)',filter:'blur(60px)' }} />
+        <div className="absolute glowa" style={{ bottom:'20%',right:'15%',width:350,height:350,borderRadius:'50%',background:'rgba(139,92,246,0.09)',filter:'blur(60px)',animationDelay:'2s' }} />
 
         {/* Spinning rings */}
         <div className="absolute spin" style={{ top:'50%',left:'50%',marginLeft:-350,marginTop:-350,width:700,height:700,borderRadius:'50%',border:'1px solid rgba(255,255,255,0.04)' }} />
