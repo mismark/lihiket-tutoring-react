@@ -83,7 +83,6 @@ export default function Header() {
                   <>
                     {[
                       { to: '/dashboard', label: 'Dashboard' },
-                      { to: '/',          label: 'Home'      },
                     ].map(({ to, label }) => (
                       <Link key={to} to={to}
                         className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${

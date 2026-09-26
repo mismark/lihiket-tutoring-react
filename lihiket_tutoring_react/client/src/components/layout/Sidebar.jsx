@@ -16,7 +16,6 @@ const NAV = {
   admin: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Home',               to: '/',                          icon: FiHome      },
     { section: 'Management' },
     { label: 'Users',              to: '/users',                     icon: FiUsers     },
     { label: 'Subjects',           to: '/subjects',                  icon: FiBook      },
@@ -38,7 +37,6 @@ const NAV = {
   teacher: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Home',               to: '/',                          icon: FiHome      },
     { section: 'Teaching' },
     { label: 'My Subjects',        to: '/my-subjects',               icon: FiBook      },
     { label: 'Browse Subjects',    to: '/subjects',                  icon: FiBookOpen  },
@@ -57,7 +55,6 @@ const NAV = {
   student: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Home',               to: '/',                          icon: FiHome      },
     { section: 'Learning' },
     { label: 'Browse Subjects',    to: '/subjects',                  icon: FiBookOpen  },
     { label: 'Documents',          to: '/documents',                 icon: FiFileText  },
@@ -79,7 +76,6 @@ const NAV = {
   parent: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Home',               to: '/',                          icon: FiHome      },
     { label: 'Documents',          to: '/documents',                 icon: FiFileText  },
     { section: 'Home Tutoring' },
     { label: 'Browse Tutors',      to: '/home-tutor',                icon: FiHome      },
