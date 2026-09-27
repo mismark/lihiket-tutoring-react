@@ -24,6 +24,8 @@ const NAV = {
     { label: 'Quizzes',            to: '/quizzes',                   icon: FiZap       },
     { label: 'Exams',              to: '/exams',                     icon: FiAward     },
     { label: 'Live Classes',       to: '/live-classes',              icon: FiVideo     },
+    { section: 'Home Tutoring' },
+    { label: 'HT Registrations',   to: '/admin/home-tutor-registrations', icon: FiMapPin },
     { section: 'Account' },
     { label: 'Search',             to: '/search',                    icon: FiSearch    },
     { label: 'Notifications',      to: '/notifications',             icon: FiBell      },

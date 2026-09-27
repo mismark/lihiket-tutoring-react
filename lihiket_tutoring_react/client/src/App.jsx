@@ -27,6 +27,7 @@ import ParentDashboard  from './pages/dashboard/ParentDashboard';
 
 // Home Tutoring admin
 import HomeTutoringAdmin from './pages/admin/HomeTutoringAdmin';
+import AdminHomeTutorRegistrations from './pages/admin/AdminHomeTutorRegistrations';
 
 // Home Tutor registration
 import HomeTutorRegister from './pages/home-tutor/HomeTutorRegister';
@@ -226,8 +227,9 @@ export default function App() {
             <Route path="/chats"         element={<PrivateRoute><ChatPage /></PrivateRoute>} />
             <Route path="/users"         element={<PrivateRoute><AdminUsers /></PrivateRoute>} />
             <Route path="/my-subjects"   element={<PrivateRoute><TeacherSubjects /></PrivateRoute>} />
-            <Route path="/home-tutoring-requests" element={<PrivateRoute><HomeTutoringAdmin /></PrivateRoute>} />
-            <Route path="/home-tutor/register"    element={<HomeTutorRegister />} />
+            <Route path="/home-tutoring-requests"         element={<PrivateRoute><HomeTutoringAdmin /></PrivateRoute>} />
+            <Route path="/admin/home-tutor-registrations" element={<PrivateRoute><AdminHomeTutorRegistrations /></PrivateRoute>} />
+            <Route path="/home-tutor/register"            element={<HomeTutorRegister />} />
 
             {/* Admin legacy URLs → redirect to current pages */}
             <Route path="/admin/pending-users" element={<Navigate to="/users" replace />} />
