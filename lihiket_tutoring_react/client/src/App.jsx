@@ -168,7 +168,7 @@ export default function App() {
     <Routes>
       {/* ── Standalone bare route — no Header / Sidebar / Footer ── */}
       {/* Share this URL on social media: /tutoring */}
-      <Route path="/tutoring" element={<HomeTutorRegister />} />
+      <Route path="/home-tutoring" element={<HomeTutorRegister />} />
 
       {/* ── Everything else — full shell ── */}
       <Route path="*" element={<AppShell />} />
