@@ -165,6 +165,19 @@ function ContentArea({ children }) {
 
 export default function App() {
   return (
+    <Routes>
+      {/* ── Standalone bare route — no Header / Sidebar / Footer ── */}
+      {/* Share this URL on social media: /tutoring */}
+      <Route path="/tutoring" element={<HomeTutorRegister />} />
+
+      {/* ── Everything else — full shell ── */}
+      <Route path="*" element={<AppShell />} />
+    </Routes>
+  );
+}
+
+function AppShell() {
+  return (
     <div className="min-h-screen bg-slate-950 text-slate-100 transition-colors duration-200">
       {/* Persistent sidebar (desktop) / overlay drawer (mobile) */}
       <Sidebar />
