@@ -163,43 +163,49 @@ exports.deleteSubject = async (req, res, next) => {
 exports.createBooking = async (req, res, next) => {
   const {
     subjectId,
-    fullName, email, phone,
+    fullName, age, sex, email, phone,
     hoursPerWeek, preferredSchedule, startDate,
-    address, city, location, mapLink, message,
+    city, subcity, street, address, additionalAddress,
+    location, mapLink, message,
   } = req.body;
 
   if (!subjectId)        return next(new AppError('subjectId is required', 400));
   if (!fullName?.trim()) return next(new AppError('Full name is required', 400));
   if (!email?.trim())    return next(new AppError('Email is required', 400));
   if (!phone?.trim())    return next(new AppError('Phone number is required', 400));
-  if (!address?.trim())  return next(new AppError('Address is required', 400));
+  if (!address?.trim())  return next(new AppError('House number / main address is required', 400));
 
   const subject = await HomeTutoringSubject.findById(subjectId);
   if (!subject)          return next(new AppError('Subject not found', 404));
   if (!subject.isActive) return next(new AppError('This subject is not currently available', 400));
 
   const booking = await HomeTutoringBooking.create({
-    subject:      subject._id,
-    subjectName:  subject.name,
-    gradeLevel:   subject.gradeLevel,
-    pricePerHour: subject.pricePerHour,
-    currency:     subject.currency,
-    student:      req.user?.role === 'student' ? req.user._id : null,
-    fullName:     fullName.trim(),
-    email:        email.trim().toLowerCase(),
-    phone:        phone.trim(),
-    hoursPerWeek: hoursPerWeek ? Number(hoursPerWeek) : 4,
+    subject:           subject._id,
+    subjectName:       subject.name,
+    gradeLevel:        subject.gradeLevel,
+    pricePerHour:      subject.pricePerHour,
+    currency:          subject.currency,
+    student:           req.user?.role === 'student' ? req.user._id : null,
+    fullName:          fullName.trim(),
+    age:               age ? Number(age) : null,
+    sex:               sex?.trim() ?? '',
+    email:             email.trim().toLowerCase(),
+    phone:             phone.trim(),
+    hoursPerWeek:      hoursPerWeek ? Number(hoursPerWeek) : 4,
     preferredSchedule: preferredSchedule?.trim() ?? '',
-    startDate:    startDate ? new Date(startDate) : null,
-    address:      address.trim(),
-    city:         city?.trim() ?? '',
+    startDate:         startDate ? new Date(startDate) : null,
+    city:              city?.trim() ?? '',
+    subcity:           subcity?.trim() ?? '',
+    street:            street?.trim() ?? '',
+    address:           address.trim(),
+    additionalAddress: additionalAddress?.trim() ?? '',
     location: {
       lat: location?.lat ? Number(location.lat) : null,
       lng: location?.lng ? Number(location.lng) : null,
     },
-    mapLink:    mapLink?.trim() ?? null,
-    message:    message?.trim() ?? '',
-    status:     'pending',
+    mapLink:  mapLink?.trim() ?? null,
+    message:  message?.trim() ?? '',
+    status:   'pending',
   });
 
   res.status(201).json({
