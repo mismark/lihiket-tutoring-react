@@ -33,6 +33,8 @@ import HomeTutorSubjectsList from './pages/home-tutor/SubjectsList';
 import HomeTutorMyBookings   from './pages/home-tutor/MyBookings';
 import HomeTutorAdminSubjects from './pages/home-tutor/AdminSubjects';
 import HomeTutorAdminBookings from './pages/home-tutor/AdminBookings';
+import HomeTutorRegister      from './pages/home-tutor/HomeTutorRegister';
+import AdminRegistrations     from './pages/home-tutor/AdminRegistrations';
 
 // Subjects
 import AdminSubjects    from './pages/subjects/AdminSubjects';
@@ -233,9 +235,11 @@ export default function App() {
 
             {/* Home Tutor — subject-based system */}
             <Route path="/home-tutor"                element={<HomeTutorSubjectsList />} />
+            <Route path="/home-tutor/register"       element={<HomeTutorRegister />} />
             <Route path="/home-tutor/my-bookings"    element={<PrivateRoute><HomeTutorMyBookings /></PrivateRoute>} />
-            <Route path="/home-tutor/admin/subjects" element={<PrivateRoute><HomeTutorAdminSubjects /></PrivateRoute>} />
-            <Route path="/home-tutor/admin/bookings" element={<PrivateRoute><HomeTutorAdminBookings /></PrivateRoute>} />
+            <Route path="/home-tutor/admin/subjects"       element={<PrivateRoute><HomeTutorAdminSubjects /></PrivateRoute>} />
+            <Route path="/home-tutor/admin/bookings"       element={<PrivateRoute><HomeTutorAdminBookings /></PrivateRoute>} />
+            <Route path="/home-tutor/admin/registrations"  element={<PrivateRoute><AdminRegistrations /></PrivateRoute>} />
 
             {/* Admin legacy URLs → redirect to current pages */}
             <Route path="/admin/pending-users" element={<Navigate to="/users" replace />} />
