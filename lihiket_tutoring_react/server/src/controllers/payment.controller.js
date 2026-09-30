@@ -173,7 +173,7 @@ exports.initiatePayment = async (req, res, next) => {
                        .replace(/[^a-zA-Z0-9\-_ .]/g, '')
                        .slice(0, 100)
                        .trim(),
-        logo: config.clientUrl ? `${config.clientUrl}/logo.png` : undefined,
+        logo: config.clientUrl ? `${config.clientUrl}/logo1.jpg` : undefined,
       },
     };
 

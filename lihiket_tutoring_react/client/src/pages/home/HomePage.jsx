@@ -610,7 +610,7 @@ export default function HomePage() {
       <footer style={{ padding: '3rem 1rem 2rem', background: dark ? '#020817' : '#ffffff', borderTop: `1px solid ${bdSect}` }}>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.jpg" alt="Lihiket" className="w-8 h-8 rounded-xl object-cover" />
+            <img src="/logo1.jpg" alt="Lihiket" className="w-8 h-8 rounded-xl object-cover" />
             <span className="font-bold text-lg" style={{ color: txt }}>Lihiket<span style={{ color: '#34d399' }}>.</span></span>
           </div>
           <div className="flex items-center gap-6 text-sm" style={{ color: txtMute }}>

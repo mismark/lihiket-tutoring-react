@@ -118,7 +118,7 @@ function SidebarPanel({ onClose }) {
       <div className="flex items-center justify-between px-4 py-4 border-b flex-shrink-0"
         style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
         <Link to="/" className="flex items-center gap-2 group">
-          <img src="/logo.jpg" alt="Lihiket" className="w-8 h-8 rounded-lg object-cover shadow group-hover:scale-105 transition-transform" />
+          <img src="/logo1.jpg" alt="Lihiket" className="w-8 h-8 rounded-lg object-cover shadow group-hover:scale-105 transition-transform" />
           <span className="text-base font-extrabold text-white">
             Lihiket<span style={{ color: '#34d399' }}>.</span>
           </span>
