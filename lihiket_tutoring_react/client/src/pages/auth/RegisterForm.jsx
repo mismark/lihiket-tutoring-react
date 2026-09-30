@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiArrowLeft, FiUser, FiPhone, FiMail, FiAlertCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiUser, FiPhone, FiMail } from 'react-icons/fi';
 import { useTheme } from '../../store/theme/ThemeContext';
 import AuthHeader from './components/AuthHeader';
 import RoleBadge from './components/RoleBadge';
@@ -121,7 +121,7 @@ export default function RegisterForm({ role, onBack, onSubmit, loading, apiError
           <div className="mb-6 animate-[fadeIn_0.4s_ease-out]">
             <h2 className={`text-2xl font-extrabold tracking-tight ${theme === 'dark' ? 'text-slate-100' : 'text-slate-900'}`}>Create your account</h2>
             <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-              Fill in your details below. Your account will undergo admin verification before access.
+              Fill in your details below to create your account.
             </p>
           </div>
 
@@ -265,13 +265,6 @@ export default function RegisterForm({ role, onBack, onSubmit, loading, apiError
                   theme={theme}
                 />
               </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-3">
-              <FiAlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <span>
-                <strong>Admin Approval Protocol:</strong> Upon submitting, your registration enters the admin review queue. You will receive an approval confirmation email before logging in.
-              </span>
             </div>
 
             <SubmitButton loading={loading} />

@@ -82,7 +82,7 @@ exports.register = async (req, res) => {
     email:     normalizedEmail,
     password,
     phone:     phone.trim(),
-    isVerified: false,
+    isVerified: true,
     isActive:   true,
   };
 
@@ -137,8 +137,8 @@ exports.register = async (req, res) => {
         userModel: 'Admin',
         type:      EVENTS.NEW_REGISTRATION,
         title:     'New User Registration',
-        message:   `New ${role} registration pending review: ${userData.firstName} ${userData.lastName} (${userData.email})`,
-        link:      `/admin/pending-users`,
+        message:   `New ${role} registered: ${userData.firstName} ${userData.lastName} (${userData.email})`,
+        link:      `/users?highlight=${user._id}`,
       })
     );
     await Promise.allSettled(notifyPromises);
@@ -148,7 +148,7 @@ exports.register = async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: 'Registration submitted successfully. Your account is awaiting admin approval.',
+    message: 'Registration successful. You can now log in.',
     data: {
       id:        user._id,
       firstName: user.firstName,
@@ -199,20 +199,19 @@ exports.login = async (req, res) => {
     throw new AppError('Invalid email/username or password.', 401);
   }
 
-  if (!user.isVerified) {
-    return res.status(403).json({
-      success: false,
-      code: 'ACCOUNT_PENDING',
-      message: 'Your account is pending admin verification. You will be able to log in once approved.',
-    });
-  }
-
   if (!user.isActive) {
     return res.status(403).json({
       success: false,
       code: 'ACCOUNT_DEACTIVATED',
       message: 'Your account has been deactivated. Please contact platform support.',
     });
+  }
+
+  // Auto-fix legacy accounts that were created with isVerified: false
+  // (admin approval was removed — all users can log in immediately)
+  if (!user.isVerified) {
+    user.isVerified = true;
+    await user.save();
   }
 
   const token = generateToken({ id: user._id, role: user.role, collection });
