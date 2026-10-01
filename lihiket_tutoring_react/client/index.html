@@ -4,13 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ── Favicon – all browsers ───────────────────────────────────────────── -->
-    <link rel="icon"               type="image/png"  href="/logo1.png" sizes="any" />
-    <link rel="icon"               type="image/jpeg" href="/logo1.jpg" sizes="any" />
+    <!-- ── Favicon — SVG (circle-clipped logo) for modern browsers ────────── -->
+    <link rel="icon"            type="image/svg+xml" href="/favicon.svg" />
+    <!-- PNG fallback for browsers that don't support SVG favicons (Safari < 16) -->
+    <link rel="icon"            type="image/png"     href="/logo1.png" sizes="any" />
+    <link rel="shortcut icon"   type="image/png"     href="/logo1.png" />
     <link rel="apple-touch-icon"                     href="/logo1.png" />
-    <link rel="shortcut icon"      type="image/png"  href="/logo1.png" />
 
-    <!-- ── PWA / Web App Manifest ────────────────────────────────────────────── -->
+    <!-- ── PWA / Web App Manifest ────────────────────────────────────────── -->
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#0f172a" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -18,24 +19,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Lihiket" />
 
-    <!-- ── SEO ───────────────────────────────────────────────────────────────── -->
+    <!-- ── SEO ────────────────────────────────────────────────────────────── -->
     <meta name="description" content="Lihiket — Ethiopia's #1 Online Tutoring Platform. Live classes, quizzes, assignments, home tutoring and more." />
     <meta name="author" content="Lihiket Tutoring" />
 
-    <!-- ── Open Graph (Facebook, Telegram, WhatsApp) ─────────────────────────── -->
+    <!-- ── Open Graph (Facebook, Telegram, WhatsApp, TikTok) ──────────────── -->
     <meta property="og:type"        content="website" />
     <meta property="og:title"       content="Lihiket Tutoring" />
     <meta property="og:description" content="Ethiopia's #1 Online Tutoring Platform — live classes, home tutoring, quizzes and more." />
-    <meta property="og:image"       content="/logo1.jpg" />
+    <meta property="og:image"       content="https://lihiket-tutoring.vercel.app/logo1.jpg" />
     <meta property="og:image:alt"   content="Lihiket Tutoring Logo" />
     <meta property="og:url"         content="https://lihiket-tutoring.vercel.app" />
     <meta property="og:site_name"   content="Lihiket" />
 
-    <!-- ── Twitter / X card ─────────────────────────────────────────────────── -->
+    <!-- ── Twitter / X card ──────────────────────────────────────────────── -->
     <meta name="twitter:card"        content="summary" />
     <meta name="twitter:title"       content="Lihiket Tutoring" />
     <meta name="twitter:description" content="Ethiopia's #1 Online Tutoring Platform." />
-    <meta name="twitter:image"       content="/logo1.jpg" />
+    <meta name="twitter:image"       content="https://lihiket-tutoring.vercel.app/logo1.jpg" />
 
     <title>Lihiket Tutoring</title>
   </head>

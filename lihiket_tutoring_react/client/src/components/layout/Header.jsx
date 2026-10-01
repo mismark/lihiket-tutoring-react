@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth }    from '../../store/auth/AuthContext';
 import { useTheme }   from '../../store/theme/ThemeContext';
 import { useSidebar } from '../../store/sidebar/SidebarContext';
+import logo from '../../assets/logo.jpg';
 import {
   FiMenu, FiLogOut, FiBook, FiSun, FiMoon,
   FiSearch, FiChevronsLeft, FiChevronsRight, FiUser,
@@ -63,7 +64,7 @@ export default function Header() {
           {/* ── Logo ── */}
           {!searchOpen && (
             <Link to="/" className="flex items-center gap-2 group flex-shrink-0 ml-1">
-              <img src="/logo1.jpg" alt="Lihiket" className="w-8 h-8 rounded-lg object-cover shadow-sm group-hover:scale-105 transition-transform" />
+              <img src={logo} alt="Lihiket" className="w-8 h-8 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
               <span className="hidden sm:block text-lg font-extrabold text-white">
                 Lihiket<span style={{ color: '#34d399' }}>.</span>
               </span>

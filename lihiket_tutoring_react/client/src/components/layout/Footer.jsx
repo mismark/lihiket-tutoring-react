@@ -4,6 +4,7 @@ import {
   FiFacebook, FiTwitter, FiLinkedin, FiInstagram, FiSend,
   FiBookOpen,
 } from 'react-icons/fi';
+import logo from '../../assets/logo.jpg';
 
 const AUTH_PAGES = [
   '/login', '/register', '/forgot-password',
@@ -58,7 +59,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
             <Link to="/" className="inline-flex items-center gap-2.5 mb-4 group">
-              <img src="/logo1.jpg" alt="Lihiket" className="w-9 h-9 rounded-xl object-cover shadow-sm group-hover:scale-105 transition-transform" />
+              <img src={logo} alt="Lihiket" className="w-9 h-9 rounded-full object-cover shadow-sm group-hover:scale-105 transition-transform" />
               <span className="text-lg font-extrabold text-white">
                 Lihiket<span style={{ color: '#34d399' }}>.</span>
               </span>
