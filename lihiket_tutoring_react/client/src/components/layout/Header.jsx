@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth }    from '../../store/auth/AuthContext';
 import { useTheme }   from '../../store/theme/ThemeContext';
@@ -11,6 +11,34 @@ import {
 import NotificationBell from '../../pages/notifications/NotificationBell';
 import ChatBell         from '../../pages/chats/ChatBell';
 import HeaderSearch     from './HeaderSearch';
+
+// ── Live clock ────────────────────────────────────────────────────────────────
+function LiveClock() {
+  const [time, setTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const hours   = time.getHours();
+  const minutes = time.getMinutes().toString().padStart(2, '0');
+  const ampm    = hours >= 12 ? 'PM' : 'AM';
+  const h12     = (hours % 12 || 12).toString().padStart(2, '0');
+
+  return (
+    <div className="hidden sm:flex items-baseline gap-0.5 select-none"
+      style={{ fontVariantNumeric: 'tabular-nums' }}>
+      <span className="text-sm font-extrabold text-white tracking-tight">
+        {h12}:{minutes}
+      </span>
+      <span className="text-xs font-bold ml-0.5"
+        style={{ color: '#34d399' }}>
+        {ampm}
+      </span>
+    </div>
+  );
+}
 
 const AUTH_PAGES = [
   '/login', '/register', '/forgot-password',
@@ -112,6 +140,12 @@ export default function Header() {
 
               {/* Right controls */}
               <div className="flex items-center gap-1.5 ml-auto">
+
+                {/* Live clock */}
+                <LiveClock />
+
+                {/* Divider */}
+                <div className="hidden sm:block w-px h-5 mx-1 bg-white/10" />
 
                 {/* Theme toggle */}
                 <button onClick={toggleTheme} className={iconBtn}
