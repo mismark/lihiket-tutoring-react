@@ -21,16 +21,21 @@ function LiveClock() {
     return () => clearInterval(id);
   }, []);
 
-  const hours   = time.getHours();
-  const minutes = time.getMinutes().toString().padStart(2, '0');
-  const ampm    = hours >= 12 ? 'PM' : 'AM';
-  const h12     = (hours % 12 || 12).toString().padStart(2, '0');
+  // Force Ethiopia / Addis Ababa timezone (EAT = UTC+3)
+  const formatted = time.toLocaleTimeString('en-US', {
+    timeZone:    'Africa/Addis_Ababa',
+    hour:        '2-digit',
+    minute:      '2-digit',
+    hour12:      true,
+  });
+  // formatted is e.g. "10:22 AM" — split at space
+  const [hhmm, ampm] = formatted.split(' ');
 
   return (
     <div className="hidden sm:flex items-baseline gap-0.5 select-none"
       style={{ fontVariantNumeric: 'tabular-nums' }}>
       <span className="text-sm font-extrabold text-white tracking-tight">
-        {h12}:{minutes}
+        {hhmm}
       </span>
       <span className="text-xs font-bold ml-0.5"
         style={{ color: '#34d399' }}>
