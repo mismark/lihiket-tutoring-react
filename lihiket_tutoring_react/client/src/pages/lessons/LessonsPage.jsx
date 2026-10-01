@@ -199,8 +199,9 @@ export default function LessonsPage() {
                 lesson={lesson}
                 index={lessons.indexOf(lesson)}
                 onView={setViewL}
-                onEdit={canManage   ? setEditL   : () => {}}
-                onDelete={canManage ? setDeleteL : () => {}}
+                onEdit={setEditL}
+                onDelete={setDeleteL}
+                canManage={canManage}
                 theme={theme}
               />
             ))}
