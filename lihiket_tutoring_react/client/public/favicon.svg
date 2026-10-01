@@ -1,8 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Circle background -->
+  <circle cx="32" cy="32" r="32" fill="#0f172a"/>
+  <!-- Gradient definition -->
   <defs>
-    <clipPath id="circle">
-      <circle cx="32" cy="32" r="32"/>
-    </clipPath>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
   </defs>
-  <image href="/logo1.jpg" x="0" y="0" width="64" height="64" clip-path="url(#circle)" preserveAspectRatio="xMidYMid slice"/>
+  <!-- Inner circle accent -->
+  <circle cx="32" cy="32" r="28" fill="url(#g)" opacity="0.15"/>
+  <!-- Letter L -->
+  <text
+    x="32" y="44"
+    text-anchor="middle"
+    font-family="Georgia, serif"
+    font-size="34"
+    font-weight="bold"
+    fill="url(#g)"
+  >L</text>
 </svg>
