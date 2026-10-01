@@ -126,7 +126,7 @@ export default function LessonView({ lesson, onClose, theme }) {
       <div
         className={`flex flex-col w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden
             ${dark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'}`}
-        style={{ height: '85vh' }}>
+        style={{ height: '95vh' }}>
 
         {/* ── Header ── */}
         <div className={`flex items-center justify-between px-5 py-3.5 flex-shrink-0 border-b ${bd}`}>
