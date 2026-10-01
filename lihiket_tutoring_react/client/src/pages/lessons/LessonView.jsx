@@ -118,7 +118,8 @@ export default function LessonView({ lesson, onClose, theme }) {
   const cardBg  = dark ? 'bg-slate-700/50 border-slate-600' : 'bg-gray-50 border-gray-200';
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className={`fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50
+        ${panelOpen ? 'p-4' : 'p-1'}`}>
       {/*
         Modal: fixed 85vh tall so video has plenty of room.
         max-w-5xl wide. No overflow on the outer shell.
@@ -126,7 +127,7 @@ export default function LessonView({ lesson, onClose, theme }) {
       <div
         className={`flex flex-col w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden
             ${dark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-200'}`}
-        style={{ height: '95vh' }}>
+        style={{ height: panelOpen ? '95vh' : '99vh' }}>
 
         {/* ── Header ── */}
         <div className={`flex items-center justify-between px-5 py-3.5 flex-shrink-0 border-b ${bd}`}>
