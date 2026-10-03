@@ -4,6 +4,17 @@
  * start/end time pickers, instructions, allow review toggle.
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
+
+// ── EAT helpers (UTC+3) ───────────────────────────────────────────────────────
+function utcToEatInput(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(new Date(isoStr).getTime() + 3 * 60 * 60 * 1000);
+  return d.toISOString().slice(0, 16);
+}
+function eatInputToUtc(localStr) {
+  if (!localStr) return '';
+  return new Date(new Date(localStr).getTime() - 3 * 60 * 60 * 1000).toISOString();
+}
 import {
   FiX, FiSave, FiDatabase, FiPlusCircle, FiSearch,
   FiCheck, FiTrash2, FiAlertCircle, FiCalendar, FiHash, FiAward,
@@ -260,8 +271,8 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
       gradeLevel:      initial.gradeLevel      || '',
       duration:        String(initial.duration ?? 60),
       passMarkPercent: String(initial.passMarkPercent ?? 50),
-      startTime:       initial.startTime ? new Date(initial.startTime).toISOString().slice(0,16) : '',
-      endTime:         initial.endTime   ? new Date(initial.endTime).toISOString().slice(0,16)   : '',
+      startTime:       initial.startTime ? utcToEatInput(initial.startTime) : '',
+      endTime:         initial.endTime   ? utcToEatInput(initial.endTime)   : '',
       status:          initial.status    || 'draft',
       allowReview:     initial.allowReview !== false,
     });
@@ -295,6 +306,8 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
       duration:        Number(form.duration),
       passMarkPercent: pct,
       questionIds:     selectedQs.map(q => q._id),
+      startTime:       form.startTime ? eatInputToUtc(form.startTime) : '',
+      endTime:         form.endTime   ? eatInputToUtc(form.endTime)   : '',
     });
   };
 

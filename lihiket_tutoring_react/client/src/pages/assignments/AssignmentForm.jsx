@@ -2,8 +2,18 @@
 import { FiX, FiSave, FiUpload } from 'react-icons/fi';
 
 const GRADE_LEVELS = ['KG1','KG2','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','HL'];
-
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
+// ── EAT helpers (UTC+3) ───────────────────────────────────────────────────────
+function utcToEatInput(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(new Date(isoStr).getTime() + 3 * 60 * 60 * 1000);
+  return d.toISOString().slice(0, 16);
+}
+function eatInputToUtc(localStr) {
+  if (!localStr) return '';
+  return new Date(new Date(localStr).getTime() - 3 * 60 * 60 * 1000).toISOString();
+}
 
 export default function AssignmentForm({ title, initial, subjects, onSubmit, onCancel, saving, theme }) {
   const dark         = theme === 'dark';
@@ -22,7 +32,7 @@ export default function AssignmentForm({ title, initial, subjects, onSubmit, onC
       instructions: initial.instructions || '',
       subject:      initial.subject?._id || initial.subject || '',
       gradeLevel:   initial.gradeLevel   || '',
-      dueDate:      initial.dueDate ? initial.dueDate.slice(0,16) : '',
+      dueDate:      initial.dueDate ? utcToEatInput(initial.dueDate) : '',
       totalMarks:   String(initial.totalMarks ?? 10),
       allowLate:    initial.allowLate === true,
       status:       initial.status       || 'draft',
@@ -43,7 +53,14 @@ export default function AssignmentForm({ title, initial, subjects, onSubmit, onC
     e.preventDefault();
     if (!form.title.trim()) return;
     const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    Object.entries(form).forEach(([k, v]) => {
+      // Convert dueDate from EAT input back to UTC before sending
+      if (k === 'dueDate') {
+        fd.append(k, v ? eatInputToUtc(v) : '');
+      } else {
+        fd.append(k, v);
+      }
+    });
     if (file) fd.append('file', file);
     onSubmit(fd);
   };

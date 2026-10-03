@@ -1,6 +1,23 @@
 import { useState, useEffect } from 'react';
 import { FiX, FiSave, FiLink } from 'react-icons/fi';
 
+// ── EAT helpers (UTC+3) ───────────────────────────────────────────────────────
+// Convert a UTC ISO string → local datetime-local value shown in EAT
+function utcToEatInput(isoStr) {
+  if (!isoStr) return '';
+  // Add 3 hours to UTC to get EAT
+  const d = new Date(new Date(isoStr).getTime() + 3 * 60 * 60 * 1000);
+  return d.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
+}
+
+// Convert a datetime-local string typed in EAT → UTC ISO string for the server
+function eatInputToUtc(localStr) {
+  if (!localStr) return '';
+  // The user typed EAT time; subtract 3h to get UTC
+  const d = new Date(new Date(localStr).getTime() - 3 * 60 * 60 * 1000);
+  return d.toISOString();
+}
+
 const GRADE_LEVELS = ['KG1','KG2','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','HL'];
 const PLATFORMS    = [
   { value:'meet',  label:'Google Meet' },
@@ -33,7 +50,7 @@ export default function LiveClassForm({ title, initial, subjects, onSubmit, onCa
       gradeLevel:   initial.gradeLevel    || '',
       meetingLink:  initial.meetingLink   || '',
       platform:     initial.platform      || 'meet',
-      scheduledAt:  initial.scheduledAt ? new Date(initial.scheduledAt).toISOString().slice(0,16) : '',
+      scheduledAt:  initial.scheduledAt ? utcToEatInput(initial.scheduledAt) : '',
       duration:     String(initial.duration ?? 60),
       status:       initial.status        || 'scheduled',
       recordingUrl: initial.recordingUrl  || '',
@@ -51,7 +68,8 @@ export default function LiveClassForm({ title, initial, subjects, onSubmit, onCa
   const handleSubmit = e => {
     e.preventDefault();
     if (!form.title.trim() || !form.meetingLink.trim() || !form.scheduledAt) return;
-    onSubmit({ ...form, duration: Number(form.duration) });
+    // Convert EAT input back to UTC before sending to server
+    onSubmit({ ...form, duration: Number(form.duration), scheduledAt: eatInputToUtc(form.scheduledAt) });
   };
 
   return (
@@ -93,7 +111,7 @@ export default function LiveClassForm({ title, initial, subjects, onSubmit, onCa
 
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className={lbl}>Scheduled At *</label>
+                <label className={lbl}>Scheduled At * <span className={`font-normal ${dark ? 'text-slate-500' : 'text-gray-400'}`}>(Ethiopia / Addis Ababa time)</span></label>
                 <input type="datetime-local" name="scheduledAt" value={form.scheduledAt} onChange={handleChange} required className={inputCls} />
               </div>
               <div><label className={lbl}>Duration (min)</label><input type="number" name="duration" value={form.duration} onChange={handleChange} min="5" className={inputCls} /></div>
