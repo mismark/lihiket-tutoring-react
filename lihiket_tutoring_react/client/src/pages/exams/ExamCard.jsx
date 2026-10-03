@@ -5,6 +5,7 @@ import {
 } from 'react-icons/fi';
 import ExamResults  from './ExamResults';
 import ExamMyResult from './ExamMyResult';
+import { eatShort } from '../../lib/eatTime';
 
 const GRADIENTS = [
   'from-amber-500 to-orange-600',
@@ -47,7 +48,7 @@ function fmtCountdown(ms) {
 }
 function fmtDate(d) {
   if (!d) return null;
-  return new Date(d).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return eatShort(d);
 }
 
 export default function ExamCard({ exam, canManage, onView, onEdit, onDelete, onTake, theme }) {

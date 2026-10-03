@@ -6,6 +6,7 @@ import {
 } from 'react-icons/fi';
 import ExamResults  from './ExamResults';
 import ExamMyResult from './ExamMyResult';
+import { eatFull } from '../../lib/eatTime';
 
 const STATUS_STYLE = {
   draft:     'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
@@ -15,7 +16,7 @@ const STATUS_STYLE = {
 
 function fmtDT(d) {
   if (!d) return '—';
-  return new Date(d).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+  return eatFull(d);
 }
 
 export default function ExamView({ exam, canManage, onClose, onEdit, onTake, theme }) {

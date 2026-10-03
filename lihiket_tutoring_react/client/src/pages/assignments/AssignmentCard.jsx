@@ -3,6 +3,7 @@ import {
   FiEye, FiUpload, FiCheckCircle, FiAlertCircle, FiUser,
   FiClock, FiBarChart2,
 } from 'react-icons/fi';
+import { eatShort } from '../../lib/eatTime';
 
 const GRADIENTS = [
   'from-blue-500 to-indigo-600',
@@ -19,7 +20,7 @@ function gradientFor(id = '') {
 
 function fmtDate(d) {
   if (!d) return null;
-  return new Date(d).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+  return eatShort(d);
 }
 
 const STATUS = {

@@ -4,6 +4,7 @@ import { FiX, FiCalendar, FiAward, FiBook, FiUpload, FiEdit2,
 import { getSubmissions, gradeSubmission } from '../../api/assignment.api';
 import toast from 'react-hot-toast';
 import FilePreviewModal from '../../components/shared/FilePreviewModal';
+import { eatFull } from '../../lib/eatTime';
 
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
@@ -13,7 +14,7 @@ function resolveFileUrl(url) {
   return `${SERVER}${url.startsWith('/') ? url : `/${url}`}`;
 }
 
-function fmt(dt) { return dt ? new Date(dt).toLocaleString() : 'â€”'; }
+function fmt(dt) { return dt ? eatFull(dt) : '—'; }
 
 function GradePanel({ sub, totalMarks, onGraded, theme }) {
   const dark = theme === 'dark';
@@ -163,7 +164,7 @@ export default function AssignmentView({ assignment: a, canManage, onClose, onEd
           {/* Meta */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { icon: FiCalendar, label: 'Due',        value: a.dueDate ? new Date(a.dueDate).toLocaleString() : 'No deadline' },
+              { icon: FiCalendar, label: 'Due',        value: a.dueDate ? eatFull(a.dueDate) : 'No deadline' },
               { icon: FiAward,    label: 'Total Marks', value: a.totalMarks },
             ].map(({ icon: Icon, label, value }) => (
               <div key={label} className={`p-3 rounded-xl ${dark ? 'bg-slate-700/50' : 'bg-slate-50'}`}>

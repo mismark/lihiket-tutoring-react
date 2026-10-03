@@ -1,5 +1,6 @@
 import { FiX, FiExternalLink, FiClock, FiCalendar, FiBook,
          FiUser, FiEdit2, FiYoutube, FiVideo } from 'react-icons/fi';
+import { eatFull } from '../../lib/eatTime';
 
 const STATUS = {
   scheduled: { cls: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',    label: '📅 Scheduled' },
@@ -32,7 +33,7 @@ export default function LiveClassView({ lc, canManage, onClose, onEdit, theme })
           {/* Meta grid */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { icon: FiCalendar, label: 'Scheduled',  value: new Date(lc.scheduledAt).toLocaleString() },
+              { icon: FiCalendar, label: 'Scheduled',  value: eatFull(lc.scheduledAt) },
               { icon: FiClock,    label: 'Duration',   value: `${lc.duration} min` },
               { icon: FiVideo,    label: 'Platform',   value: PLATFORM_LABELS[lc.platform] || lc.platform },
             ].map(({ icon: Icon, label, value }) => (

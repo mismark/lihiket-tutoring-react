@@ -4,6 +4,7 @@ import {
   FiExternalLink, FiBook, FiUser, FiUsers, FiRadio,
   FiCheckCircle, FiXCircle, FiEye,
 } from 'react-icons/fi';
+import { eatDate, eatTime } from '../../lib/eatTime';
 
 // Deterministic gradient — same pattern as CourseCard
 const GRADIENTS = [
@@ -65,12 +66,8 @@ export default function LiveClassCard({ lc, canManage, onView, onEdit, onDelete,
   const initials = lc.title.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase()).join('');
 
   const scheduledDate = lc.scheduledAt ? new Date(lc.scheduledAt) : null;
-  const dateLabel = scheduledDate
-    ? scheduledDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })
-    : '';
-  const timeLabel = scheduledDate
-    ? scheduledDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    : '';
+  const dateLabel = scheduledDate ? eatDate(lc.scheduledAt) : '';
+  const timeLabel = scheduledDate ? eatTime(lc.scheduledAt) : '';
 
   return (
     <div className={`group flex flex-col rounded-2xl border overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5 ${
