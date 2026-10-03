@@ -1,21 +1,32 @@
 import { useState, useEffect } from 'react';
 import { FiX, FiSave, FiLink } from 'react-icons/fi';
 
-// ── EAT helpers (UTC+3) ───────────────────────────────────────────────────────
-// Convert a UTC ISO string → local datetime-local value shown in EAT
+// ── EAT (Africa/Addis Ababa = UTC+3) datetime helpers ────────────────────────
+//
+// The browser datetime-local input is timezone-naive (always "local wall clock").
+// We treat it as EAT wall-clock time regardless of the user's OS timezone.
+//
+// To convert UTC → EAT input: add 3h offset manually (no new Date() parsing)
+// To convert EAT input → ISO for server: append "+03:00" so it's unambiguous
+//
 function utcToEatInput(isoStr) {
   if (!isoStr) return '';
-  // Add 3 hours to UTC to get EAT
-  const d = new Date(new Date(isoStr).getTime() + 3 * 60 * 60 * 1000);
-  return d.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
+  // Parse the UTC timestamp, add 3h, format as "YYYY-MM-DDTHH:mm"
+  const utcMs  = new Date(isoStr).getTime();
+  const eatMs  = utcMs + 3 * 60 * 60 * 1000;
+  const d      = new Date(eatMs);
+  const yyyy   = d.getUTCFullYear();
+  const mm     = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const dd     = String(d.getUTCDate()).padStart(2, '0');
+  const hh     = String(d.getUTCHours()).padStart(2, '0');
+  const min    = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
 }
 
-// Convert a datetime-local string typed in EAT → UTC ISO string for the server
-function eatInputToUtc(localStr) {
+// "2026-10-03T11:48" → "2026-10-03T11:48:00+03:00"  (server stores as UTC 08:48)
+function eatInputToIso(localStr) {
   if (!localStr) return '';
-  // The user typed EAT time; subtract 3h to get UTC
-  const d = new Date(new Date(localStr).getTime() - 3 * 60 * 60 * 1000);
-  return d.toISOString();
+  return `${localStr}:00+03:00`;
 }
 
 const GRADE_LEVELS = ['KG1','KG2','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','HL'];
@@ -68,8 +79,8 @@ export default function LiveClassForm({ title, initial, subjects, onSubmit, onCa
   const handleSubmit = e => {
     e.preventDefault();
     if (!form.title.trim() || !form.meetingLink.trim() || !form.scheduledAt) return;
-    // Convert EAT input back to UTC before sending to server
-    onSubmit({ ...form, duration: Number(form.duration), scheduledAt: eatInputToUtc(form.scheduledAt) });
+    // Send EAT time as unambiguous ISO with +03:00 offset
+    onSubmit({ ...form, duration: Number(form.duration), scheduledAt: eatInputToIso(form.scheduledAt) });
   };
 
   return (

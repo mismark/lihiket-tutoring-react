@@ -5,15 +5,21 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-// ── EAT helpers (UTC+3) ───────────────────────────────────────────────────────
+// ── EAT (Africa/Addis Ababa = UTC+3) datetime helpers ────────────────────────
 function utcToEatInput(isoStr) {
   if (!isoStr) return '';
-  const d = new Date(new Date(isoStr).getTime() + 3 * 60 * 60 * 1000);
-  return d.toISOString().slice(0, 16);
+  const eatMs = new Date(isoStr).getTime() + 3 * 60 * 60 * 1000;
+  const d     = new Date(eatMs);
+  const yyyy  = d.getUTCFullYear();
+  const mm    = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const dd    = String(d.getUTCDate()).padStart(2, '0');
+  const hh    = String(d.getUTCHours()).padStart(2, '0');
+  const min   = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
 }
-function eatInputToUtc(localStr) {
+function eatInputToIso(localStr) {
   if (!localStr) return '';
-  return new Date(new Date(localStr).getTime() - 3 * 60 * 60 * 1000).toISOString();
+  return `${localStr}:00+03:00`;
 }
 import {
   FiX, FiSave, FiDatabase, FiPlusCircle, FiSearch,
@@ -306,8 +312,8 @@ export default function ExamForm({ title, initial, subjects, onSubmit, onCancel,
       duration:        Number(form.duration),
       passMarkPercent: pct,
       questionIds:     selectedQs.map(q => q._id),
-      startTime:       form.startTime ? eatInputToUtc(form.startTime) : '',
-      endTime:         form.endTime   ? eatInputToUtc(form.endTime)   : '',
+      startTime:       form.startTime ? eatInputToIso(form.startTime) : '',
+      endTime:         form.endTime   ? eatInputToIso(form.endTime)   : '',
     });
   };
 

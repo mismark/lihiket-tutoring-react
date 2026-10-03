@@ -4,15 +4,21 @@ import { FiX, FiSave, FiUpload } from 'react-icons/fi';
 const GRADE_LEVELS = ['KG1','KG2','G1','G2','G3','G4','G5','G6','G7','G8','G9','G10','G11','G12','HL'];
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
 
-// ── EAT helpers (UTC+3) ───────────────────────────────────────────────────────
+// ── EAT (Africa/Addis Ababa = UTC+3) datetime helpers ────────────────────────
 function utcToEatInput(isoStr) {
   if (!isoStr) return '';
-  const d = new Date(new Date(isoStr).getTime() + 3 * 60 * 60 * 1000);
-  return d.toISOString().slice(0, 16);
+  const eatMs = new Date(isoStr).getTime() + 3 * 60 * 60 * 1000;
+  const d     = new Date(eatMs);
+  const yyyy  = d.getUTCFullYear();
+  const mm    = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const dd    = String(d.getUTCDate()).padStart(2, '0');
+  const hh    = String(d.getUTCHours()).padStart(2, '0');
+  const min   = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
 }
-function eatInputToUtc(localStr) {
+function eatInputToIso(localStr) {
   if (!localStr) return '';
-  return new Date(new Date(localStr).getTime() - 3 * 60 * 60 * 1000).toISOString();
+  return `${localStr}:00+03:00`;
 }
 
 export default function AssignmentForm({ title, initial, subjects, onSubmit, onCancel, saving, theme }) {
@@ -54,9 +60,9 @@ export default function AssignmentForm({ title, initial, subjects, onSubmit, onC
     if (!form.title.trim()) return;
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => {
-      // Convert dueDate from EAT input back to UTC before sending
+      // Convert dueDate from EAT input to unambiguous ISO with +03:00
       if (k === 'dueDate') {
-        fd.append(k, v ? eatInputToUtc(v) : '');
+        fd.append(k, v ? eatInputToIso(v) : '');
       } else {
         fd.append(k, v);
       }
