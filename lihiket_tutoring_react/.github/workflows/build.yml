@@ -1,0 +1,95 @@
+name: Build & Release TWA APK
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:   # allows manual trigger from GitHub Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout code ────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Java 17 (required for Android Gradle) ────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # ── 3. Set up Android SDK ───────────────────────────────────────────────
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # ── 4. Decode keystore from GitHub secret ───────────────────────────────
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > twa-app/app/keystore.jks
+
+      # ── 5. Make gradlew executable ──────────────────────────────────────────
+      - name: Make gradlew executable
+        run: chmod +x twa-app/gradlew
+
+      # ── 6. Build release APK ────────────────────────────────────────────────
+      - name: Build release APK
+        working-directory: twa-app
+        env:
+          KEYSTORE_PATH:     app/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD:      ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      # ── 7. Build release AAB (for Play Store) ───────────────────────────────
+      - name: Build release AAB
+        working-directory: twa-app
+        env:
+          KEYSTORE_PATH:     app/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD:      ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew bundleRelease --no-daemon
+
+      # ── 8. Upload APK as artifact (downloadable from Actions tab) ───────────
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: lihiket-release-apk
+          path: twa-app/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      # ── 9. Upload AAB as artifact (for Play Store submission) ───────────────
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: lihiket-release-aab
+          path: twa-app/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      # ── 10. Create GitHub Release with APK attached ─────────────────────────
+      - name: Create Release
+        if: github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Lihiket v1.0.${{ github.run_number }}
+          body: |
+            ## Lihiket Tutoring App
+
+            ### Install
+            Download and install `lihiket-release.apk` on your Android device.
+
+            ### What's included
+            - Full PWA wrapped as a native Android TWA app
+            - No browser address bar — looks and feels like a native app
+            - Same backend, database and features as the website
+          files: |
+            twa-app/app/build/outputs/apk/release/app-release.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
