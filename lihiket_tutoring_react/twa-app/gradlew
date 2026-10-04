@@ -1,0 +1,3 @@
+#!/bin/sh
+# Gradle wrapper script for Linux/macOS (used by GitHub Actions)
+exec "$(dirname "$0")/gradle/wrapper/gradle-wrapper.jar" "$@"

@@ -36,6 +36,7 @@ export default defineConfig({
         short_name: 'Lihiket',
         description:
           'Online tutoring platform — live classes, assignments, quizzes, exams and more',
+        id: '/',           // required for TWA / Play Store identity
         start_url: '/',
         scope: '/',
         display: 'standalone',
@@ -46,25 +47,17 @@ export default defineConfig({
         lang: 'en',
         dir: 'ltr',
         icons: [
-          {
-            src: '/logo1.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            src: '/logo1.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any',
-          },
-          {
-            // Maskable icon — browsers use this for adaptive icon shapes
-            src: '/logo1.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable',
-          },
+          { src: '/icon-72.png',          sizes: '72x72',   type: 'image/png', purpose: 'any'      },
+          { src: '/icon-96.png',          sizes: '96x96',   type: 'image/png', purpose: 'any'      },
+          { src: '/icon-128.png',         sizes: '128x128', type: 'image/png', purpose: 'any'      },
+          { src: '/icon-144.png',         sizes: '144x144', type: 'image/png', purpose: 'any'      },
+          { src: '/icon-152.png',         sizes: '152x152', type: 'image/png', purpose: 'any'      },
+          { src: '/icon-180.png',         sizes: '180x180', type: 'image/png', purpose: 'any'      },
+          { src: '/icon-192.png',         sizes: '192x192', type: 'image/png', purpose: 'any'      },
+          { src: '/icon-384.png',         sizes: '384x384', type: 'image/png', purpose: 'any'      },
+          { src: '/icon-512.png',         sizes: '512x512', type: 'image/png', purpose: 'any'      },
+          { src: '/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
 
@@ -135,7 +128,13 @@ export default defineConfig({
 
       // Tell vite-plugin-pwa that these files exist in /public and should be
       // included in the pre-cache manifest.
-      includeAssets: ['favicon.svg', 'logo1.png', 'logo.jpg', 'offline.html'],
+      includeAssets: [
+        'favicon.svg', 'favicon-32.png',
+        'icon-72.png', 'icon-96.png', 'icon-128.png', 'icon-144.png',
+        'icon-152.png', 'icon-180.png', 'icon-192.png', 'icon-384.png',
+        'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png',
+        'offline.html',
+      ],
     }),
   ],
 
