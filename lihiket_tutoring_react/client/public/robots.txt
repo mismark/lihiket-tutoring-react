@@ -1,9 +1,10 @@
 User-agent: *
+# Block private/auth-required areas
 Disallow: /api/
-Disallow: /dashboard
-Disallow: /profile
-Disallow: /notifications
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /notifications/
 Disallow: /payment/
 Allow: /
 
-Sitemap: /sitemap.xml
+Sitemap: https://lihiket-tutoring.vercel.app/sitemap.xml
