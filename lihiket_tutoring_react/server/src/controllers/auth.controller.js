@@ -5,9 +5,10 @@ const Parent   = require('../models/Parent');
 const Admin    = require('../models/Admin');
 const OTP      = require('../models/OTP');
 const AppError = require('../utils/AppError');
-const generateToken = require('../utils/generateToken');
-const generateOTP   = require('../utils/generateOTP');
-const sendEmail     = require('../utils/sendEmail');
+const generateToken  = require('../utils/generateToken');
+const generateOTP    = require('../utils/generateOTP');
+const generateUserId = require('../utils/generateUserId');
+const sendEmail = require('../utils/sendEmail');
 const notify        = require('../utils/notify');
 const { EVENTS }    = require('../constants/events');
 
@@ -112,6 +113,9 @@ exports.register = async (req, res) => {
     Object.assign(userData, { country: country ? country.trim() : '' });
   }
 
+  // Generate unique public user ID (e.g. LIKST10000) — never trust client-supplied value
+  userData.userId = await generateUserId(role);
+
   // Create user (password hashed in pre-save hook)
   const user = await Model.create(userData);
 
@@ -150,12 +154,13 @@ exports.register = async (req, res) => {
     success: true,
     message: 'Registration successful. You can now log in.',
     data: {
-      id:        user._id,
-      firstName: user.firstName,
-      lastName:  user.lastName,
-      username:  user.username,
-      email:     user.email,
-      role:      user.role,
+      id:         user._id,
+      userId:     user.userId,
+      firstName:  user.firstName,
+      lastName:   user.lastName,
+      username:   user.username,
+      email:      user.email,
+      role:       user.role,
       isVerified: user.isVerified,
     },
   });
@@ -223,6 +228,7 @@ exports.login = async (req, res) => {
       token,
       user: {
         id:             user._id,
+        userId:         user.userId,
         firstName:      user.firstName,
         lastName:       user.lastName,
         username:       user.username,
@@ -493,6 +499,7 @@ exports.getMe = async (req, res) => {
       dateOfBirth:        req.user.dateOfBirth,
       isVerified:         req.user.isVerified,
       isActive:           req.user.isActive,
+      userId:             req.user.userId,
       gradeLevel:         req.user.gradeLevel,
       parentFullName:     req.user.parentFullName,
       parentEmail:        req.user.parentEmail,
@@ -512,7 +519,7 @@ exports.getMe = async (req, res) => {
 // ─── PUT /api/auth/profile ────────────────────────────────────────────────────
 exports.updateProfile = async (req, res) => {
   const PROTECTED = ['password', 'isVerified', 'verifiedAt', 'verifiedBy',
-                     'passwordResetOTP', 'otpExpires', 'role'];
+                     'passwordResetOTP', 'otpExpires', 'role', 'userId'];
   PROTECTED.forEach(f => delete req.body[f]);
 
   // Uniqueness checks if email or username is changing

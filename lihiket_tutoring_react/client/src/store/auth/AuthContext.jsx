@@ -4,7 +4,8 @@ const AuthContext = createContext(null);
 
 // Bump this version whenever the user object shape changes.
 // Old sessions with a different version will be cleared automatically.
-const AUTH_VERSION = '2';
+// v3 — added userId field to user object
+const AUTH_VERSION = '3';
 
 export const AuthProvider = ({ children }) => {
   const [user,    setUser]    = useState(null);

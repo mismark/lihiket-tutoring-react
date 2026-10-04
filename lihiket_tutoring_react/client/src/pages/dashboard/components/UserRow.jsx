@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FiToggleLeft, FiToggleRight, FiShield,
          FiBookOpen, FiUser, FiUsers,
          FiFileText, FiPhone, FiCopy, FiCheckCircle,
-         FiEdit2, FiTrash2 } from 'react-icons/fi';
+         FiEdit2, FiTrash2, FiHash } from 'react-icons/fi';
 import FilePreviewModal from '../../../components/shared/FilePreviewModal';
 
 const ROLE_ICONS  = { teacher: FiBookOpen, student: FiUser, parent: FiUsers, admin: FiShield };
@@ -175,6 +175,13 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
             <p className={`font-semibold leading-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {user.firstName} {user.lastName}
             </p>
+            {/* Custom public ID badge */}
+            {user.userId && (
+              <span className={`inline-flex items-center gap-1 text-xs font-bold font-mono px-1.5 py-0.5 rounded mt-0.5
+                ${theme === 'dark' ? 'bg-blue-500/15 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                <FiHash className="w-3 h-3" />{user.userId}
+              </span>
+            )}
             <p className={`text-xs mt-0.5 ${theme === 'dark' ? 'text-slate-400' : 'text-gray-500'}`}>
               {user.email}
             </p>

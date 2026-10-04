@@ -14,7 +14,7 @@ import {
   FiMail, FiPhone, FiCalendar,
   FiUsers, FiStar, FiTrendingUp, FiPlusCircle,
   FiMinusCircle, FiCopy, FiExternalLink, FiDollarSign,
-  FiCreditCard,
+  FiCreditCard, FiHash,
 } from 'react-icons/fi';
 
 // ── copy helper — now imported from shared hook ────────────────────────────────
@@ -364,6 +364,14 @@ export default function StudentDashboard() {
                 )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                {user?.userId && (
+                  <div className="sm:col-span-2 flex items-center gap-1.5 text-xs font-bold font-mono
+                                  px-2.5 py-1.5 rounded-lg w-fit
+                                  bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <FiHash className="w-3.5 h-3.5 flex-shrink-0" />
+                    {user.userId}
+                  </div>
+                )}
                 {user?.email && (
                   <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                     <FiMail className="w-4 h-4 flex-shrink-0" />

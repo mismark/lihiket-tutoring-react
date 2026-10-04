@@ -71,28 +71,28 @@ exports.getAllUsers = async (req, res, next) => {
 
     if (!role || role === 'teacher') {
       const teachers = await Teacher.find(isActiveFilter)
-        .select('firstName lastName email phone specializedSubject qualifications experience cvDocument isVerified isActive role createdAt')
+        .select('userId firstName lastName email phone specializedSubject qualifications experience cvDocument isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...teachers.map(t => ({ ...t.toObject(), userType: 'teacher' }))];
     }
 
     if (!role || role === 'student') {
       const students = await Student.find(isActiveFilter)
-        .select('firstName lastName email phone gradeLevel parentFullName parentEmail parentPhone isVerified isActive role createdAt')
+        .select('userId firstName lastName email phone gradeLevel parentFullName parentEmail parentPhone isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...students.map(s => ({ ...s.toObject(), userType: 'student' }))];
     }
 
     if (!role || role === 'parent') {
       const parents = await Parent.find(isActiveFilter)
-        .select('firstName lastName email phone country isVerified isActive role createdAt')
+        .select('userId firstName lastName email phone country isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...parents.map(p => ({ ...p.toObject(), userType: 'parent' }))];
     }
 
     if (!role || role === 'admin') {
       const admins = await Admin.find()
-        .select('firstName lastName email phone isVerified isActive role createdAt')
+        .select('userId firstName lastName email phone isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...admins.map(a => ({ ...a.toObject(), userType: 'admin' }))];
     }
@@ -262,8 +262,8 @@ exports.updateUser = async (req, res, next) => {
     const { userType } = req.query;
     const Model = getModel(userType);
 
-    // Never allow password or OTP fields to be changed via this endpoint
-    const PROTECTED = ['password', 'passwordResetOTP', 'otpExpires'];
+    // Never allow password, OTP, or userId fields to be changed via this endpoint
+    const PROTECTED = ['password', 'passwordResetOTP', 'otpExpires', 'userId'];
     PROTECTED.forEach(f => delete req.body[f]);
 
     // Check email uniqueness across all collections if email is being changed

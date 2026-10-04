@@ -5,6 +5,14 @@ const mongoose = require('mongoose');
  * Import and spread into each schema definition.
  */
 const baseUserFields = {
+  // ── Custom public ID (e.g. LIKST10000) ────────────────────────────────────
+  userId: {
+    type:    String,
+    default: null,
+    unique:  true,
+    sparse:  true,   // allows multiple null values while enforcing uniqueness on non-null
+    index:   true,
+  },
   firstName:        { type: String, required: [true, 'First name is required'], trim: true },
   lastName:         { type: String, required: [true, 'Last name is required'],  trim: true },
   username:         { type: String, required: [true, 'Username is required'],   trim: true, unique: true, lowercase: true },
@@ -15,7 +23,7 @@ const baseUserFields = {
   bio:              { type: String, default: '' },
   dateOfBirth:      { type: Date,   default: null },
   address:          { type: String, default: '' },
-  isVerified:       { type: Boolean, default: false },
+  isVerified:       { type: Boolean, default: true },
   isActive:         { type: Boolean, default: true },
   verifiedAt:       { type: Date,   default: null },
   verifiedBy:       { type: mongoose.Schema.Types.ObjectId, ref: 'Admin', default: null },

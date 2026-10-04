@@ -13,10 +13,10 @@ import UserEditModal  from './components/UserEditModal';
 import UserDeleteModal from './components/UserDeleteModal';
 
 const SEARCH_FIELDS = {
-  teacher: ['firstName', 'lastName', 'email', 'phone', 'specializedSubject', 'qualifications'],
-  student: ['firstName', 'lastName', 'email', 'phone', 'gradeLevel', 'parentFullName', 'parentEmail', 'parentPhone'],
-  parent:  ['firstName', 'lastName', 'email', 'phone', 'country'],
-  admin:   ['firstName', 'lastName', 'email', 'phone'],
+  teacher: ['userId', 'firstName', 'lastName', 'email', 'phone', 'specializedSubject', 'qualifications'],
+  student: ['userId', 'firstName', 'lastName', 'email', 'phone', 'gradeLevel', 'parentFullName', 'parentEmail', 'parentPhone'],
+  parent:  ['userId', 'firstName', 'lastName', 'email', 'phone', 'country'],
+  admin:   ['userId', 'firstName', 'lastName', 'email', 'phone'],
 };
 
 function matchesSearch(user, query, tab) {

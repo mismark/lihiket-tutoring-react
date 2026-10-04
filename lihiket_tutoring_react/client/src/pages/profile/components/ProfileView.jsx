@@ -1,6 +1,6 @@
 import {
   FiUser, FiMail, FiPhone, FiMapPin, FiCalendar,
-  FiBook, FiAward, FiUsers, FiEdit2, FiCheckCircle,
+  FiBook, FiAward, FiUsers, FiEdit2, FiCheckCircle, FiHash,
 } from 'react-icons/fi';
 import { InfoRow, Section } from './profile.utils.jsx';
 
@@ -26,13 +26,24 @@ export default function ProfileView({ profile, onEdit, theme }) {
       {/* ── Personal information ── */}
       <Section title="Personal Information" theme={theme}>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <InfoRow icon={FiUser}     label="Full Name"     value={`${profile?.firstName} ${profile?.lastName}`}                                   theme={theme} />
-          <InfoRow icon={FiUser}     label="Username"      value={`@${profile?.username}`}                                                        theme={theme} />
-          <InfoRow icon={FiMail}     label="Email"         value={profile?.email}                                                                  theme={theme} />
-          <InfoRow icon={FiPhone}    label="Phone"         value={profile?.phone}                                                                  theme={theme} />
+          {/* User ID — shown first, prominently */}
+          {profile?.userId && (
+            <div className={`sm:col-span-2 flex items-center gap-2 px-3 py-2 rounded-xl
+              ${dark ? 'bg-blue-500/10 border border-blue-500/20' : 'bg-blue-50 border border-blue-100'}`}>
+              <FiHash className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              <span className={`text-xs font-semibold ${dark ? 'text-slate-400' : 'text-gray-500'}`}>Your ID:</span>
+              <span className={`font-black font-mono text-sm tracking-wide ${dark ? 'text-blue-400' : 'text-blue-700'}`}>
+                {profile.userId}
+              </span>
+            </div>
+          )}
+          <InfoRow icon={FiUser}     label="Full Name"     value={`${profile?.firstName} ${profile?.lastName}`}                                    theme={theme} />
+          <InfoRow icon={FiUser}     label="Username"      value={`@${profile?.username}`}                                                         theme={theme} />
+          <InfoRow icon={FiMail}     label="Email"         value={profile?.email}                                                                   theme={theme} />
+          <InfoRow icon={FiPhone}    label="Phone"         value={profile?.phone}                                                                   theme={theme} />
           <InfoRow icon={FiCalendar} label="Date of Birth" value={profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : null} theme={theme} />
-          <InfoRow icon={FiCalendar} label="Joined"        value={joinedDate}                                                                      theme={theme} />
-          <InfoRow icon={FiMapPin}   label="Address"       value={profile?.address}                                                                theme={theme} />
+          <InfoRow icon={FiCalendar} label="Joined"        value={joinedDate}                                                                       theme={theme} />
+          <InfoRow icon={FiMapPin}   label="Address"       value={profile?.address}                                                                 theme={theme} />
         </div>
         {profile?.bio && (
           <div className={`mt-2 p-3 rounded-xl text-sm ${

@@ -7,7 +7,7 @@ import StatCard from '../../components/shared/StatCard';
 import {
   FiBook, FiUsers, FiClock, FiAward,
   FiMail, FiPhone, FiCalendar,
-  FiCheckCircle, FiAlertCircle, FiGrid, FiChevronRight,
+  FiCheckCircle, FiAlertCircle, FiGrid, FiChevronRight, FiHash,
 } from 'react-icons/fi';
 // ── subject card ───────────────────────────────────────────────────────────────
 function SubjectCard({ subject }) {
@@ -151,6 +151,14 @@ export default function TeacherDashboard() {
               )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {user?.userId && (
+                  <div className="sm:col-span-2 flex items-center gap-1.5 text-xs font-bold font-mono
+                                  px-2.5 py-1.5 rounded-lg w-fit
+                                  bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <FiHash className="w-3.5 h-3.5 flex-shrink-0" />
+                    {user.userId}
+                  </div>
+                )}
                 {user?.email && (
                   <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                     <FiMail className="w-4 h-4 flex-shrink-0" />
