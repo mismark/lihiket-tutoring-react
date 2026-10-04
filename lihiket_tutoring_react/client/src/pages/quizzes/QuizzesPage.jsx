@@ -163,10 +163,10 @@ export default function QuizzesPage() {
           </div>
 
           {/* Status tabs */}
-          <div className={`flex gap-1 p-1 rounded-xl ${dark ? 'bg-slate-800' : 'bg-slate-100'} flex-shrink-0`}>
+          <div className={`flex gap-1 p-1 rounded-xl overflow-x-auto scrollbar-none ${dark ? 'bg-slate-800' : 'bg-slate-100'}`}>
             {STATUS_TABS.map(t => (
               <button key={t.value} onClick={() => setStatusTab(t.value)}
-                className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap ${
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition whitespace-nowrap flex-shrink-0 ${
                   statusTab === t.value
                     ? 'bg-violet-600 text-white shadow-sm'
                     : dark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-700'

@@ -12,10 +12,17 @@
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    /* Prevent horizontal scroll caused by any accidental overflow */
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-slate-950 text-slate-100 font-sans antialiased;
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
+    /* Respect safe-area insets on notch / Dynamic Island devices */
+    padding-left:  env(safe-area-inset-left,  0px);
+    padding-right: env(safe-area-inset-right, 0px);
   }
 
   /* Premium thin scrollbar */
@@ -28,18 +35,30 @@
     @apply outline-none ring-2 ring-indigo-500 ring-offset-2 ring-offset-slate-950;
   }
 
-  * { -webkit-tap-highlight-color: transparent; }
+  /* Remove 300 ms tap delay and highlight on mobile */
+  * { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+  /* Prevent font inflation on mobile landscape */
+  h1, h2, h3, h4, h5, h6 { text-size-adjust: none; -webkit-text-size-adjust: none; }
+
+  /* Images never exceed their container */
+  img, video { max-width: 100%; height: auto; }
+
+  /* Tables — horizontal scroll instead of overflow */
+  table { width: 100%; }
 }
 
 /* ── Component layer ────────────────────────────────────────────────────────── */
 @layer components {
 
-  /* Buttons */
+  /* ── Buttons ──────────────────────────────────────────────────────────── */
   .btn {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold
            transition-all duration-200 select-none
            focus-visible:ring-2 focus-visible:ring-offset-2
            disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97];
+    /* Ensure buttons are at least 44×44 px on touch screens */
+    min-height: 44px;
   }
   .btn-primary {
     @apply btn text-white font-bold;
@@ -82,11 +101,13 @@
     background: rgba(255,255,255,0.06);
   }
 
-  /* Form inputs */
+  /* ── Form inputs ─────────────────────────────────────────────────────── */
   .input {
     @apply w-full px-3.5 py-2.5 text-sm rounded-xl text-slate-100 placeholder-slate-500 outline-none transition-all duration-200;
     background: rgba(255,255,255,0.04);
     border: 1px solid rgba(255,255,255,0.08);
+    /* Prevent iOS zoom on focus — keep font-size >= 16px */
+    font-size: max(16px, 0.875rem);
   }
   .input:focus {
     border-color: rgba(99,102,241,0.6);
@@ -103,7 +124,7 @@
     @apply block text-sm font-semibold text-slate-300 mb-1.5;
   }
 
-  /* Cards */
+  /* ── Cards ───────────────────────────────────────────────────────────── */
   .card {
     @apply rounded-2xl p-6;
     background: rgba(255,255,255,0.03);
@@ -128,7 +149,7 @@
     -webkit-backdrop-filter: blur(20px);
   }
 
-  /* Badges */
+  /* ── Badges ──────────────────────────────────────────────────────────── */
   .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
   .badge-blue    { @apply badge; background:rgba(59,130,246,0.15);  color:#60a5fa;  border:1px solid rgba(59,130,246,0.25); }
   .badge-green   { @apply badge; background:rgba(16,185,129,0.15);  color:#34d399;  border:1px solid rgba(16,185,129,0.25); }
@@ -137,7 +158,7 @@
   .badge-purple  { @apply badge; background:rgba(139,92,246,0.15);  color:#a78bfa;  border:1px solid rgba(139,92,246,0.25); }
   .badge-slate   { @apply badge; background:rgba(100,116,139,0.15); color:#94a3b8;  border:1px solid rgba(100,116,139,0.2); }
 
-  /* Page containers */
+  /* ── Page containers ──────────────────────────────────────────────────── */
   .page-container  { @apply min-h-screen; background: #020817; }
   .content-wrapper { @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8; }
 
@@ -158,12 +179,11 @@
   .stat-card      { @apply card flex items-center gap-4; }
   .stat-card-icon { @apply w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0; }
 
-  /* Glow text */
+  /* ── Glow / gradient helpers ──────────────────────────────────────────── */
   .text-glow-blue   { text-shadow: 0 0 20px rgba(59,130,246,0.6);  }
   .text-glow-green  { text-shadow: 0 0 20px rgba(16,185,129,0.6);  }
   .text-glow-purple { text-shadow: 0 0 20px rgba(139,92,246,0.6);  }
 
-  /* Gradient text helpers */
   .gradient-text {
     background: linear-gradient(90deg, #34d399, #60a5fa, #a78bfa);
     background-size: 200% auto;
@@ -172,7 +192,6 @@
     background-clip: text;
   }
 
-  /* Glow button */
   .btn-glow {
     @apply btn text-white font-bold;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -182,6 +201,22 @@
     box-shadow: 0 0 35px rgba(99,102,241,0.6);
     filter: brightness(1.1);
   }
+
+  /* ── Table responsive wrapper ─────────────────────────────────────────── */
+  /* Use class="table-wrap" around any <table> that might overflow on mobile */
+  .table-wrap {
+    @apply w-full overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── PWA standalone mode adjustments ─────────────────────────────────── */
+  /* When the app is installed and running standalone, add bottom padding
+     so content clears the home-indicator bar on iOS / gesture bar on Android */
+  @media (display-mode: standalone) {
+    body {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  }
 }
 
 /* ── Utilities ──────────────────────────────────────────────────────────────── */
@@ -189,159 +224,12 @@
   .scrollbar-none { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
 
-  @media (prefers-reduced-motion: reduce) {
-    *, ::before, ::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-}
-
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ── Base layer ────────────────────────────────────────────────────────────── */
-@layer base {
-  *, *::before, *::after { box-sizing: border-box; }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
+  /* Touch-friendly tap size utility */
+  .touch-target {
+    min-width:  44px;
+    min-height: 44px;
   }
 
-  body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased;
-    @apply dark:bg-slate-950 dark:text-slate-100;
-  }
-
-  /* Professional scrollbar — thin and unobtrusive */
-  ::-webkit-scrollbar        { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track  { @apply bg-transparent; }
-  ::-webkit-scrollbar-thumb  { @apply bg-slate-300 dark:bg-slate-700 rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400 dark:bg-slate-600; }
-
-  /* Smooth focus rings */
-  :focus-visible {
-    @apply outline-none ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-900;
-  }
-
-  /* Remove tap highlight on mobile */
-  * { -webkit-tap-highlight-color: transparent; }
-}
-
-/* ── Component layer — reusable classes ────────────────────────────────────── */
-@layer components {
-
-  /* Buttons */
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold
-           transition-all duration-150 select-none
-           focus-visible:ring-2 focus-visible:ring-offset-2
-           disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98];
-  }
-  .btn-primary {
-    @apply btn bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800
-           focus-visible:ring-blue-500 shadow-sm;
-  }
-  .btn-secondary {
-    @apply btn bg-slate-100 text-slate-700 border border-slate-200
-           hover:bg-slate-200 focus-visible:ring-slate-400
-           dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700;
-  }
-  .btn-outline {
-    @apply btn border-2 border-blue-600 text-blue-600
-           hover:bg-blue-600 hover:text-white focus-visible:ring-blue-500
-           dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 dark:hover:text-white;
-  }
-  .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 shadow-sm;
-  }
-  .btn-ghost {
-    @apply btn text-slate-600 hover:bg-slate-100 focus-visible:ring-slate-400
-           dark:text-slate-400 dark:hover:bg-slate-800;
-  }
-
-  /* Form inputs */
-  .input {
-    @apply w-full px-3.5 py-2.5 text-sm rounded-xl
-           border border-slate-200 bg-white text-slate-900
-           placeholder-slate-400 outline-none
-           transition-all duration-150
-           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20
-           dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100
-           dark:placeholder-slate-500 dark:focus:border-blue-500;
-  }
-  .input-error {
-    @apply border-red-400 focus:border-red-500 focus:ring-red-500/20
-           dark:border-red-500;
-  }
-
-  /* Labels */
-  .label {
-    @apply block text-sm font-semibold text-slate-700 mb-1.5
-           dark:text-slate-300;
-  }
-
-  /* Cards */
-  .card {
-    @apply bg-white rounded-2xl shadow-sm border border-slate-200 p-6
-           dark:bg-slate-800 dark:border-slate-700;
-  }
-  .card-hover {
-    @apply card transition-all hover:shadow-md hover:-translate-y-px
-           hover:border-blue-300 dark:hover:border-blue-500/40;
-  }
-
-  /* Badges */
-  .badge { @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold; }
-  .badge-blue    { @apply badge bg-blue-100    text-blue-700    dark:bg-blue-500/20    dark:text-blue-400;    }
-  .badge-green   { @apply badge bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400; }
-  .badge-amber   { @apply badge bg-amber-100   text-amber-700   dark:bg-amber-500/20   dark:text-amber-400;   }
-  .badge-red     { @apply badge bg-red-100     text-red-700     dark:bg-red-500/20     dark:text-red-400;     }
-  .badge-purple  { @apply badge bg-purple-100  text-purple-700  dark:bg-purple-500/20  dark:text-purple-400;  }
-  .badge-slate   { @apply badge bg-slate-100   text-slate-700   dark:bg-slate-700      dark:text-slate-300;   }
-
-  /* Page wrappers */
-  .page-container { @apply min-h-screen bg-slate-50 dark:bg-slate-900; }
-  .content-wrapper { @apply max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8; }
-
-  /* Section headings */
-  .section-title {
-    @apply text-base font-bold text-slate-900 dark:text-white;
-  }
-  .section-sub {
-    @apply text-sm text-slate-500 dark:text-slate-400;
-  }
-
-  /* Skeleton loader */
-  .skeleton {
-    @apply animate-pulse bg-slate-200 dark:bg-slate-700 rounded-lg;
-  }
-
-  /* Divider */
-  .divider {
-    @apply border-t border-slate-200 dark:border-slate-700;
-  }
-
-  /* Stat card — shared across dashboards */
-  .stat-card {
-    @apply card flex items-center gap-4;
-  }
-  .stat-card-icon {
-    @apply w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0;
-  }
-}
-
-/* ── Utility overrides ─────────────────────────────────────────────────────── */
-@layer utilities {
-  /* Prevent layout shift on scroll */
-  .scrollbar-none { scrollbar-width: none; }
-  .scrollbar-none::-webkit-scrollbar { display: none; }
-
-  /* Reduce motion */
   @media (prefers-reduced-motion: reduce) {
     *, ::before, ::after {
       animation-duration: 0.01ms !important;

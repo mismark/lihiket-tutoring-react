@@ -11,6 +11,7 @@ import { NotificationProvider } from './store/notifications/NotificationContext'
 import { SidebarProvider }      from './store/sidebar/SidebarContext';
 import { ChatProvider }         from './store/chat/ChatContext';
 import { SocketProvider }       from './store/socket/SocketContext';
+import PWAInstallPrompt         from './components/shared/PWAInstallPrompt';
 import './styles/index.css';
 
 const queryClient = new QueryClient({
@@ -42,6 +43,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                         success: { iconTheme: { primary: '#2563eb', secondary: '#fff' } },
                       }}
                     />
+                    <PWAInstallPrompt />
                   </ChatProvider>
                 </NotificationProvider>
               </SocketProvider>

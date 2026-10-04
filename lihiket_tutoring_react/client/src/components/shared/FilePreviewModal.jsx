@@ -108,30 +108,33 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+        <div className="flex items-center gap-2 flex-shrink-0 ml-3">
           {allowDownload && rawUrl && (
             <a href={rawUrl} download={displayName} target="_blank" rel="noopener noreferrer"
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition ${
                 dark ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
                      : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
               }`}>
-              <FiDownload className="w-3.5 h-3.5" /> Download
+              <FiDownload className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="hidden sm:inline">Download</span>
             </a>
           )}
           {rawUrl && (
             <a href={rawUrl} target="_blank" rel="noopener noreferrer"
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition ${
                 dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}>
-              <FiExternalLink className="w-3.5 h-3.5" /> Open
+              <FiExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="hidden sm:inline">Open</span>
             </a>
           )}
           {!allowDownload && (
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold ${
               dark ? 'bg-amber-500/20 text-amber-400' : 'bg-amber-100 text-amber-700'
             }`}>
-              <FiLock className="w-3.5 h-3.5" /> View only
+              <FiLock className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="hidden sm:inline">View only</span>
             </span>
           )}
           <button onClick={onClose}

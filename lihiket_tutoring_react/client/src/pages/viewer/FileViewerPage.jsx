@@ -54,9 +54,9 @@ export default function FileViewerPage() {
       <div className={`flex items-center justify-between px-5 py-3 border-b flex-shrink-0 ${
         dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'
       }`}>
-        <div className="flex items-center gap-2">
-          <FiFileText className={`w-5 h-5 ${dark ? 'text-slate-400' : 'text-gray-500'}`} />
-          <span className={`text-sm font-semibold truncate max-w-xs ${dark ? 'text-white' : 'text-gray-900'}`}>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <FiFileText className={`w-5 h-5 flex-shrink-0 ${dark ? 'text-slate-400' : 'text-gray-500'}`} />
+          <span className={`text-sm font-semibold truncate ${dark ? 'text-white' : 'text-gray-900'}`}>
             {name || 'Document'}
           </span>
         </div>

@@ -140,21 +140,17 @@ exports.update = async (req, res, next) => {
               type:      EVENTS.NEW_QUIZ,
               title:     'New Quiz Available',
               message:   `A new quiz "${quiz.title}" is now available. Duration: ${quiz.duration} min.`,
-              link:      '/quizzes',
+              link:      `/subjects/${quiz.subject}/quizzes?id=${quiz._id}`,
             })
           )
         );
-      }
-
-      // Notify the creator (teacher confirmation)
-      if (quiz.createdByModel === 'Teacher') {
         await notify({
           userId:    quiz.createdBy,
           userModel: 'Teacher',
           type:      EVENTS.QUIZ_PUBLISHED,
           title:     'Quiz Published',
           message:   `Your quiz "${quiz.title}" is now live for students.`,
-          link:      '/quizzes',
+          link:      `/subjects/${quiz.subject}/quizzes?id=${quiz._id}`,
         });
       }
     }
@@ -218,7 +214,7 @@ exports.submit = async (req, res, next) => {
         type:      EVENTS.QUIZ_SUBMITTED,
         title:     'Quiz Submitted',
         message:   `${student?.firstName} ${student?.lastName} completed "${quiz.title}" — scored ${result.score}/${result.totalMarks}.`,
-        link:      '/quizzes',
+        link:      `/subjects/${quiz.subject}/quizzes?id=${quiz._id}`,
       });
     }
 

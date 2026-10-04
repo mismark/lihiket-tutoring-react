@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: lihiket-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm ci --only=production
+    startCommand: node src/server.js
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # The following must be set manually in the Render dashboard
+      # (never commit real secrets to git)
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: CLIENT_URL
+        value: https://lihiket-tutoring.vercel.app
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_SECURE
+        value: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SENDER_EMAIL
+        sync: false
+      - key: SENDER_NAME
+        value: Lihiket Tutoring
+      - key: CHAPA_SECRET_KEY
+        sync: false
+      - key: CHAPA_CALLBACK_URL
+        value: https://lihiket-api.onrender.com/api/payments/webhook
+      - key: CHAPA_WEBHOOK_SECRET
+        sync: false
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: UPLOAD_PATH
+        value: uploads

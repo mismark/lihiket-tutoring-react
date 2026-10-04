@@ -133,7 +133,7 @@ export default function ClassroomPage() {
             </div>
 
             {/* Cross-nav links */}
-            <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+            <div className="flex items-center gap-2 flex-wrap">
               {navLinks.map(nl => (
                 <Link key={nl.to} to={nl.to}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-semibold transition ${nl.color}`}>

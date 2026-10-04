@@ -145,14 +145,10 @@ exports.update = async (req, res, next) => {
               type:      EVENTS.NEW_EXAM,
               title:     'New Exam Scheduled',
               message:   `Exam "${exam.title}" is now published. Duration: ${exam.duration} min.${startLabel}`,
-              link:      '/exams',
+              link:      `/subjects/${exam.subject}/exams?id=${exam._id}`,
             })
           )
         );
-      }
-
-      // Confirm to the creator (teacher)
-      if (exam.createdByModel === 'Teacher') {
         await notify({
           userId:    exam.createdBy,
           userModel: 'Teacher',

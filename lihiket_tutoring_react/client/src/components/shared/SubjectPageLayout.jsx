@@ -139,7 +139,7 @@ export default function SubjectPageLayout({
             </div>
 
             {/* Nav links + action button */}
-            <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+            <div className="flex items-center gap-2 flex-wrap">
               {navLinks?.map(nl => (
                 <Link key={nl.to} to={nl.to}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-semibold transition ${nl.color}`}>
@@ -167,7 +167,7 @@ export default function SubjectPageLayout({
         {!loading && stats?.length > 0 && (
           <div className={`grid gap-4 ${
             stats.length <= 2 ? 'grid-cols-2' :
-            stats.length === 3 ? 'grid-cols-3' :
+            stats.length === 3 ? 'grid-cols-1 sm:grid-cols-3' :
             'grid-cols-2 sm:grid-cols-4'
           }`}>
             {stats.map((s, i) => (

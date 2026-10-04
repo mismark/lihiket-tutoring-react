@@ -4,9 +4,11 @@
  */
 export default function FilterTabs({ tabs, active, onChange, activeColor = 'bg-blue-600' }) {
   return (
-    <div className="flex items-center gap-1 p-1 rounded-xl border
+    <div className="flex items-center gap-1 p-1 rounded-xl border overflow-x-auto
                     bg-white border-gray-200 shadow-sm
-                    dark:bg-slate-800 dark:border-slate-700">
+                    dark:bg-slate-800 dark:border-slate-700
+                    scrollbar-none"
+         style={{ WebkitOverflowScrolling: 'touch' }}>
       {tabs.map(t => (
         <button key={t.value} onClick={() => onChange(t.value)}
           className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap ${

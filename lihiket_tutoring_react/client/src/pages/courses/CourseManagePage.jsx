@@ -160,46 +160,46 @@ export default function CourseManagePage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <Link to={`/subjects/${subjectId}/quizzes`}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition ${
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition ${
                   dark ? 'bg-slate-700 text-violet-300 border-slate-600 hover:bg-slate-600'
                        : 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100 shadow-sm'
                 }`}>
-                <FiZap className="w-4 h-4" /> Quizzes
+                <FiZap className="w-4 h-4" /><span className="hidden sm:inline">Quizzes</span>
               </Link>
               <Link to={`/subjects/${subjectId}/exams`}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition ${
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition ${
                   dark ? 'bg-slate-700 text-amber-300 border-slate-600 hover:bg-slate-600'
                        : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 shadow-sm'
                 }`}>
-                <FiAward className="w-4 h-4" /> Exams
+                <FiAward className="w-4 h-4" /><span className="hidden sm:inline">Exams</span>
               </Link>
               <Link to={`/subjects/${subjectId}/assignments`}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition ${
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition ${
                   dark ? 'bg-slate-700 text-blue-300 border-slate-600 hover:bg-slate-600'
                        : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 shadow-sm'
                 }`}>
-                <FiBriefcase className="w-4 h-4" /> Assignments
+                <FiBriefcase className="w-4 h-4" /><span className="hidden sm:inline">Assignments</span>
               </Link>
               <Link to={`/subjects/${subjectId}/live-classes`}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition ${
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition ${
                   dark ? 'bg-slate-700 text-red-300 border-slate-600 hover:bg-slate-600'
                        : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 shadow-sm'
                 }`}>
-                <FiRadio className="w-4 h-4" /> Live
+                <FiRadio className="w-4 h-4" /><span className="hidden sm:inline">Live</span>
               </Link>
               <Link to={`/subjects/${subjectId}/classroom`}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-semibold transition ${
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-semibold transition ${
                   dark ? 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600'
                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 shadow-sm'
                 }`}>
-                <FiEye className="w-4 h-4" /> Preview
+                <FiEye className="w-4 h-4" /><span className="hidden sm:inline">Preview</span>
               </Link>
               {canManage && (
                 <button onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-600/30 text-sm">
-                  <FiPlus className="w-4 h-4" /> New Course
+                  className="flex items-center gap-2 px-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-lg shadow-blue-600/30 text-sm">
+                  <FiPlus className="w-4 h-4" /><span className="hidden sm:inline">New Course</span>
                 </button>
               )}
             </div>

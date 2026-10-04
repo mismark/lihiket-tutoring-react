@@ -85,8 +85,8 @@ export default function AssignmentForm({ title, initial, subjects, onSubmit, onC
             <div><label className={lbl}>Description</label><textarea name="description" value={form.description} onChange={handleChange} rows={2} className={`${inputCls} resize-none`} /></div>
             <div><label className={lbl}>Instructions</label><textarea name="instructions" value={form.instructions} onChange={handleChange} rows={3} className={`${inputCls} resize-none`} placeholder="What students should doâ€¦" /></div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="col-span-1 sm:col-span-2">
                 <label className={lbl}>Subject</label>
                 <select name="subject" value={form.subject} onChange={handleChange} className={inputCls}>
                   <option value="">â€” None â€”</option>
@@ -101,7 +101,7 @@ export default function AssignmentForm({ title, initial, subjects, onSubmit, onC
                 </select>
               </div>
               <div><label className={lbl}>Total Marks</label><input type="number" name="totalMarks" value={form.totalMarks} onChange={handleChange} min="1" className={inputCls} /></div>
-              <div className="col-span-2"><label className={lbl}>Due Date</label><input type="datetime-local" name="dueDate" value={form.dueDate} onChange={handleChange} className={inputCls} /></div>
+              <div className="col-span-1 sm:col-span-2"><label className={lbl}>Due Date</label><input type="datetime-local" name="dueDate" value={form.dueDate} onChange={handleChange} className={inputCls} /></div>
               <div>
                 <label className={lbl}>Status</label>
                 <select name="status" value={form.status} onChange={handleChange} className={inputCls}>

@@ -30,7 +30,7 @@ const GRADE_LABEL = {
 const SUBJECTS = [
   'Mathematics','Physics','Chemistry','Biology',
   'English','Amharic','History','Geography',
-  'ICT','Economics','Civics','Art',
+  'ICT','Business and Economics','Civics','Art',
 ];
 
 const EMPTY = {

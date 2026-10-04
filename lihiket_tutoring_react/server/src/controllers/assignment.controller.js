@@ -160,7 +160,7 @@ exports.submit = async (req, res, next) => {
         type:      EVENTS.ASSIGNMENT_SUBMITTED,
         title:     'Assignment Submitted',
         message:   `${student?.firstName} ${student?.lastName} submitted "${a.title}"${late ? ' (late)' : ''}.`,
-        link:      `/assignments`,
+        link:      `/assignments?id=${a._id}`,
       });
     }
 
@@ -214,7 +214,7 @@ exports.grade = async (req, res, next) => {
       type:      EVENTS.ASSIGNMENT_GRADED,
       title:     'Assignment Graded',
       message:   `Your assignment "${assignment.title}" has been graded: ${marks}/${assignment.totalMarks}.`,
-      link:      '/assignments',
+      link:      `/assignments?id=${assignment._id}`,
     });
 
     res.json({ success: true, data: sub });

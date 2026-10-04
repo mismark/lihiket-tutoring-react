@@ -3,10 +3,14 @@
   "short_name": "Lihiket",
   "description": "Online tutoring platform — live classes, assignments, quizzes, exams and more",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
+  "categories": ["education"],
+  "lang": "en",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/logo1.png",
@@ -18,10 +22,29 @@
       "src": "/logo1.png",
       "sizes": "512x512",
       "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo1.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "categories": ["education"],
-  "lang": "en",
-  "dir": "ltr"
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Go to your dashboard",
+      "url": "/dashboard",
+      "icons": [{ "src": "/logo1.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Live Classes",
+      "short_name": "Live",
+      "description": "Join a live class",
+      "url": "/live-classes",
+      "icons": [{ "src": "/logo1.png", "sizes": "192x192" }]
+    }
+  ]
 }
