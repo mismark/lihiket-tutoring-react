@@ -113,13 +113,13 @@ export default defineConfig({
           },
         ],
 
-        // When a navigation request (page load) fails because the device is
-        // offline, serve the offline fallback instead of a bare browser error.
-        navigateFallback: '/offline.html',
+        // For ALL navigation requests (page loads), fall back to index.html
+        // so React Router handles the route — this is the correct SPA pattern.
+        // The offline.html is only shown when the network request genuinely fails.
+        navigateFallback: '/index.html',
 
-        // Do NOT apply the offline fallback to API calls or uploads — those
-        // are handled by the NetworkOnly rules above.
-        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
+        // Never apply the SPA fallback to API, uploads, or the offline page itself.
+        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//, /^\/offline\.html$/],
 
         // Skip waiting and claim clients so updates apply as soon as possible.
         skipWaiting: true,
