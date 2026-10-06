@@ -39,9 +39,9 @@ export default function Footer() {
             © {currentYear} Lihiket. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-slate-700">
-            <a href="#privacy" className="hover:text-slate-400 transition-colors">Privacy</a>
+            <Link to="/privacy" className="hover:text-slate-400 transition-colors">Privacy</Link>
             <span>·</span>
-            <a href="#terms" className="hover:text-slate-400 transition-colors">Terms</a>
+            <Link to="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
           </div>
         </div>
       </footer>
@@ -98,15 +98,15 @@ export default function Footer() {
           <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Product</h4>
             <ul className="space-y-2.5">
               {[
-                { label: 'Home',     href: '/'         },
-                { label: 'Features', href: '#features' },
-                { label: 'Pricing',  href: '#pricing'  },
-                { label: 'FAQ',      href: '#faq'      },
-              ].map(({ label, href }) => (
+                { label: 'Home',     to: '/'          },
+                { label: 'Features', to: '/features'  },
+                { label: 'Pricing',  to: '/pricing'   },
+                { label: 'FAQ',      to: '/faq'       },
+              ].map(({ label, to }) => (
                 <li key={label}>
-                  <a href={href} className="text-sm text-slate-400 hover:text-white transition-colors">
+                  <Link to={to} className="text-sm text-slate-400 hover:text-white transition-colors">
                     {label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -116,16 +116,20 @@ export default function Footer() {
           <div>
           <h4 className="text-xs font-bold uppercase tracking-widest text-slate-600 mb-4">Company</h4>
             <ul className="space-y-2.5">
+              <li>
+                <Link to="/about" className="text-sm text-slate-400 hover:text-white transition-colors">
+                  About Us
+                </Link>
+              </li>
               {[
-                { label: 'About Us', href: '#about'   },
-                { label: 'Blog',     href: '#blog'    },
-                { label: 'Careers',  href: '#careers' },
-                { label: 'Contact',  href: '#contact' },
-              ].map(({ label, href }) => (
+                { label: 'Blog',     to: '/blog'     },
+                { label: 'Careers',  to: '/careers'  },
+                { label: 'Contact',  to: '/contact'  },
+              ].map(({ label, to }) => (
                 <li key={label}>
-                  <a href={href} className="text-sm text-slate-400 hover:text-white transition-colors">
+                  <Link to={to} className="text-sm text-slate-400 hover:text-white transition-colors">
                     {label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -164,9 +168,9 @@ export default function Footer() {
             © {currentYear} <span className="text-slate-400 font-medium">Lihiket</span>. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-slate-500">
-            <a href="#privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+            <Link to="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</Link>
             <span aria-hidden="true">·</span>
-            <a href="#terms"   className="hover:text-slate-300 transition-colors">Terms of Service</a>
+            <Link to="/terms"   className="hover:text-slate-300 transition-colors">Terms of Service</Link>
           </div>
         </div>
 

@@ -16,7 +16,16 @@ import SetNewPasswordPage  from './pages/auth/SetNewPasswordPage';
 import SetupAdminPage      from './pages/auth/SetupAdminPage';
 
 // Main pages
-import HomePage from './pages/home/HomePage';
+import HomePage    from './pages/home/HomePage';
+import AboutPage   from './pages/about/AboutPage';
+import FeaturesPage from './pages/features/FeaturesPage';
+import PricingPage  from './pages/pricing/PricingPage';
+import FAQPage      from './pages/faq/FAQPage';
+import BlogPage     from './pages/blog/BlogPage';
+import CareersPage  from './pages/careers/CareersPage';
+import ContactPage  from './pages/contact/ContactPage';
+import PrivacyPage  from './pages/legal/PrivacyPage';
+import TermsPage    from './pages/legal/TermsPage';
 
 // Dashboard
 import AdminDashboard   from './pages/dashboard/AdminDashboard';
@@ -192,8 +201,17 @@ function AppShell() {
         <main className="flex-1">
           <Routes>
             {/* Public */}
-            <Route path="/"        element={<HomePage />} />
-            <Route path="/install" element={<InstallPage />} />
+            <Route path="/"          element={<HomePage />} />
+            <Route path="/about"     element={<AboutPage />} />
+            <Route path="/features"  element={<FeaturesPage />} />
+            <Route path="/pricing"   element={<PricingPage />} />
+            <Route path="/faq"       element={<FAQPage />} />
+            <Route path="/blog"      element={<BlogPage />} />
+            <Route path="/careers"   element={<CareersPage />} />
+            <Route path="/contact"   element={<ContactPage />} />
+            <Route path="/privacy"   element={<PrivacyPage />} />
+            <Route path="/terms"     element={<TermsPage />} />
+            <Route path="/install"   element={<InstallPage />} />
 
             {/* Guest-only */}
             <Route path="/login"            element={<GuestRoute><LoginPage /></GuestRoute>} />

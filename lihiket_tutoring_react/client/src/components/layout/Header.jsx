@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth }    from '../../store/auth/AuthContext';
 import { useTheme }   from '../../store/theme/ThemeContext';
@@ -8,11 +8,23 @@ import logo from '../../assets/logo.jpg';
 import {
   FiMenu, FiLogOut, FiBook, FiSun, FiMoon,
   FiSearch, FiChevronsLeft, FiChevronsRight, FiUser,
-  FiDownload,
+  FiDownload, FiX,
 } from 'react-icons/fi';
 import NotificationBell from '../../pages/notifications/NotificationBell';
 import ChatBell         from '../../pages/chats/ChatBell';
 import HeaderSearch     from './HeaderSearch';
+
+// ── Public nav links (unauthenticated) ────────────────────────────────────────
+const PUBLIC_NAV = [
+  { to: '/',          label: 'Home'     },
+  { to: '/features',  label: 'Features' },
+  { to: '/pricing',   label: 'Pricing'  },
+  { to: '/faq',       label: 'FAQ'      },
+  { to: '/about',     label: 'About'    },
+  { to: '/blog',      label: 'Blog'     },
+  { to: '/careers',   label: 'Careers'  },
+  { to: '/contact',   label: 'Contact'  },
+];
 
 // ── Live clock ────────────────────────────────────────────────────────────────
 function LiveClock() {
@@ -60,6 +72,10 @@ export default function Header() {
   const location                          = useLocation();
   const dark                              = theme === 'dark';
   const [searchOpen, setSearchOpen]       = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Close mobile nav on route change
+  useEffect(() => { setMobileNavOpen(false); }, [location.pathname]);
 
   // Don't render on auth pages
   if (AUTH_PAGES.includes(location.pathname)) return null;
@@ -73,12 +89,13 @@ export default function Header() {
     focus-visible:ring-2 focus-visible:ring-indigo-500`;
 
   return (
+    <>
     <header className="sticky top-0 z-30 transition-colors duration-200"
       style={{ background: 'rgba(2,8,23,0.85)', borderBottom: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 h-14">
 
-          {/* ── Sidebar toggle ── */}
+          {/* ── Sidebar toggle (authenticated) ── */}
           {isAuthenticated && (
             <button
               onClick={toggle}
@@ -94,6 +111,18 @@ export default function Header() {
               <span className="lg:hidden">
                 <FiMenu className="w-5 h-5" />
               </span>
+            </button>
+          )}
+
+          {/* ── Mobile hamburger (unauthenticated) ── */}
+          {!isAuthenticated && (
+            <button
+              onClick={() => setMobileNavOpen(o => !o)}
+              aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileNavOpen}
+              className={`${iconBtn} md:hidden`}
+            >
+              {mobileNavOpen ? <FiX className="w-5 h-5" /> : <FiMenu className="w-5 h-5" />}
             </button>
           )}
 
@@ -133,14 +162,15 @@ export default function Header() {
                   </>
                 ) : (
                   <>
-                    {[
-                      { to: '/',           label: 'Home'     },
-                      { href: '#features', label: 'Features' },
-                      { href: '#about',    label: 'About'    },
-                    ].map(({ to, href, label }) => (
-                      to
-                        ? <Link key={label} to={to} className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${isActive(to) ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'}`}>{label}</Link>
-                        : <a key={label} href={href} className="px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/[0.06] transition-colors">{label}</a>
+                    {PUBLIC_NAV.map(({ to, label }) => (
+                      <Link key={to} to={to}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                          isActive(to)
+                            ? 'text-emerald-400 bg-emerald-500/10'
+                            : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
+                        }`}>
+                        {label}
+                      </Link>
                     ))}
                   </>
                 )}
@@ -167,7 +197,6 @@ export default function Header() {
                     Install App
                   </button>
                 )}
-                {/* Icon-only on mobile */}
                 {canInstall && !isInstalled && (
                   <button
                     onClick={install}
@@ -248,5 +277,55 @@ export default function Header() {
         </div>
       </div>
     </header>
+
+    {/* ── Mobile nav drawer (unauthenticated only) ─────────────────────────── */}
+    {!isAuthenticated && mobileNavOpen && (
+      <div
+        className="fixed inset-0 z-20 md:hidden"
+        onClick={() => setMobileNavOpen(false)}
+        aria-hidden="true"
+        style={{ background: 'rgba(2,8,23,0.6)', backdropFilter: 'blur(4px)' }}
+      />
+    )}
+    {!isAuthenticated && (
+      <nav
+        className="fixed top-14 left-0 right-0 z-20 md:hidden overflow-hidden transition-all duration-200 ease-in-out"
+        style={{
+          maxHeight: mobileNavOpen ? '100vh' : '0',
+          background: 'rgba(2,8,23,0.97)',
+          borderBottom: mobileNavOpen ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        }}
+        aria-label="Mobile navigation"
+      >
+        <div className="px-4 py-3 space-y-1">
+          {PUBLIC_NAV.map(({ to, label }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`flex items-center px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${
+                isActive(to)
+                  ? 'text-emerald-400 bg-emerald-500/10'
+                  : 'text-slate-300 hover:text-white hover:bg-white/[0.06]'
+              }`}
+            >
+              {label}
+            </Link>
+          ))}
+          <div className="pt-3 pb-1 flex gap-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+            <Link to="/login"
+              className="flex-1 text-center py-2.5 rounded-xl text-sm font-bold text-slate-200 transition-colors"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              Sign In
+            </Link>
+            <Link to="/register"
+              className="flex-1 text-center py-2.5 rounded-xl text-sm font-bold text-white transition-colors"
+              style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)' }}>
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      </nav>
+    )}
+    </>
   );
 }

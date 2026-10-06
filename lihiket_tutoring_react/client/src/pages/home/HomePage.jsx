@@ -607,21 +607,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════ FOOTER ════════════════════════════════ */}
-      <footer style={{ padding: '3rem 1rem 2rem', background: dark ? '#020817' : '#ffffff', borderTop: `1px solid ${bdSect}` }}>
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <img src={logo} alt="Lihiket" className="w-8 h-8 rounded-full object-cover" />
-            <span className="font-bold text-lg" style={{ color: txt }}>Lihiket<span style={{ color: '#34d399' }}>.</span></span>
-          </div>
-          <div className="flex items-center gap-6 text-sm" style={{ color: txtMute }}>
-            {['Subjects', 'Documents', 'Assignments', 'Quizzes'].map(l => (
-              <Link key={l} to="/" className="transition-colors hover:text-emerald-500">{l}</Link>
-            ))}
-          </div>
-          <p className="text-sm" style={{ color: txtMute }}>© {new Date().getFullYear()} Lihiket Tutoring. All rights reserved.</p>
-        </div>
-      </footer>
+
     </div>
   );
 }
