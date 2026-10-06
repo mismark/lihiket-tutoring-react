@@ -2,6 +2,7 @@
   "name": "Lihiket Tutoring Platform",
   "short_name": "Lihiket",
   "description": "Online tutoring platform — live classes, assignments, quizzes, exams and more",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -13,38 +14,20 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "/icon-72.png",
-      "sizes": "72x72",
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable"
     },
     {
-      "src": "/icon-96.png",
-      "sizes": "96x96",
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable"
     },
     {
-      "src": "/icon-128.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icon-180.png",
-      "sizes": "180x180",
+      "src": "/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
@@ -61,22 +44,40 @@
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
+      "src": "/icon-180.png",
+      "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable-192.png",
-      "sizes": "192x192",
+      "src": "/icon-152.png",
+      "sizes": "152x152",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icon-maskable-512.png",
-      "sizes": "512x512",
+      "src": "/icon-144.png",
+      "sizes": "144x144",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -85,14 +86,14 @@
       "short_name": "Dashboard",
       "description": "Go to your dashboard",
       "url": "/dashboard",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-maskable-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Live Classes",
       "short_name": "Live",
       "description": "Join a live class",
       "url": "/live-classes",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-maskable-192.png", "sizes": "192x192" }]
     }
   ]
 }
