@@ -3,10 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth }    from '../../store/auth/AuthContext';
 import { useTheme }   from '../../store/theme/ThemeContext';
 import { useSidebar } from '../../store/sidebar/SidebarContext';
+import { usePWAInstall } from '../../hooks/usePWAInstall';
 import logo from '../../assets/logo.jpg';
 import {
   FiMenu, FiLogOut, FiBook, FiSun, FiMoon,
   FiSearch, FiChevronsLeft, FiChevronsRight, FiUser,
+  FiDownload,
 } from 'react-icons/fi';
 import NotificationBell from '../../pages/notifications/NotificationBell';
 import ChatBell         from '../../pages/chats/ChatBell';
@@ -54,6 +56,7 @@ export default function Header() {
   const { isAuthenticated, user, logout } = useAuth();
   const { theme, toggleTheme }            = useTheme();
   const { open, toggle }                  = useSidebar();
+  const { canInstall, isInstalled, install } = usePWAInstall();
   const location                          = useLocation();
   const dark                              = theme === 'dark';
   const [searchOpen, setSearchOpen]       = useState(false);
@@ -151,6 +154,30 @@ export default function Header() {
 
                 {/* Divider */}
                 <div className="hidden sm:block w-px h-5 mx-1 bg-white/10" />
+
+                {/* ── Install App button ── */}
+                {canInstall && !isInstalled && (
+                  <button
+                    onClick={install}
+                    title="Install Lihiket App"
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition-all active:scale-95"
+                    style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 0 14px rgba(16,185,129,0.3)' }}
+                  >
+                    <FiDownload className="w-3.5 h-3.5" />
+                    Install App
+                  </button>
+                )}
+                {/* Icon-only on mobile */}
+                {canInstall && !isInstalled && (
+                  <button
+                    onClick={install}
+                    title="Install Lihiket App"
+                    className="sm:hidden p-2 rounded-xl text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                    aria-label="Install app"
+                  >
+                    <FiDownload className="w-5 h-5" />
+                  </button>
+                )}
 
                 {/* Theme toggle */}
                 <button onClick={toggleTheme} className={iconBtn}

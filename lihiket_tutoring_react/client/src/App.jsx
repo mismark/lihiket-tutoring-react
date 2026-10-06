@@ -89,6 +89,9 @@ import ChatPage from './pages/chats/ChatPage';
 // Error pages
 import NotFoundPage from './pages/errors/NotFoundPage';
 
+// Install page
+import InstallPage from './pages/install/InstallPage';
+
 // ─── Guards ───────────────────────────────────────────────────────────────────
 
 const PrivateRoute = ({ children }) => {
@@ -189,7 +192,8 @@ function AppShell() {
         <main className="flex-1">
           <Routes>
             {/* Public */}
-            <Route path="/" element={<HomePage />} />
+            <Route path="/"        element={<HomePage />} />
+            <Route path="/install" element={<InstallPage />} />
 
             {/* Guest-only */}
             <Route path="/login"            element={<GuestRoute><LoginPage /></GuestRoute>} />
