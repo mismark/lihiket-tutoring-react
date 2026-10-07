@@ -1,79 +1,144 @@
 /**
  * InstallPage — /install
- * Works for ALL devices: Android, iPhone, Desktop.
- * Shows the native install dialog if available, otherwise shows manual steps.
+ *
+ * Always shows an install button regardless of whether the
+ * beforeinstallprompt event has fired. Auto-detects platform and
+ * shows the correct install method.
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
+import { useTheme } from '../../store/theme/ThemeContext';
 import {
-  FiDownload, FiSmartphone, FiMonitor, FiShare2,
-  FiCheckCircle, FiArrowLeft, FiExternalLink,
+  FiDownload, FiCheckCircle, FiArrowLeft,
+  FiSmartphone, FiMonitor, FiShare2, FiCopy,
 } from 'react-icons/fi';
 
-// Step component
-function Step({ number, text }) {
+// Detect platform
+function detectPlatform() {
+  const ua = navigator.userAgent.toLowerCase();
+  const isIOS     = /iphone|ipad|ipod/.test(ua);
+  const isAndroid = /android/.test(ua);
+  const isMac     = /macintosh/.test(ua) && !isIOS;
+  if (isIOS)     return 'ios';
+  if (isAndroid) return 'android';
+  return 'desktop';
+}
+
+function Step({ number, text, color = '#10b981' }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
-        style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)' }}>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white flex-shrink-0"
+        style={{ background: `linear-gradient(135deg,${color},${color}cc)`, minWidth: 28 }}>
         {number}
       </div>
-      <p className="text-sm text-slate-300 leading-relaxed pt-0.5">{text}</p>
+      <p className="text-sm leading-relaxed pt-0.5" style={{ color: '#cbd5e1' }}>{text}</p>
     </div>
   );
 }
 
-// Platform card
-function PlatformCard({ icon: Icon, title, color, children, active, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left p-4 rounded-2xl border transition-all ${
-        active
-          ? 'border-emerald-500/50 bg-emerald-500/10'
-          : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
-      }`}
-    >
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
-          <Icon className="w-5 h-5" />
-        </div>
-        <span className="font-bold text-white text-sm">{title}</span>
-        {active && <FiCheckCircle className="w-4 h-4 text-emerald-400 ml-auto" />}
-      </div>
-      {active && <div className="space-y-3">{children}</div>}
-    </button>
-  );
-}
+const TABS = [
+  { id: 'android', emoji: '🤖', label: 'Android', color: '#10b981' },
+  { id: 'ios',     emoji: '🍎', label: 'iPhone',  color: '#3b82f6' },
+  { id: 'desktop', emoji: '💻', label: 'Desktop', color: '#8b5cf6' },
+];
+
+const STEPS = {
+  android: {
+    color: '#10b981',
+    label: 'Android — Chrome Browser',
+    tip: 'If you already see an "Install" banner at the bottom of the screen — just tap that directly.',
+    tipColor: '#10b981',
+    tipBg: 'rgba(16,185,129,0.1)',
+    tipBd: 'rgba(16,185,129,0.25)',
+    steps: [
+      'Open Chrome on your Android phone (not Edge or Firefox)',
+      'Go to: lihiket-tutoring.vercel.app',
+      'Tap the ⋮ menu (three dots) at the top right',
+      'Tap "Add to Home screen" or "Install app"',
+      'Tap "Install" on the popup — done! App icon appears on your home screen',
+    ],
+  },
+  ios: {
+    color: '#3b82f6',
+    label: 'iPhone / iPad — Safari Browser',
+    tip: 'You must use Safari. Chrome and other iOS browsers do not support Add to Home Screen.',
+    tipColor: '#60a5fa',
+    tipBg: 'rgba(59,130,246,0.1)',
+    tipBd: 'rgba(59,130,246,0.25)',
+    steps: [
+      'Open Safari on your iPhone (not Chrome)',
+      'Go to: lihiket-tutoring.vercel.app',
+      'Tap the Share button ↑ at the bottom of the screen',
+      'Scroll down and tap "Add to Home Screen"',
+      'Tap "Add" at the top right — Lihiket appears on your home screen',
+    ],
+  },
+  desktop: {
+    color: '#8b5cf6',
+    label: 'Windows / Mac — Chrome or Edge',
+    tip: 'If you don\'t see the install icon, try Chrome menu (⋮) → "Save and share" → "Install page as app".',
+    tipColor: '#a78bfa',
+    tipBg: 'rgba(139,92,246,0.1)',
+    tipBd: 'rgba(139,92,246,0.25)',
+    steps: [
+      'Open Chrome or Edge on your computer',
+      'Go to: lihiket-tutoring.vercel.app',
+      'Click the install icon (⊕) in the address bar on the right side',
+      'Click "Install" on the popup',
+      'Lihiket opens as a standalone desktop app — no browser bar',
+    ],
+  },
+};
 
 export default function InstallPage() {
   const { canInstall, isInstalled, install } = usePWAInstall();
-  const [tab, setTab]       = useState('android');
+  const { theme } = useTheme();
+  const dark = theme === 'dark';
+
+  const [tab, setTab]           = useState(() => detectPlatform());
   const [installing, setInstalling] = useState(false);
-  const [done, setDone]     = useState(false);
+  const [done, setDone]         = useState(false);
+  const [copied, setCopied]     = useState(false);
+
+  // Auto-select correct tab based on platform
+  useEffect(() => { setTab(detectPlatform()); }, []);
 
   const handleInstall = async () => {
-    setInstalling(true);
-    const accepted = await install();
-    setInstalling(false);
-    if (accepted) setDone(true);
+    if (canInstall) {
+      setInstalling(true);
+      const accepted = await install();
+      setInstalling(false);
+      if (accepted) setDone(true);
+    }
   };
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText('https://lihiket-tutoring.vercel.app');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const bg      = dark ? '#020817' : '#f8fafc';
+  const cardBg  = dark ? 'rgba(255,255,255,0.04)' : '#ffffff';
+  const cardBd  = dark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.09)';
+  const txt     = dark ? '#ffffff' : '#0f172a';
+  const sub     = dark ? '#94a3b8' : '#475569';
+  const stepTxt = dark ? '#cbd5e1' : '#334155';
 
   if (isInstalled || done) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center"
-        style={{ background: '#020817' }}>
+        style={{ background: bg }}>
         <div className="w-20 h-20 rounded-full flex items-center justify-center mb-6"
-          style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)' }}>
+          style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 0 40px rgba(16,185,129,0.4)' }}>
           <FiCheckCircle className="w-10 h-10 text-white" />
         </div>
-        <h1 className="text-2xl font-extrabold text-white mb-2">App Installed!</h1>
-        <p className="text-slate-400 text-sm mb-8 max-w-xs">
+        <h1 className="text-2xl font-extrabold mb-2" style={{ color: txt }}>App Installed!</h1>
+        <p className="text-sm mb-8 max-w-xs" style={{ color: sub }}>
           Lihiket is now on your home screen. Open it anytime without a browser.
         </p>
-        <Link to="/"
-          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white"
+        <Link to="/" className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white"
           style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)' }}>
           Open Lihiket
         </Link>
@@ -81,145 +146,126 @@ export default function InstallPage() {
     );
   }
 
+  const activeStep = STEPS[tab];
+
   return (
-    <div className="min-h-screen px-4 py-8 max-w-lg mx-auto" style={{ background: '#020817' }}>
+    <div style={{ background: bg, minHeight: '100vh' }}>
+      <div className="max-w-lg mx-auto px-4 py-8">
 
-      {/* Back */}
-      <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white mb-6 transition-colors">
-        <FiArrowLeft className="w-4 h-4" /> Back to Home
-      </Link>
+        {/* Back */}
+        <Link to="/" className="inline-flex items-center gap-2 text-sm mb-6 transition-colors hover:text-emerald-500"
+          style={{ color: sub }}>
+          <FiArrowLeft className="w-4 h-4" /> Back to Home
+        </Link>
 
-      {/* Hero */}
-      <div className="flex items-center gap-4 mb-8">
-        <img src="/icon-192.png" alt="Lihiket"
-          className="w-16 h-16 rounded-2xl shadow-lg shadow-emerald-500/20" />
-        <div>
-          <h1 className="text-2xl font-extrabold text-white">Install Lihiket</h1>
-          <p className="text-sm text-slate-400 mt-0.5">Free · Works offline · No App Store needed</p>
+        {/* App hero */}
+        <div className="flex items-center gap-4 mb-8">
+          <img src="/icon-192.png" alt="Lihiket"
+            className="w-16 h-16 rounded-2xl"
+            style={{ boxShadow: '0 0 24px rgba(16,185,129,0.3)' }} />
+          <div>
+            <h1 className="text-2xl font-extrabold" style={{ color: txt }}>Install Lihiket</h1>
+            <p className="text-sm mt-0.5" style={{ color: sub }}>Free · Works offline · No App Store needed</p>
+          </div>
         </div>
-      </div>
 
-      {/* One-tap install — Android Chrome / Desktop */}
-      {canInstall && (
-        <button
-          onClick={handleInstall}
-          disabled={installing}
-          className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl text-base font-bold text-white mb-8 transition-all active:scale-[0.98] disabled:opacity-60"
-          style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 0 30px rgba(16,185,129,0.35)' }}
-        >
-          <FiDownload className="w-5 h-5" />
-          {installing ? 'Installing…' : 'Install App Now'}
-        </button>
-      )}
-
-      {/* Platform tabs */}
-      <div className="flex gap-2 mb-4">
-        {[
-          { id: 'android', label: '🤖 Android' },
-          { id: 'ios',     label: '🍎 iPhone' },
-          { id: 'desktop', label: '💻 Desktop' },
-        ].map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-              tab === t.id
-                ? 'text-white'
-                : 'text-slate-400 bg-white/[0.04] hover:bg-white/[0.08]'
-            }`}
-            style={tab === t.id ? { background: 'linear-gradient(135deg,#10b981,#0d9488)' } : {}}>
-            {t.label}
+        {/* ── Primary install button — always visible ── */}
+        {canInstall ? (
+          /* Native prompt available — one tap */
+          <button onClick={handleInstall} disabled={installing}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl text-base font-bold text-white mb-6 transition-all active:scale-[0.98] disabled:opacity-60"
+            style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 0 30px rgba(16,185,129,0.4)' }}>
+            <FiDownload className="w-5 h-5" />
+            {installing ? 'Installing…' : '⚡ Install App Now — One Tap'}
           </button>
-        ))}
-      </div>
-
-      {/* Instructions */}
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 space-y-4">
-
-        {tab === 'android' && (
-          <>
-            <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Android — Chrome Browser</p>
-            <div className="space-y-3">
-              <Step number="1" text="Open Chrome on your Android phone (not Edge or Firefox)" />
-              <Step number="2" text={`Go to: lihiket-tutoring.vercel.app`} />
-              <Step number="3" text="Tap the ⋮ menu (three dots) at the top right of Chrome" />
-              <Step number="4" text='Tap "Add to Home screen" or "Install app"' />
-              <Step number="5" text='Tap "Install" on the popup — done! Icon appears on home screen' />
+        ) : (
+          /* Prompt not available — show manual link + visual button */
+          <div className="mb-6 space-y-3">
+            {/* Visual install button — opens instructions below */}
+            <div className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl text-base font-bold text-white"
+              style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 0 30px rgba(16,185,129,0.4)' }}>
+              <FiDownload className="w-5 h-5" />
+              Follow steps below to install ↓
             </div>
-            <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-              <p className="text-xs text-emerald-400 font-semibold">💡 Tip</p>
-              <p className="text-xs text-slate-300 mt-1">
-                If you see an "Install" banner at the bottom of the screen — just tap it directly.
-              </p>
-            </div>
-          </>
+            {/* Already installed notice or already-dismissed explanation */}
+            <p className="text-xs text-center" style={{ color: sub }}>
+              Use your browser menu or follow the step-by-step guide below for your device.
+            </p>
+          </div>
         )}
 
-        {tab === 'ios' && (
-          <>
-            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">iPhone / iPad — Safari Browser</p>
-            <div className="space-y-3">
-              <Step number="1" text="Open Safari on your iPhone (must be Safari, not Chrome)" />
-              <Step number="2" text={`Go to: lihiket-tutoring.vercel.app`} />
-              <Step number="3" text="Tap the Share button at the bottom (box with an arrow pointing up ↑)" />
-              <Step number="4" text='Scroll down and tap "Add to Home Screen"' />
-              <Step number="5" text='Tap "Add" at the top right — Lihiket icon appears on your home screen' />
-            </div>
-            <div className="mt-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-              <p className="text-xs text-blue-400 font-semibold">⚠️ Important</p>
-              <p className="text-xs text-slate-300 mt-1">
-                iPhone only supports install from Safari. Chrome and other browsers on iOS do not show the "Add to Home Screen" option.
-              </p>
-            </div>
-          </>
-        )}
-
-        {tab === 'desktop' && (
-          <>
-            <p className="text-xs font-semibold text-purple-400 uppercase tracking-wider">Windows / Mac — Chrome or Edge</p>
-            <div className="space-y-3">
-              <Step number="1" text="Open Chrome or Edge on your computer" />
-              <Step number="2" text={`Go to: lihiket-tutoring.vercel.app`} />
-              <Step number="3" text="Look for the install icon (⊕) in the address bar on the right side" />
-              <Step number="4" text='Click it, then click "Install" on the popup' />
-              <Step number="5" text="Lihiket opens as a standalone app window — no browser bar" />
-            </div>
-            <div className="mt-4 p-3 rounded-xl bg-purple-500/10 border border-purple-500/20">
-              <p className="text-xs text-purple-400 font-semibold">💡 Tip</p>
-              <p className="text-xs text-slate-300 mt-1">
-                If you don't see the install icon, try the Chrome menu (⋮) → "Save and share" → "Install page as app".
-              </p>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Share link */}
-      <div className="mt-6 p-4 rounded-2xl border border-white/10 bg-white/[0.03]">
-        <p className="text-xs font-semibold text-slate-400 mb-2">Share with friends & students</p>
-        <div className="flex items-center gap-2">
-          <code className="flex-1 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-2 rounded-xl truncate">
-            lihiket-tutoring.vercel.app
-          </code>
-          <button
-            onClick={() => navigator.clipboard?.writeText('https://lihiket-tutoring.vercel.app')}
-            className="px-3 py-2 rounded-xl text-xs font-bold text-white bg-white/10 hover:bg-white/20 transition-colors flex-shrink-0"
-          >
-            Copy
-          </button>
+        {/* ── Platform tabs ── */}
+        <div className="flex gap-2 mb-4">
+          {TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
+              style={tab === t.id
+                ? { background: `linear-gradient(135deg,${t.color},${t.color}cc)`, color: '#ffffff' }
+                : { background: dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', color: sub }}>
+              {t.emoji} {t.label}
+            </button>
+          ))}
         </div>
-        <div className="flex gap-2 mt-3">
-          <a href="https://wa.me/?text=Install%20Lihiket%20Tutoring%20App%3A%20https%3A%2F%2Flihiket-tutoring.vercel.app"
-            target="_blank" rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white bg-green-600/80 hover:bg-green-600 transition-colors">
-            WhatsApp
-          </a>
-          <a href="https://t.me/share/url?url=https%3A%2F%2Flihiket-tutoring.vercel.app&text=Install%20Lihiket%20Tutoring%20App"
-            target="_blank" rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600/80 hover:bg-blue-600 transition-colors">
-            Telegram
-          </a>
-        </div>
-      </div>
 
+        {/* ── Step-by-step instructions ── */}
+        <div className="rounded-2xl p-5 space-y-4 mb-6"
+          style={{ background: cardBg, border: cardBd }}>
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: activeStep.color }}>
+            {activeStep.label}
+          </p>
+          <div className="space-y-3">
+            {activeStep.steps.map((s, i) => (
+              <Step key={i} number={i + 1} text={s} color={activeStep.color} />
+            ))}
+          </div>
+          <div className="p-3 rounded-xl mt-2"
+            style={{ background: activeStep.tipBg, border: `1px solid ${activeStep.tipBd}` }}>
+            <p className="text-xs font-semibold" style={{ color: activeStep.tipColor }}>💡 Tip</p>
+            <p className="text-xs mt-1" style={{ color: stepTxt }}>{activeStep.tip}</p>
+          </div>
+        </div>
+
+        {/* ── Share section ── */}
+        <div className="rounded-2xl p-5 space-y-3"
+          style={{ background: cardBg, border: cardBd }}>
+          <p className="text-sm font-bold" style={{ color: txt }}>Share with friends &amp; students</p>
+          <p className="text-xs" style={{ color: sub }}>Send this link — they open it and follow the steps above</p>
+
+          {/* URL copy row */}
+          <div className="flex items-center gap-2">
+            <code className="flex-1 text-xs px-3 py-2.5 rounded-xl truncate font-mono"
+              style={{ background: dark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.08)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)' }}>
+              lihiket-tutoring.vercel.app/install
+            </code>
+            <button onClick={handleCopy}
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all flex-shrink-0"
+              style={{ background: copied ? '#10b981' : dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.07)', color: copied ? '#fff' : txt }}>
+              {copied ? <><FiCheckCircle className="w-3.5 h-3.5" /> Copied!</> : <><FiCopy className="w-3.5 h-3.5" /> Copy</>}
+            </button>
+          </div>
+
+          {/* Share buttons */}
+          <div className="grid grid-cols-2 gap-2">
+            <a href="https://wa.me/?text=Install%20Lihiket%20Tutoring%20App%3A%20https%3A%2F%2Flihiket-tutoring.vercel.app%2Finstall"
+              target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition-all"
+              style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)' }}>
+              💬 WhatsApp
+            </a>
+            <a href="https://t.me/share/url?url=https%3A%2F%2Flihiket-tutoring.vercel.app%2Finstall&text=Install%20Lihiket%20Tutoring%20App"
+              target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition-all"
+              style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}>
+              ✈️ Telegram
+            </a>
+          </div>
+        </div>
+
+        {/* Footer note */}
+        <p className="text-center text-xs mt-6" style={{ color: sub }}>
+          Lihiket is a Progressive Web App — no Play Store or App Store account needed.
+        </p>
+      </div>
     </div>
   );
 }

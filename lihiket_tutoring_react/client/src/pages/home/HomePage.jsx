@@ -6,7 +6,7 @@ import logo from '../../assets/logo.jpg';
 import {
   FiArrowRight, FiStar, FiPlay, FiBookOpen, FiUsers,
   FiAward, FiZap, FiVideo, FiFileText, FiTrendingUp,
-  FiShield, FiTarget,
+  FiShield, FiTarget, FiDownload,
 } from 'react-icons/fi';
 import FeatureCard from './components/FeatureCard';
 import HomeTutoringSection from './components/HomeTutoringSection';
@@ -277,11 +277,11 @@ export default function HomePage() {
               </Link>
             </MagBtn>
             <MagBtn>
-              <Link to="/login">
+              <Link to="/install">
                 <motion.div className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white cursor-pointer"
                   style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)' }}
                   whileHover={{ background: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.4)' }}>
-                  <FiPlay className="w-5 h-5" /> Explore
+                  <FiDownload className="w-5 h-5" /> Install App
                 </motion.div>
               </Link>
             </MagBtn>
