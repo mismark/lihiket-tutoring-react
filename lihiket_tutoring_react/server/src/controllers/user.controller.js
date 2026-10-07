@@ -477,14 +477,15 @@ exports.getChildProgress = async (req, res, next) => {
 
     const sid = req.params.studentId;
 
-    const Enrollment          = require('../models/Enrollment');
-    const Assignment          = require('../models/Assignment');
+    const Enrollment           = require('../models/Enrollment');
+    const Assignment           = require('../models/Assignment');
     const AssignmentSubmission = require('../models/AssignmentSubmission');
-    const Quiz                = require('../models/Quiz');
-    const QuizResult          = require('../models/QuizResult');
-    const Exam                = require('../models/Exam');
-    const ExamResult          = require('../models/ExamResult');
-    const LiveClass           = require('../models/LiveClass');
+    const Quiz                 = require('../models/Quiz');
+    const QuizResult           = require('../models/QuizResult');
+    const Exam                 = require('../models/Exam');
+    const ExamResult           = require('../models/ExamResult');
+    const LiveClass            = require('../models/LiveClass');
+    const Payment              = require('../models/Payment');
 
     // Run all queries in parallel for speed
     const [
@@ -493,6 +494,7 @@ exports.getChildProgress = async (req, res, next) => {
       quizResults,
       examResults,
       student,
+      payments,
     ] = await Promise.all([
       // Active subject enrollments
       Enrollment.find({ student: sid, status: 'active' })
@@ -534,6 +536,13 @@ exports.getChildProgress = async (req, res, next) => {
       Student.findById(sid).select(
         'firstName lastName email userId gradeLevel profilePicture isActive isVerified username bio phone createdAt'
       ).lean(),
+
+      // Payment history (exclude raw Chapa data)
+      Payment.find({ student: sid })
+        .populate('subject', 'name code gradeLevel')
+        .select('-_chapaRaw')
+        .sort({ createdAt: -1 })
+        .lean(),
     ]);
 
     if (!student) return next(new AppError('Student not found', 404));
@@ -564,6 +573,10 @@ exports.getChildProgress = async (req, res, next) => {
     const overallEarned = earnedAssignmentMarks + earnedQuizMarks + earnedExamMarks;
     const overallPct    = overallTotal > 0 ? Math.round((overallEarned / overallTotal) * 100) : null;
 
+    const totalAmountPaid = payments
+      .filter(p => p.status === 'paid')
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+
     res.status(200).json({
       success: true,
       data: {
@@ -575,6 +588,8 @@ exports.getChildProgress = async (req, res, next) => {
           quizzesAttempted:   quizResults.length,
           examsAttempted:     examResults.length,
           liveClassesTotal:   liveClasses.length,
+          paymentsTotal:      payments.length,
+          amountPaid:         totalAmountPaid,
           overallScore:       overallTotal > 0 ? `${overallEarned}/${overallTotal}` : null,
           overallPercent:     overallPct,
         },
@@ -583,6 +598,7 @@ exports.getChildProgress = async (req, res, next) => {
         quizzes:     quizResults,
         exams:       examResults,
         liveClasses,
+        payments,
       },
     });
   } catch (err) {

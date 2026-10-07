@@ -15,7 +15,7 @@ import {
   FiPlusCircle, FiXCircle, FiChevronRight, FiChevronDown,
   FiAward, FiVideo, FiFileText, FiBarChart2, FiAlertCircle,
   FiClock, FiDollarSign, FiTrendingUp, FiLoader,
-  FiSearch, FiLink, FiUserX,
+  FiSearch, FiLink, FiUserX, FiCreditCard,
 } from 'react-icons/fi';
 
 // ── tiny helpers ──────────────────────────────────────────────────────────────
@@ -77,11 +77,12 @@ function StatCard({ icon: Icon, label, value, color }) {
 
 // ── TABS ──────────────────────────────────────────────────────────────────────
 const TABS = [
-  { id: 'overview',    label: 'Overview',    icon: FiBarChart2 },
-  { id: 'assignments', label: 'Assignments', icon: FiFileText  },
-  { id: 'quizzes',     label: 'Quizzes',     icon: FiAward     },
-  { id: 'exams',       label: 'Exams',       icon: FiBook      },
-  { id: 'liveclasses', label: 'Live Classes', icon: FiVideo    },
+  { id: 'overview',    label: 'Overview',    icon: FiBarChart2  },
+  { id: 'assignments', label: 'Assignments', icon: FiFileText   },
+  { id: 'quizzes',     label: 'Quizzes',     icon: FiAward      },
+  { id: 'exams',       label: 'Exams',       icon: FiBook       },
+  { id: 'liveclasses', label: 'Live Classes', icon: FiVideo     },
+  { id: 'payments',    label: 'Payments',    icon: FiCreditCard },
 ];
 
 // ── Progress modal / panel ────────────────────────────────────────────────────
@@ -150,11 +151,12 @@ function ChildProgressPanel({ child, onClose }) {
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <StatCard icon={FiBook}     label="Enrolled Subjects"  value={summary.enrollments}       color="blue"    />
-          <StatCard icon={FiFileText} label="Assignments Done"   value={`${summary.assignmentsGraded}/${summary.assignmentsTotal}`} color="purple" />
-          <StatCard icon={FiAward}    label="Quizzes Taken"      value={summary.quizzesAttempted}  color="emerald" />
-          <StatCard icon={FiBook}     label="Exams Taken"        value={summary.examsAttempted}    color="amber"   />
-          <StatCard icon={FiVideo}    label="Live Classes"       value={summary.liveClassesTotal}  color="blue"    />
+          <StatCard icon={FiBook}       label="Enrolled Subjects"  value={summary.enrollments}       color="blue"    />
+          <StatCard icon={FiFileText}   label="Assignments Done"   value={`${summary.assignmentsGraded}/${summary.assignmentsTotal}`} color="purple" />
+          <StatCard icon={FiAward}      label="Quizzes Taken"      value={summary.quizzesAttempted}  color="emerald" />
+          <StatCard icon={FiBook}       label="Exams Taken"        value={summary.examsAttempted}    color="amber"   />
+          <StatCard icon={FiVideo}      label="Live Classes"       value={summary.liveClassesTotal}  color="blue"    />
+          <StatCard icon={FiDollarSign} label="Total Paid (ETB)"   value={summary.amountPaid > 0 ? `ETB ${Number(summary.amountPaid).toLocaleString()}` : 'Free'} color="amber" />
         </div>
 
         {/* Enrolled subjects list */}
@@ -370,12 +372,122 @@ function ChildProgressPanel({ child, onClose }) {
     );
   };
 
+  const renderPayments = () => {
+    const items = progress?.payments || [];
+    if (!items.length) return <EmptyState icon={FiCreditCard} label="No payment records yet" />;
+
+    const totalPaid = items
+      .filter(p => p.status === 'paid')
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+    // Status colour helper
+    const statusStyle = (st) => {
+      if (st === 'paid')      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400';
+      if (st === 'pending')   return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400';
+      if (st === 'failed')    return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400';
+      if (st === 'refunded')  return 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400';
+      if (st === 'cancelled') return 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400';
+      return 'bg-slate-100 text-slate-500';
+    };
+
+    const methodLabel = (m) => {
+      const map = {
+        telebirr: 'Telebirr', cbebirr: 'CBE Birr', boa: 'BOA',
+        dashen_bank: 'Dashen Bank', awash_bank: 'Awash Bank',
+        abyssinia_bank: 'Abyssinia Bank', mpesa: 'M-Pesa',
+        hello_cash: 'Hello Cash', ebirr: 'eBirr', card: 'Card',
+      };
+      return m ? (map[m] || m) : null;
+    };
+
+    return (
+      <div className="space-y-4">
+        {/* Total paid summary */}
+        {totalPaid > 0 && (
+          <div className={`rounded-xl border p-4 flex items-center gap-3 ${
+            dark
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : 'bg-emerald-50 border-emerald-200'
+          }`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+              dark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'
+            }`}>
+              <FiDollarSign className="w-5 h-5" />
+            </div>
+            <div>
+              <p className={`text-lg font-extrabold ${dark ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                ETB {Number(totalPaid).toLocaleString()}
+              </p>
+              <p className={`text-xs ${dark ? 'text-emerald-500/80' : 'text-emerald-600'}`}>
+                Total paid across {items.filter(p => p.status === 'paid').length} transaction{items.filter(p => p.status === 'paid').length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Payment rows */}
+        {items.map(p => (
+          <div key={p._id}
+            className={`rounded-xl border p-4 ${dark ? 'border-slate-700 bg-slate-700/30' : 'border-slate-200 bg-white'}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className={`font-semibold text-sm ${dark ? 'text-white' : 'text-slate-900'}`}>
+                  {p.subject?.name || 'Unknown Subject'}
+                  {p.subject?.code && (
+                    <span className={`ml-2 text-xs font-mono ${dark ? 'text-blue-400' : 'text-blue-600'}`}>
+                      {p.subject.code}
+                    </span>
+                  )}
+                </p>
+                <div className={`flex flex-wrap items-center gap-2 mt-1 text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {p.subject?.gradeLevel && <span>{p.subject.gradeLevel}</span>}
+                  {methodLabel(p.paymentMethod) && (
+                    <>
+                      <span>·</span>
+                      <span className={`font-semibold px-1.5 py-0.5 rounded ${
+                        dark ? 'bg-slate-600 text-slate-300' : 'bg-slate-100 text-slate-600'
+                      }`}>
+                        {methodLabel(p.paymentMethod)}
+                      </span>
+                    </>
+                  )}
+                  {p.txRef && (
+                    <>
+                      <span>·</span>
+                      <span className="font-mono opacity-60 truncate max-w-[120px]">{p.txRef}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                <p className={`text-base font-extrabold ${
+                  p.status === 'paid' ? 'text-emerald-500' : dark ? 'text-slate-300' : 'text-slate-700'
+                }`}>
+                  ETB {Number(p.amount || 0).toLocaleString()}
+                </p>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full capitalize ${statusStyle(p.status)}`}>
+                  {p.status}
+                </span>
+              </div>
+            </div>
+            <p className={`mt-2 text-xs ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+              {p.status === 'paid' && p.paidAt
+                ? `Paid ${fmt(p.paidAt)}`
+                : `Initiated ${fmt(p.createdAt)}`}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const tabRenderers = {
     overview:    renderOverview,
     assignments: renderAssignments,
     quizzes:     renderQuizzes,
     exams:       renderExams,
     liveclasses: renderLiveClasses,
+    payments:    renderPayments,
   };
 
   return (
@@ -433,6 +545,11 @@ function ChildProgressPanel({ child, onClose }) {
               {t.id === 'exams' && s && s.examsAttempted > 0 && (
                 <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                   {s.examsAttempted}
+                </span>
+              )}
+              {t.id === 'payments' && s && s.paymentsTotal > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                  {s.paymentsTotal}
                 </span>
               )}
             </button>
