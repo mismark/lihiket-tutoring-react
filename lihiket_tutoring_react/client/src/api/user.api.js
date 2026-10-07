@@ -42,6 +42,24 @@ export const getMyChildren = async () => {
   return response.data;
 };
 
+// Link a student to the logged-in parent by their public student ID (e.g. LIKST10001)
+export const linkChild = async (studentUserId) => {
+  const response = await axios.post('/users/link-child', { studentUserId });
+  return response.data;
+};
+
+// Unlink a student from the logged-in parent
+export const unlinkChild = async (studentId) => {
+  const response = await axios.delete(`/users/unlink-child/${studentId}`);
+  return response.data;
+};
+
+// Get full academic progress for one linked child
+export const getChildProgress = async (studentId) => {
+  const response = await axios.get(`/users/child-progress/${studentId}`);
+  return response.data;
+};
+
 // Get single user by id + userType (Admin only)
 export const getUser = async (userId, userType) => {
   const response = await axios.get(`/users/${userId}`, { params: { userType } });

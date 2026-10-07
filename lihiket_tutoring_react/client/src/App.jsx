@@ -95,6 +95,10 @@ import SearchPage from './pages/search/SearchPage';
 // Chats
 import ChatPage from './pages/chats/ChatPage';
 
+// Certificates
+import CertificatesPage      from './pages/certificates/CertificatesPage';
+import CertificateVerifyPage from './pages/certificates/CertificateVerifyPage';
+
 // Error pages
 import NotFoundPage from './pages/errors/NotFoundPage';
 
@@ -117,6 +121,19 @@ const GuestRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return null;
   return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
+};
+
+// Requires authenticated + admin role; redirects others to /dashboard
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center text-slate-400 dark:bg-slate-950">
+      <div className="w-7 h-7 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return children;
 };
 
 // ─── Dashboard router by role ─────────────────────────────────────────────────
@@ -260,10 +277,13 @@ function AppShell() {
             <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
             <Route path="/search"        element={<PrivateRoute><SearchPage /></PrivateRoute>} />
             <Route path="/chats"         element={<PrivateRoute><ChatPage /></PrivateRoute>} />
-            <Route path="/users"         element={<PrivateRoute><AdminUsers /></PrivateRoute>} />
+            <Route path="/certificates"  element={<PrivateRoute><CertificatesPage /></PrivateRoute>} />
+            {/* Public certificate verify — no auth needed */}
+            <Route path="/certificates/verify/:certId" element={<CertificateVerifyPage />} />
+            <Route path="/users"         element={<AdminRoute><AdminUsers /></AdminRoute>} />
             <Route path="/my-subjects"   element={<PrivateRoute><TeacherSubjects /></PrivateRoute>} />
-            <Route path="/home-tutoring-requests"         element={<PrivateRoute><HomeTutoringAdmin /></PrivateRoute>} />
-            <Route path="/admin/home-tutor-registrations" element={<PrivateRoute><AdminHomeTutorRegistrations /></PrivateRoute>} />
+            <Route path="/home-tutoring-requests"         element={<AdminRoute><HomeTutoringAdmin /></AdminRoute>} />
+            <Route path="/admin/home-tutor-registrations" element={<AdminRoute><AdminHomeTutorRegistrations /></AdminRoute>} />
             <Route path="/home-tutor/register"            element={<HomeTutorRegister />} />
 
             {/* Admin legacy URLs → redirect to current pages */}

@@ -420,7 +420,7 @@ export default function StudentDashboard() {
             <QuickAction icon={FiVideo}      title="Live Classes"      description="Join an ongoing live class"          to="/live-classes"    color="blue"    />
             <QuickAction icon={FiFileText}   title="Assignments"       description="View and submit assignments"         to="/assignments"     color="purple"  />
             <QuickAction icon={FiClock}      title="Exams"             description="Upcoming timed exams"                to="/exams"           color="amber"   />
-            <QuickAction icon={FiAward}      title="Certificates"      description="View your earned certificates"       to="/dashboard"       color="indigo"  />
+            <QuickAction icon={FiAward}      title="Certificates"      description="View your earned certificates"       to="/certificates"    color="indigo"  />
             <QuickAction icon={FiCreditCard} title="Payment History"   description="View your payment receipts"          to="/payment/history" color="blue"    />
           </div>
 

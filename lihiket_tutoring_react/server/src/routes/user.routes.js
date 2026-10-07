@@ -11,6 +11,9 @@ const {
   updateUser,
   deleteUser,
   getMyChildren,
+  linkChild,
+  unlinkChild,
+  getChildProgress,
 } = require('../controllers/user.controller');
 const { protect } = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
@@ -27,6 +30,13 @@ router.get('/teachers', protect, requireVerified, authorize('admin'), getAllTeac
 
 // Parent — get own children with enrollments
 router.get('/my-children', protect, requireVerified, authorize('parent'), getMyChildren);
+
+// Parent — link / unlink a child by their student ID code
+router.post('/link-child',              protect, requireVerified, authorize('parent'), linkChild);
+router.delete('/unlink-child/:studentId', protect, requireVerified, authorize('parent'), unlinkChild);
+
+// Parent — get full academic progress for one linked child
+router.get('/child-progress/:studentId', protect, requireVerified, authorize('parent'), getChildProgress);
 
 // Approve user (Admin only)
 router.post('/:id/approve', protect, requireVerified, authorize('admin'), approveUser);

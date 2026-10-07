@@ -1,13 +1,25 @@
-const express = require('express');
-const router = express.Router();
+const express    = require('express');
+const router     = express.Router();
+const { protect }   = require('../middleware/auth.middleware');
+const { authorize } = require('../middleware/role.middleware');
+const {
+  getStats,
+  getActivity,
+  getRevenue,
+  getEnrollmentStats,
+  issueCertificate,
+} = require('../controllers/admin.controller');
 
-// TODO: import controller methods and wire up routes
-// Example:
-// const { getAll, getOne, create, update, remove } = require('../controllers/admin.controller');
-// const { protect } = require('../middleware/auth.middleware');
-// const { requireVerified } = require('../middleware/verified.middleware');
-// const { authorize } = require('../middleware/role.middleware');
+// All admin routes require a valid JWT + admin role
+router.use(protect, authorize('admin'));
 
-// router.get('/', protect, requireVerified, getAll);
+// ── Dashboard stats ───────────────────────────────────────────────────────────
+router.get('/stats',            getStats);
+router.get('/activity',         getActivity);
+router.get('/revenue',          getRevenue);
+router.get('/enrollment-stats', getEnrollmentStats);
+
+// ── Certificate management (admin-issued) ─────────────────────────────────────
+router.post('/certificates', issueCertificate);
 
 module.exports = router;

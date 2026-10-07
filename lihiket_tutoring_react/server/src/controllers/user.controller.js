@@ -368,3 +368,224 @@ exports.getMyChildren = async (req, res, next) => {
     next(err);
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PARENT ↔ CHILD LINKING
+// ─────────────────────────────────────────────────────────────────────────────
+
+// @desc    Link a student to the logged-in parent
+//          Body: { studentUserId: "LIKST10001" }  OR  { studentId: "<mongoId>" }
+// @route   POST /api/users/link-child
+// @access  Private (parent)
+exports.linkChild = async (req, res, next) => {
+  try {
+    const { studentUserId, studentId } = req.body;
+
+    if (!studentUserId && !studentId) {
+      return next(new AppError('Provide studentUserId (e.g. LIKST10001) or studentId', 400));
+    }
+
+    // Find the student
+    const query = studentId
+      ? { _id: studentId }
+      : { userId: studentUserId.trim().toUpperCase() };
+
+    const student = await Student.findOne(query).select(
+      'firstName lastName email userId gradeLevel profilePicture isActive isVerified username'
+    );
+    if (!student) {
+      return next(new AppError('Student not found. Check the Student ID and try again.', 404));
+    }
+
+    // Load the parent record
+    const Parent = require('../models/Parent');
+    const parent = await Parent.findById(req.user._id);
+    if (!parent) return next(new AppError('Parent not found', 404));
+
+    // Check if already linked
+    const alreadyLinked = parent.children.some(
+      (c) => c.toString() === student._id.toString()
+    );
+    if (alreadyLinked) {
+      return next(new AppError(`${student.firstName} is already linked to your account`, 409));
+    }
+
+    parent.children.push(student._id);
+    await parent.save();
+
+    res.status(200).json({
+      success: true,
+      message: `${student.firstName} ${student.lastName} has been linked to your account`,
+      data: student,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc    Unlink a student from the logged-in parent
+// @route   DELETE /api/users/unlink-child/:studentId
+// @access  Private (parent)
+exports.unlinkChild = async (req, res, next) => {
+  try {
+    const Parent = require('../models/Parent');
+    const parent = await Parent.findById(req.user._id);
+    if (!parent) return next(new AppError('Parent not found', 404));
+
+    const before = parent.children.length;
+    parent.children = parent.children.filter(
+      (c) => c.toString() !== req.params.studentId
+    );
+
+    if (parent.children.length === before) {
+      return next(new AppError('This student is not linked to your account', 404));
+    }
+
+    await parent.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Student unlinked successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHILD PROGRESS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// @desc    Get full academic progress for one child of the logged-in parent.
+//          Returns: enrollments, assignment submissions (with marks), quiz
+//          results, exam results, upcoming/past live classes.
+// @route   GET /api/users/child-progress/:studentId
+// @access  Private (parent)
+exports.getChildProgress = async (req, res, next) => {
+  try {
+    const Parent = require('../models/Parent');
+    const parent = await Parent.findById(req.user._id);
+    if (!parent) return next(new AppError('Parent not found', 404));
+
+    // Guard: only allow access to the parent's own children
+    const isLinked = parent.children.some(
+      (c) => c.toString() === req.params.studentId
+    );
+    if (!isLinked) {
+      return next(new AppError('This student is not linked to your account', 403));
+    }
+
+    const sid = req.params.studentId;
+
+    const Enrollment          = require('../models/Enrollment');
+    const Assignment          = require('../models/Assignment');
+    const AssignmentSubmission = require('../models/AssignmentSubmission');
+    const Quiz                = require('../models/Quiz');
+    const QuizResult          = require('../models/QuizResult');
+    const Exam                = require('../models/Exam');
+    const ExamResult          = require('../models/ExamResult');
+    const LiveClass           = require('../models/LiveClass');
+
+    // Run all queries in parallel for speed
+    const [
+      enrollments,
+      submissions,
+      quizResults,
+      examResults,
+      student,
+    ] = await Promise.all([
+      // Active subject enrollments
+      Enrollment.find({ student: sid, status: 'active' })
+        .populate('subject', 'name code gradeLevel category price isActive')
+        .sort({ enrolledAt: -1 })
+        .lean(),
+
+      // All assignment submissions for this student
+      AssignmentSubmission.find({ student: sid })
+        .populate({
+          path: 'assignment',
+          select: 'title description dueDate totalMarks status subject gradeLevel',
+          populate: { path: 'subject', select: 'name code' },
+        })
+        .sort({ submittedAt: -1 })
+        .lean(),
+
+      // Quiz results
+      QuizResult.find({ student: sid })
+        .populate({
+          path: 'quiz',
+          select: 'title totalMarks passMark passMarkPercent subject gradeLevel',
+          populate: { path: 'subject', select: 'name code' },
+        })
+        .sort({ createdAt: -1 })
+        .lean(),
+
+      // Exam results
+      ExamResult.find({ student: sid })
+        .populate({
+          path: 'exam',
+          select: 'title totalMarks passMark passMarkPercent subject gradeLevel duration',
+          populate: { path: 'subject', select: 'name code' },
+        })
+        .sort({ submittedAt: -1 })
+        .lean(),
+
+      // Student profile
+      Student.findById(sid).select(
+        'firstName lastName email userId gradeLevel profilePicture isActive isVerified username bio phone createdAt'
+      ).lean(),
+    ]);
+
+    if (!student) return next(new AppError('Student not found', 404));
+
+    // Live classes for the student's enrolled subjects
+    const enrolledSubjectIds = enrollments.map((e) => e.subject?._id).filter(Boolean);
+    const liveClasses = enrolledSubjectIds.length
+      ? await LiveClass.find({ subject: { $in: enrolledSubjectIds } })
+          .select('title subject scheduledAt duration status platform meetingLink recordingUrl gradeLevel')
+          .populate('subject', 'name code')
+          .sort({ scheduledAt: -1 })
+          .limit(30)
+          .lean()
+      : [];
+
+    // ── Summary stats ────────────────────────────────────────────────────────
+    const gradedSubmissions = submissions.filter((s) => s.marks !== null && s.marks !== undefined);
+    const totalAssignmentMarks = gradedSubmissions.reduce((sum, s) => sum + (s.assignment?.totalMarks || 0), 0);
+    const earnedAssignmentMarks = gradedSubmissions.reduce((sum, s) => sum + (s.marks || 0), 0);
+
+    const totalQuizMarks  = quizResults.reduce((sum, r) => sum + (r.totalMarks || 0), 0);
+    const earnedQuizMarks = quizResults.reduce((sum, r) => sum + (r.score   || 0), 0);
+
+    const totalExamMarks  = examResults.reduce((sum, r) => sum + (r.totalMarks || 0), 0);
+    const earnedExamMarks = examResults.reduce((sum, r) => sum + (r.score   || 0), 0);
+
+    const overallTotal  = totalAssignmentMarks + totalQuizMarks + totalExamMarks;
+    const overallEarned = earnedAssignmentMarks + earnedQuizMarks + earnedExamMarks;
+    const overallPct    = overallTotal > 0 ? Math.round((overallEarned / overallTotal) * 100) : null;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        student,
+        summary: {
+          enrollments:        enrollments.length,
+          assignmentsTotal:   submissions.length,
+          assignmentsGraded:  gradedSubmissions.length,
+          quizzesAttempted:   quizResults.length,
+          examsAttempted:     examResults.length,
+          liveClassesTotal:   liveClasses.length,
+          overallScore:       overallTotal > 0 ? `${overallEarned}/${overallTotal}` : null,
+          overallPercent:     overallPct,
+        },
+        enrollments,
+        assignments: submissions,
+        quizzes:     quizResults,
+        exams:       examResults,
+        liveClasses,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};

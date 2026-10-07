@@ -63,6 +63,11 @@ export default defineConfig({
 
       // ── Workbox runtime caching rules ───────────────────────────────────────
       workbox: {
+        // Raise the per-file precache limit to 4 MB (default is 2 MB).
+        // The main JS bundle is ~2.7 MB before gzip; this keeps it in the
+        // precache manifest so the app works fully offline.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024, // 4 MiB
+
         // Pre-cache all built assets (JS, CSS, fonts, images) that Vite emits.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,woff,woff2}'],
 
