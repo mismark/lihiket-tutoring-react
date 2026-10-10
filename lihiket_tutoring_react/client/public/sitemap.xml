@@ -8,25 +8,74 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- About / Info pages -->
+  <!-- About -->
   <url>
     <loc>https://lihiket-tutoring.vercel.app/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
-  <!-- Courses -->
+  <!-- Features -->
   <url>
-    <loc>https://lihiket-tutoring.vercel.app/courses</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
+    <loc>https://lihiket-tutoring.vercel.app/features</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
-  <!-- Live Classes -->
+  <!-- Pricing -->
   <url>
-    <loc>https://lihiket-tutoring.vercel.app/live-classes</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
+    <loc>https://lihiket-tutoring.vercel.app/pricing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- FAQ -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Blog -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/blog</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Careers -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/careers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Contact -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- Install / PWA -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/install</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
 
   <!-- Home Tutoring -->
@@ -36,17 +85,32 @@
     <priority>0.9</priority>
   </url>
 
-  <!-- Register / Login -->
+  <!-- Home Tutor Registration -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/home-tutor/register</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Register -->
   <url>
     <loc>https://lihiket-tutoring.vercel.app/register</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
+  <!-- Login -->
   <url>
     <loc>https://lihiket-tutoring.vercel.app/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+
+  <!-- Forgot Password -->
+  <url>
+    <loc>https://lihiket-tutoring.vercel.app/forgot-password</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
 
 </urlset>
