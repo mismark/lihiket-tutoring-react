@@ -40,7 +40,7 @@ async function uploadToCloudinaryDirect(file, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', uploadUrl);
-    xhr.timeout = 30 * 60 * 1000; // 30 min
+    xhr.timeout = 90 * 60 * 1000; // 90 min — enough for 2 GB on slow connections
 
     xhr.upload.addEventListener('progress', (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
@@ -300,7 +300,7 @@ export default function LessonForm({
                 File <span className={`font-normal ${dark ? 'text-slate-500' : 'text-slate-400'}`}>(optional)</span>
               </label>
               <p className={`text-xs mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-                📎 Documents &amp; 🎬 Videos up to 1000MB — uploaded directly to Cloudinary
+                📎 Documents &amp; 🎬 Videos up to 2 GB — uploaded directly to Cloudinary
               </p>
 
               {/* Upload error */}
@@ -361,7 +361,7 @@ export default function LessonForm({
                   ) : (
                     <span>
                       {form.type === 'video'
-                        ? 'Click to select video (MP4 / WebM / MOV, up to 1000MB)'
+                        ? 'Click to select video (MP4 / WebM / MOV, up to 2 GB)'
                         : 'Click to select file (PDF / DOC / PPT / image)'}
                     </span>
                   )}

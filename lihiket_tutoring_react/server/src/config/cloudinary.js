@@ -21,7 +21,7 @@ const uploadToCloudinary = (buffer, options = {}) => {
       {
         type:        'upload',   // always public delivery
         access_mode: 'public',   // explicitly public
-        timeout:     600000,     // 10 min timeout for large video uploads
+        timeout:     5400000,    // 90 min — enough for 2 GB on slow connections
         ...options,
       },
       (error, result) => {

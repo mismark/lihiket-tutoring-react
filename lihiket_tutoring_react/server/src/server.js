@@ -30,6 +30,15 @@ connectDB()
     const server = http.createServer(app);
     initSocket(server);
 
+    // Allow long-running requests (e.g. 2 GB video uploads).
+    // Node default is 0 (no timeout); reverse proxies (Render, Nginx) often
+    // impose their own 30 s idle timeout which would kill large uploads.
+    // 100 minutes covers a 2 GB file even on a slow 3 MB/s connection.
+    const UPLOAD_TIMEOUT_MS = 100 * 60 * 1000; // 100 min
+    server.timeout        = UPLOAD_TIMEOUT_MS; // inactivity timeout per request
+    server.headersTimeout = UPLOAD_TIMEOUT_MS + 5000; // must be > timeout
+    server.requestTimeout = UPLOAD_TIMEOUT_MS + 10000; // full request lifecycle
+
     // Start live class auto-status job (scheduled→live→ended)
     const { startLiveClassJob } = require('./jobs/liveclass.status.job');
     startLiveClassJob();
