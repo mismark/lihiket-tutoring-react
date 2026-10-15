@@ -1,10 +1,10 @@
 ﻿/**
  * Shared form used by LessonCreate and LessonEdit.
  * Files are uploaded DIRECTLY from the browser to Cloudinary (no server proxy),
- * which allows videos up to 1000MB without Render/server size limits.
+ * which allows videos up to 2 GB without Render/server size limits.
  */
-import { useState, useEffect, useRef } from 'react';
-import { FiX, FiSave, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { FiX, FiSave, FiUpload, FiFileText, FiCheckCircle, FiAlertCircle, FiXCircle } from 'react-icons/fi';
 
 const TYPES = [
   { value: 'text',     label: 'Text / Notes'  },
@@ -18,64 +18,115 @@ const UPLOAD_PRESET = 'lihiket_lessons';
 
 /**
  * Upload file directly to Cloudinary from browser.
- * Videos are uploaded as 'raw' resource type to bypass free plan video restrictions.
- * Raw files still play in browser via <video> tag with the direct URL.
+ *
+ * Strategy for videos:
+ *   1. Try 'video' resource_type first — unlocks CDN streaming, quality_auto, etc.
+ *   2. If Cloudinary rejects with 4xx (e.g. free plan video restrictions), fall
+ *      back automatically to 'raw'. Raw files still play in <video> tags via
+ *      the direct CDN URL but skip video-specific processing.
+ *
+ * @param {File}     file        — the file to upload
+ * @param {Function} onProgress  — called with { pct, speedMBps, etaSecs }
+ * @param {{ signal: AbortSignal }} options
+ * @returns {{ url, resourceType }}
  */
-async function uploadToCloudinaryDirect(file, onProgress) {
+async function uploadToCloudinaryDirect(file, onProgress, { signal } = {}) {
   const ext     = file.name.split('.').pop().toLowerCase();
-  const isVideo = ['mp4','webm','mov','avi','mkv'].includes(ext);
-  const isImage = ['jpg','jpeg','png','gif','webp','svg'].includes(ext);
+  const isVideo = ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext);
+  const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
 
-  // Use 'raw' for videos to bypass Cloudinary free plan video restriction
-  // Raw files are still served publicly and play in <video> tags
-  const resType   = isVideo ? 'raw' : isImage ? 'image' : 'raw';
-  const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`;
+  // Try 'video' first for video files so Cloudinary CDN features work.
+  // Non-video files: images → 'image', everything else → 'raw'.
+  const preferredType = isVideo ? 'video' : isImage ? 'image' : 'raw';
 
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('upload_preset', UPLOAD_PRESET);
-  // Set folder explicitly — don't include extension in public_id (Cloudinary handles it)
-  fd.append('folder', 'lihiket/lessons');
+  const doUpload = (resType) =>
+    new Promise((resolve, reject) => {
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resType}/upload`;
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('upload_preset', UPLOAD_PRESET);
+      fd.append('folder', 'lihiket/lessons');
 
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', uploadUrl);
-    xhr.timeout = 90 * 60 * 1000; // 90 min — enough for 2 GB on slow connections
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', uploadUrl);
+      xhr.timeout = 90 * 60 * 1000; // 90 min
 
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
-    });
+      // Cancel support
+      if (signal) {
+        if (signal.aborted) { reject(new Error('Upload cancelled')); return; }
+        signal.addEventListener('abort', () => xhr.abort(), { once: true });
+      }
 
-    xhr.addEventListener('load', () => {
-      try {
-        const r = JSON.parse(xhr.responseText);
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve({ url: r.secure_url, resourceType: r.resource_type });
-        } else {
-          // Log full response for debugging
-          console.error('Cloudinary 400 response:', xhr.responseText);
-          reject(new Error(r.error?.message || `Cloudinary error ${xhr.status}: ${xhr.responseText?.slice(0, 200)}`));
+      // Track speed & ETA
+      let startTime  = Date.now();
+      let lastLoaded = 0;
+      let lastTime   = startTime;
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (!e.lengthComputable) return;
+        const now        = Date.now();
+        const elapsed    = (now - lastTime) / 1000;        // seconds since last tick
+        const chunk      = e.loaded - lastLoaded;          // bytes since last tick
+        const speedBps   = elapsed > 0 ? chunk / elapsed : 0;
+        const speedMBps  = speedBps / (1024 * 1024);
+        const remaining  = e.total - e.loaded;
+        const etaSecs    = speedBps > 0 ? remaining / speedBps : null;
+        const pct        = Math.round((e.loaded / e.total) * 100);
+
+        lastLoaded = e.loaded;
+        lastTime   = now;
+
+        onProgress({ pct, speedMBps, etaSecs });
+      });
+
+      xhr.addEventListener('load', () => {
+        try {
+          const r = JSON.parse(xhr.responseText);
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve({ url: r.secure_url, resourceType: r.resource_type, status: xhr.status });
+          } else {
+            console.warn(`Cloudinary [${resType}] ${xhr.status}:`, xhr.responseText?.slice(0, 300));
+            reject(Object.assign(
+              new Error(r.error?.message || `Cloudinary error ${xhr.status}`),
+              { status: xhr.status, resType }
+            ));
+          }
+        } catch {
+          reject(Object.assign(
+            new Error(`Cloudinary response (${xhr.status}): ${xhr.responseText?.slice(0, 200)}`),
+            { status: xhr.status, resType }
+          ));
         }
-      } catch {
-        console.error('Cloudinary raw response:', xhr.responseText);
-        reject(new Error(`Cloudinary response (${xhr.status}): ${xhr.responseText?.slice(0, 200)}`));
-      }
+      });
+
+      xhr.addEventListener('error',   () => reject(Object.assign(
+        new Error('Upload connection failed — check your internet connection'),
+        { networkError: true }
+      )));
+      xhr.addEventListener('timeout', () => reject(new Error('Upload timed out after 90 minutes')));
+      xhr.addEventListener('abort',   () => reject(new Error('Upload cancelled')));
+
+      xhr.send(fd);
     });
 
-    xhr.addEventListener('error', () => {
-      try {
-        const r = JSON.parse(xhr.responseText);
-        reject(new Error(r.error?.message || 'Upload connection failed'));
-      } catch {
-        reject(new Error('Upload connection failed — check your internet connection'));
-      }
-    });
-
-    xhr.addEventListener('timeout', () => reject(new Error('Upload timed out')));
-    xhr.addEventListener('abort',   () => reject(new Error('Upload cancelled')));
-
-    xhr.send(fd);
-  });
+  // First attempt
+  try {
+    return await doUpload(preferredType);
+  } catch (err) {
+    // Cloudinary free plan blocks video uploads in two ways:
+    //   a) A clean 4xx JSON response  → err.status is 4xx
+    //   b) A CORS/network-level block → err.status is undefined, XHR fires 'error'
+    // In both cases, fall back from 'video' → 'raw'.
+    // Do NOT fall back for genuine user cancellations or timeouts.
+    const isCancelled = err.message === 'Upload cancelled';
+    const isTimeout   = err.message?.includes('timed out');
+    if (preferredType === 'video' && !isCancelled && !isTimeout) {
+      console.info('Cloudinary video upload failed (plan restriction or CORS), retrying as raw…');
+      onProgress({ pct: 0, speedMBps: 0, etaSecs: null });
+      return await doUpload('raw');
+    }
+    throw err;
+  }
 }
 
 const SERVER = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
@@ -88,7 +139,8 @@ export default function LessonForm({
   title, courses, initial, onSubmit, onCancel, saving, theme,
 }) {
   const dark         = theme === 'dark';
-  const fileInputRef = useRef();
+  const fileInputRef    = useRef();
+  const abortCtrlRef    = useRef(null); // AbortController for cancelling upload
 
   const [form, setForm] = useState({
     courseId:      '',
@@ -106,6 +158,8 @@ export default function LessonForm({
   const [previewUrl,  setPreviewUrl]  = useState(null);
   const [uploading,   setUploading]   = useState(false);
   const [uploadPct,   setUploadPct]   = useState(0);
+  const [uploadSpeed, setUploadSpeed] = useState(0);   // MB/s
+  const [uploadEta,   setUploadEta]   = useState(null); // seconds remaining
   const [uploadError, setUploadError] = useState('');
   const [uploadedUrl, setUploadedUrl] = useState(null); // final Cloudinary URL
 
@@ -163,11 +217,15 @@ export default function LessonForm({
 
   const clearFile = e => {
     e.stopPropagation();
+    // Cancel any in-progress upload
+    if (abortCtrlRef.current) { abortCtrlRef.current.abort(); abortCtrlRef.current = null; }
     setFile(null);
     setPreviewUrl(null);
     setUploadedUrl(null);
     setUploadError('');
     setUploadPct(0);
+    setUploadSpeed(0);
+    setUploadEta(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -182,14 +240,28 @@ export default function LessonForm({
     if (file && !uploadedUrl) {
       setUploading(true);
       setUploadPct(0);
+      setUploadSpeed(0);
+      setUploadEta(null);
+      const ctrl = new AbortController();
+      abortCtrlRef.current = ctrl;
       try {
-        const result = await uploadToCloudinaryDirect(file, setUploadPct);
+        const result = await uploadToCloudinaryDirect(
+          file,
+          ({ pct, speedMBps, etaSecs }) => {
+            setUploadPct(pct);
+            setUploadSpeed(speedMBps);
+            setUploadEta(etaSecs);
+          },
+          { signal: ctrl.signal }
+        );
         finalUrl = result.url;
         setUploadedUrl(result.url);
         setUploading(false);
+        abortCtrlRef.current = null;
       } catch (err) {
         setUploadError(`Upload failed: ${err.message}`);
         setUploading(false);
+        abortCtrlRef.current = null;
         return;
       }
     }
@@ -314,19 +386,50 @@ export default function LessonForm({
               {/* Upload progress */}
               {uploading && (
                 <div className="mb-2 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className={dark ? 'text-slate-300' : 'text-slate-700'}>
-                      Uploading to Cloudinary… {uploadPct}%
+                  {/* Top row: pct + file size + cancel button */}
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className={`font-semibold ${dark ? 'text-slate-200' : 'text-slate-800'}`}>
+                      Uploading… {uploadPct}%
                     </span>
                     <span className={dark ? 'text-slate-400' : 'text-slate-500'}>
                       {file ? (file.size / 1024 / 1024).toFixed(1) + ' MB' : ''}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => { if (abortCtrlRef.current) abortCtrlRef.current.abort(); }}
+                      title="Cancel upload"
+                      className="ml-auto flex items-center gap-1 px-2 py-1 rounded-lg text-red-500
+                                 hover:bg-red-500/10 transition flex-shrink-0">
+                      <FiXCircle className="w-3.5 h-3.5" /> Cancel
+                    </button>
                   </div>
-                  <div className={`w-full h-2 rounded-full overflow-hidden ${dark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+                  {/* Progress bar with animated stripe */}
+                  <div className={`relative w-full h-2.5 rounded-full overflow-hidden ${dark ? 'bg-slate-700' : 'bg-slate-200'}`}>
                     <div
-                      className="h-full bg-blue-600 transition-all duration-300 rounded-full"
+                      className="h-full bg-blue-600 rounded-full transition-all duration-300
+                                 bg-gradient-to-r from-blue-500 to-violet-500"
                       style={{ width: `${uploadPct}%` }}
                     />
+                  </div>
+                  {/* Speed + ETA */}
+                  <div className={`flex items-center gap-3 text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    {uploadSpeed > 0 && (
+                      <span>⚡ {uploadSpeed < 1
+                        ? `${(uploadSpeed * 1024).toFixed(0)} KB/s`
+                        : `${uploadSpeed.toFixed(1)} MB/s`}
+                      </span>
+                    )}
+                    {uploadEta != null && uploadEta > 0 && (
+                      <span>⏱ {uploadEta >= 60
+                        ? `${Math.floor(uploadEta / 60)}m ${Math.round(uploadEta % 60)}s left`
+                        : `${Math.round(uploadEta)}s left`}
+                      </span>
+                    )}
+                    {uploadPct === 100 && (
+                      <span className={dark ? 'text-emerald-400' : 'text-emerald-600'}>
+                        Processing…
+                      </span>
+                    )}
                   </div>
                 </div>
               )}

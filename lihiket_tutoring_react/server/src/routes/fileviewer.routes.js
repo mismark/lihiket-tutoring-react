@@ -88,8 +88,7 @@ router.get('/view', protect, requireVerified, (req, res) => {
 
 // ── GET /api/files/proxy?url=<cloudinaryUrl> ─────────────────────────────────
 // Fetches a Cloudinary file server-side and pipes it to the client.
-// This bypasses any Cloudinary 401/access restrictions since our server
-// has the API credentials to access private assets.
+// Forwards Range headers so video seek / partial content works correctly.
 const https = require('https');
 const http  = require('http');
 
@@ -127,35 +126,45 @@ router.get('/proxy', (req, res) => {
     xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   };
 
-  const mime    = MIME[ext] || 'application/octet-stream';
-  const lib     = url.startsWith('https') ? https : http;
+  const mime = MIME[ext] || 'application/octet-stream';
+  const lib  = url.startsWith('https') ? https : http;
 
-  // Fetch from Cloudinary directly — our server has access even for "restricted" raw files
-  // because the URL is a valid signed Cloudinary delivery URL
-  const fetchOptions = {
-    headers: {
-      'User-Agent': 'Lihiket-Server/1.0',
-    },
-  };
+  // Forward the Range header from the browser so video seeking works (HTTP 206)
+  const upstreamHeaders = { 'User-Agent': 'Lihiket-Server/1.0' };
+  if (req.headers.range) upstreamHeaders['Range'] = req.headers.range;
 
-  const request = lib.get(url, fetchOptions, (upstream) => {
-    if (upstream.statusCode !== 200) {
-      return res.status(upstream.statusCode || 502).json({ success: false, message: 'File not accessible' });
+  const request = lib.get(url, { headers: upstreamHeaders }, (upstream) => {
+    const status = upstream.statusCode;
+
+    // Pass through 206 Partial Content for video seek, 200 for full content
+    if (status !== 200 && status !== 206) {
+      return res.status(status || 502).json({ success: false, message: 'File not accessible' });
     }
+
+    // Forward range-related headers so the browser can seek
     res.setHeader('Content-Type', mime);
     res.setHeader('Content-Disposition', 'inline');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Accept-Ranges', 'bytes');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    if (upstream.headers['content-length']) {
-      res.setHeader('Content-Length', upstream.headers['content-length']);
+    // Long cache for immutable Cloudinary assets; omit for 206 so ranges are re-requested
+    res.setHeader('Cache-Control', status === 206 ? 'no-cache' : 'public, max-age=3600');
+
+    // Forward length and range headers from Cloudinary upstream
+    const passThrough = ['content-length', 'content-range', 'last-modified', 'etag'];
+    for (const h of passThrough) {
+      if (upstream.headers[h]) res.setHeader(h.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join('-'), upstream.headers[h]);
     }
+
+    res.status(status);
     upstream.pipe(res);
   });
 
-  request.on('error', () => res.status(500).json({ success: false, message: 'Failed to fetch file' }));
-  request.setTimeout(30000, () => {
+  request.on('error', () => {
+    if (!res.headersSent) res.status(500).json({ success: false, message: 'Failed to fetch file' });
+  });
+  request.setTimeout(60000, () => {
     request.destroy();
-    res.status(504).json({ success: false, message: 'Request timed out' });
+    if (!res.headersSent) res.status(504).json({ success: false, message: 'Request timed out' });
   });
 });
 
