@@ -35,9 +35,11 @@ async function uploadToCloudinaryDirect(file, onProgress, { signal } = {}) {
   const isVideo = ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext);
   const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
 
-  // Try 'video' first for video files so Cloudinary CDN features work.
-  // Non-video files: images → 'image', everything else → 'raw'.
-  const preferredType = isVideo ? 'video' : isImage ? 'image' : 'raw';
+  // Use 'auto' resource type — Cloudinary detects image/video/raw automatically.
+  // This works regardless of how the upload preset is configured and avoids
+  // the free plan CORS block that occurs specifically on /video/upload/.
+  // The free plan allows: video up to 100 MB, image up to 10 MB, raw up to 10 MB.
+  const preferredType = 'auto';
 
   const doUpload = (resType) =>
     new Promise((resolve, reject) => {
@@ -109,22 +111,33 @@ async function uploadToCloudinaryDirect(file, onProgress, { signal } = {}) {
       xhr.send(fd);
     });
 
-  // First attempt
+  // Single attempt with 'auto' resource type.
+  // If it fails, surface a clear, actionable error.
   try {
     return await doUpload(preferredType);
   } catch (err) {
-    // Cloudinary free plan blocks video uploads in two ways:
-    //   a) A clean 4xx JSON response  → err.status is 4xx
-    //   b) A CORS/network-level block → err.status is undefined, XHR fires 'error'
-    // In both cases, fall back from 'video' → 'raw'.
-    // Do NOT fall back for genuine user cancellations or timeouts.
-    const isCancelled = err.message === 'Upload cancelled';
-    const isTimeout   = err.message?.includes('timed out');
-    if (preferredType === 'video' && !isCancelled && !isTimeout) {
-      console.info('Cloudinary video upload failed (plan restriction or CORS), retrying as raw…');
-      onProgress({ pct: 0, speedMBps: 0, etaSecs: null });
-      return await doUpload('raw');
+    const msg = err.message || '';
+    if (msg === 'Upload cancelled') throw err;
+    if (msg.includes('timed out'))  throw err;
+
+    // Cloudinary returned a file-size error
+    if (msg.toLowerCase().includes('file size') || msg.toLowerCase().includes('too large')) {
+      throw new Error(
+        `File too large for Cloudinary free plan.\n` +
+        `• Videos: max 100 MB  •  Images/docs: max 10 MB\n` +
+        `Your file: ${(file.size / 1024 / 1024).toFixed(1)} MB\n\n` +
+        `For larger videos, use the "External Video URL" field below (YouTube / Vimeo).`
+      );
     }
+
+    // CORS / network error — likely preset not allowing the resource type
+    if (err.networkError) {
+      throw new Error(
+        `Upload blocked by Cloudinary.\n\n` +
+        `Fix: In your Cloudinary dashboard → Settings → Upload → Upload presets → "${UPLOAD_PRESET}" → set Resource type to "Auto".`
+      );
+    }
+
     throw err;
   }
 }
