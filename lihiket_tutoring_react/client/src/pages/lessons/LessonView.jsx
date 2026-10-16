@@ -442,6 +442,24 @@ function VideoPlayer({ src, title, allowDownload, dark }) {
           </div>
         </div>
       )}
+
+      {/* Download bar — shown below the player when allowDownload is true */}
+      {allowDownload && src && !error && (
+        <div className="absolute top-3 right-3 z-10">
+          <a
+            href={src}
+            download
+            aria-label="Download video"
+            title="Download video"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold
+                       bg-black/50 backdrop-blur-sm border border-white/15 text-white/80
+                       hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition"
+          >
+            <FiDownload className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Download</span>
+          </a>
+        </div>
+      )}
     </div>
   );
 }

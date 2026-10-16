@@ -60,7 +60,7 @@ const OFFICE_EXTS = ['doc','docx','ppt','pptx','xls','xlsx'];
 /* ────────────────────────────────────────────────────────────── */
 /* Mini Video Player                                              */
 /* ────────────────────────────────────────────────────────────── */
-function MiniVideoPlayer({ src, dark }) {
+function MiniVideoPlayer({ src, dark, allowDownload }) {
   const videoRef     = useRef(null);
   const containerRef = useRef(null);
   const hideTimer    = useRef(null);
@@ -145,7 +145,7 @@ function MiniVideoPlayer({ src, dark }) {
         src={src}
         preload="metadata"
         playsInline
-        controlsList="nodownload"
+        controlsList={allowDownload ? undefined : 'nodownload'}
         className="w-full h-full object-contain"
         onClick={togglePlay}
         style={{ cursor: showControls ? 'default' : 'none' }}
@@ -236,6 +236,17 @@ function MiniVideoPlayer({ src, dark }) {
               {fmtTime(currentTime)} / {fmtTime(duration)}
             </span>
             <div className="flex-1" />
+            {allowDownload && src && (
+              <a
+                href={src}
+                download
+                aria-label="Download video"
+                className="text-white/70 hover:text-emerald-300 transition flex-shrink-0"
+                title="Download"
+              >
+                <FiDownload className="w-4 h-4" />
+              </a>
+            )}
             <button onClick={toggleFullscreen}
               aria-label={fullscreen?'Exit fullscreen':'Fullscreen'}
               className="text-white hover:text-violet-300 transition">
@@ -562,7 +573,7 @@ export default function FilePreviewModal({ url, name, allowDownload = true, onCl
         {/* Video */}
         {isVideo && fullUrl && (
           <div className="flex-1 flex items-center justify-center bg-black">
-            <MiniVideoPlayer src={fullUrl} dark={dark} />
+            <MiniVideoPlayer src={fullUrl} dark={dark} allowDownload={allowDownload} />
           </div>
         )}
 
