@@ -182,7 +182,7 @@ function ContentArea({ children }) {
   const footer      = childArray[2];
 
   return (
-    <div className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ease-in-out ${
+    <div className={`flex flex-col flex-1 min-h-screen pt-14 transition-all duration-300 ease-in-out ${
       shifted ? 'lg:ml-64' : 'lg:ml-0'
     }`}>
       {header}
