@@ -41,3 +41,25 @@ export const getPaymentMethods = async () => {
   const res = await axios.get('/payments/methods');
   return res.data;
 };
+
+/**
+ * Admin: get all payments with optional status filter and pagination.
+ * @param {{ status?: string, page?: number, limit?: number }} params
+ * @returns {{ success, total, count, data: Payment[] }}
+ */
+export const getAllPayments = async ({ status, page = 1, limit = 50 } = {}) => {
+  const params = { page, limit };
+  if (status) params.status = status;
+  const res = await axios.get('/payments/all', { params });
+  return res.data;
+};
+
+/**
+ * Admin: look up a single payment by transaction reference (tx_ref).
+ * @param {string} txRef
+ * @returns {{ success, data: Payment }}
+ */
+export const adminLookupPayment = async (txRef) => {
+  const res = await axios.get('/payments/lookup', { params: { tx_ref: txRef } });
+  return res.data;
+};

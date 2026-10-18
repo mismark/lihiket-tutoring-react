@@ -63,6 +63,7 @@ import ProfilePage from './pages/profile/ProfilePage';
 import PaymentVerifyPage   from './pages/payments/PaymentVerifyPage';
 import PaymentHistoryPage  from './pages/payments/PaymentHistoryPage';
 import PaymentCheckoutPage from './pages/payments/PaymentCheckoutPage';
+import AdminVerifyPayment  from './pages/admin/AdminVerifyPayment';
 
 // Question Bank
 import QuestionBankPage from './pages/questionbank/QuestionBankPage';
@@ -284,6 +285,7 @@ function AppShell() {
             <Route path="/my-subjects"   element={<PrivateRoute><TeacherSubjects /></PrivateRoute>} />
             <Route path="/home-tutoring-requests"         element={<AdminRoute><HomeTutoringAdmin /></AdminRoute>} />
             <Route path="/admin/home-tutor-registrations" element={<AdminRoute><AdminHomeTutorRegistrations /></AdminRoute>} />
+            <Route path="/admin/verify-payment"           element={<AdminRoute><AdminVerifyPayment /></AdminRoute>} />
             <Route path="/home-tutor/register"            element={<HomeTutorRegister />} />
 
             {/* Admin legacy URLs → redirect to current pages */}

@@ -7,6 +7,7 @@ const {
   getPaymentMethods,
   getMyPayments,
   getAllPayments,
+  adminLookupPayment,
 } = require('../controllers/payment.controller');
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
@@ -38,6 +39,7 @@ router.get('/verify',      protect, requireVerified, authorize('student'), verif
 router.get('/my-payments', protect, requireVerified, authorize('student'), getMyPayments);
 
 // ── Admin routes ──────────────────────────────────────────────────────────────
-router.get('/all', protect, requireVerified, authorize('admin'), getAllPayments);
+router.get('/all',    protect, requireVerified, authorize('admin'), getAllPayments);
+router.get('/lookup', protect, requireVerified, authorize('admin'), adminLookupPayment);
 
 module.exports = router;

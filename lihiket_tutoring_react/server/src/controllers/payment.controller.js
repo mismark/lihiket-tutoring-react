@@ -419,3 +419,47 @@ exports.getAllPayments = async (req, res, next) => {
     res.json({ success: true, total, count: payments.length, data: payments });
   } catch (err) { next(err); }
 };
+
+// ── GET /api/payments/lookup?tx_ref=... (admin) ───────────────────────────────
+// Looks up a single payment record by transaction reference.
+// Returns enriched details: payment + enrollment status + student + subject.
+exports.adminLookupPayment = async (req, res, next) => {
+  try {
+    const { tx_ref } = req.query;
+    if (!tx_ref || !tx_ref.trim()) {
+      return next(new AppError('tx_ref query parameter is required', 400));
+    }
+
+    const payment = await Payment.findOne({ txRef: tx_ref.trim() })
+      .populate('student',    'firstName lastName email phone gradeLevel userId')
+      .populate('subject',    'name code gradeLevel price')
+      .populate('enrollment', 'status paymentStatus enrolledAt amountPaid paidAt');
+
+    if (!payment) {
+      return next(new AppError('No transaction found with that ID', 404));
+    }
+
+    res.json({
+      success: true,
+      data: {
+        // Core payment fields
+        _id:           payment._id,
+        txRef:         payment.txRef,
+        chapaRef:      payment.chapaRef,
+        amount:        payment.amount,
+        currency:      payment.currency,
+        paymentMethod: payment.paymentMethod,
+        status:        payment.status,
+        paidAt:        payment.paidAt,
+        failedAt:      payment.failedAt,
+        initiatedFrom: payment.initiatedFrom,
+        createdAt:     payment.createdAt,
+        updatedAt:     payment.updatedAt,
+        // Related records
+        student:    payment.student,
+        subject:    payment.subject,
+        enrollment: payment.enrollment,
+      },
+    });
+  } catch (err) { next(err); }
+};
