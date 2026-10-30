@@ -1,0 +1,23 @@
+$kind: http-request
+name: Create Lesson — Text (Teacher/Admin)
+url: "{{base_url}}/lessons"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Lesson 1 — Limits",
+      "description": "Introduction to limits",
+      "courseId": "{{courseId}}",
+      "type": "text",
+      "content": "A limit is the value that a function approaches...",
+      "order": 1
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('lessonId',pm.response.json().data._id);}
+    language: text/javascript
+order: 3000

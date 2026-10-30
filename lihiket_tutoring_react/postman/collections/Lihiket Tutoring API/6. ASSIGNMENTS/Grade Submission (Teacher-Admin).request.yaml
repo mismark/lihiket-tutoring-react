@@ -1,0 +1,15 @@
+$kind: http-request
+name: Grade Submission (Teacher/Admin)
+url: "{{base_url}}/assignments/{{assignmentId}}/submissions/{{userId}}/grade"
+method: PUT
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "score": 85,
+      "feedback": "Good work! Well structured answers."
+    }
+order: 8000

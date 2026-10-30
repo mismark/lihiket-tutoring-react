@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/enrollments/{{subjectId}}"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+order: 2000

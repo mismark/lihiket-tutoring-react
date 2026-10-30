@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/auth/profile"
+method: PUT
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "firstName": "Super",
+      "lastName": "Admin",
+      "phone": "+251911000001",
+      "bio": "Platform administrator"
+    }
+order: 11000

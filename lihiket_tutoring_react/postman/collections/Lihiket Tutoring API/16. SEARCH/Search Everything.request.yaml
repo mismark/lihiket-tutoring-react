@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{base_url}}/search?q=mathematics"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+queryParams:
+  q: mathematics
+order: 1000

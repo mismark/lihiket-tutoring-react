@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{base_url}}/chats"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "userId": "{{userId}}"
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201||pm.response.code===200){pm.collectionVariables.set('conversationId',pm.response.json().data._id);}
+    language: text/javascript
+order: 4000

@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/exams/{{examId}}"
+method: DELETE
+headers:
+  Authorization: Bearer {{token}}
+order: 5000

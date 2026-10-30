@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/users/pending"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 3000

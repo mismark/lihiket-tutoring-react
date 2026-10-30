@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{base_url}}/assignments/{{assignmentId}}/submit"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "answer": "My answer text here"
+    }
+order: 6000

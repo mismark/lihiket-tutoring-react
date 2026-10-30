@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{base_url}}/exams/{{examId}}/submit"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "answers": [
+        { "questionId": "QUESTION_ID_1", "answer": "Value function approaches" }
+      ]
+    }
+order: 6000

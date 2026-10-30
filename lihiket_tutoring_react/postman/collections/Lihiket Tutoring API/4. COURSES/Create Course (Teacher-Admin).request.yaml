@@ -1,0 +1,21 @@
+$kind: http-request
+name: Create Course (Teacher/Admin)
+url: "{{base_url}}/courses"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Introduction to Calculus",
+      "description": "Limits, derivatives and integrals",
+      "subjectId": "{{subjectId}}",
+      "order": 1
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('courseId',pm.response.json().data._id);}
+    language: text/javascript
+order: 3000

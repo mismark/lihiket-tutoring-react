@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/notifications/read-all"
+method: PATCH
+headers:
+  Authorization: Bearer {{token}}
+order: 4000

@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/users/{{userId}}"
+method: PUT
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "firstName": "Updated",
+      "phone": "+251911000000"
+    }
+order: 9000

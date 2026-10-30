@@ -1,0 +1,23 @@
+$kind: http-request
+name: Create Live Class (Teacher/Admin)
+url: "{{base_url}}/live-classes"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Live Q&A Session",
+      "description": "Ask your questions live",
+      "subjectId": "{{subjectId}}",
+      "scheduledAt": "2026-12-01T10:00:00.000Z",
+      "duration": 60,
+      "meetingLink": "https://meet.google.com/abc-defg-hij"
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('classId',pm.response.json().data._id);}
+    language: text/javascript
+order: 3000

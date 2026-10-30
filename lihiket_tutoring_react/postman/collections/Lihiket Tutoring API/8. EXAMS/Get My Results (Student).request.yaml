@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/exams/{{examId}}/my-results"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 8000

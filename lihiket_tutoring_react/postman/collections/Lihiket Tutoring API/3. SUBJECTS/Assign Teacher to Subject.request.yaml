@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{base_url}}/subjects/{{subjectId}}/assign"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "teacherId": "{{userId}}"
+    }
+order: 7000

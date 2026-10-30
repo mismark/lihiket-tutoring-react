@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{base_url}}/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "role": "teacher",
+      "firstName": "Dawit",
+      "lastName": "Haile",
+      "username": "dawit.haile",
+      "email": "dawit@test.com",
+      "password": "Test@12345",
+      "phone": "+251911000077",
+      "specializedSubject": "Mathematics",
+      "qualifications": "MSc Mathematics",
+      "experience": 5
+    }
+order: 6000

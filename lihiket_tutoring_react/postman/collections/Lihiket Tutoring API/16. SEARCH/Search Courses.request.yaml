@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{base_url}}/search?q=calculus&type=course"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+queryParams:
+  q: calculus
+  type: course
+order: 2000

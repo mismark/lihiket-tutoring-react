@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/assignments/{{assignmentId}}"
+method: PUT
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Updated Assignment",
+      "totalMarks": 50
+    }
+order: 4000

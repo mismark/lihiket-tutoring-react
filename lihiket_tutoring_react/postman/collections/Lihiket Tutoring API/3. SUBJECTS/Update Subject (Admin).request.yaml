@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/subjects/{{subjectId}}"
+method: PUT
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Advanced Mathematics",
+      "price": 600
+    }
+order: 5000

@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/payments/initiate"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "subjectId": "{{subjectId}}",
+      "amount": 500,
+      "currency": "ETB",
+      "paymentMethod": "chapa"
+    }
+order: 2000

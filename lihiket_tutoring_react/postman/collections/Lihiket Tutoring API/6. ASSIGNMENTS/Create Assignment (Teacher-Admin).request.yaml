@@ -1,0 +1,22 @@
+$kind: http-request
+name: Create Assignment (Teacher/Admin)
+url: "{{base_url}}/assignments"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Assignment 1",
+      "description": "Solve problems 1-10",
+      "subjectId": "{{subjectId}}",
+      "dueDate": "2026-12-31T23:59:00.000Z",
+      "totalMarks": 100
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('assignmentId',pm.response.json().data._id);}
+    language: text/javascript
+order: 3000

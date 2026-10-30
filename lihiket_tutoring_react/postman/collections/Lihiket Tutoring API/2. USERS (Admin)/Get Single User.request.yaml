@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{base_url}}/users/{{userId}}?userType=student"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+queryParams:
+  userType: student
+order: 5000

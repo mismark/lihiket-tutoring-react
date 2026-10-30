@@ -1,0 +1,7 @@
+$kind: http-request
+name: Get All Results (Teacher/Admin)
+url: "{{base_url}}/exams/{{examId}}/results"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 7000

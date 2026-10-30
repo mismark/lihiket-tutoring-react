@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{base_url}}/quizzes/{{quizId}}/submit"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "answers": [
+        { "questionId": "QUESTION_ID_1", "answer": "4" },
+        { "questionId": "QUESTION_ID_2", "answer": "2x" }
+      ]
+    }
+order: 6000

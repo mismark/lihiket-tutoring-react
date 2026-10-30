@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{base_url}}/users?role=student"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+queryParams:
+  role: student
+order: 2000

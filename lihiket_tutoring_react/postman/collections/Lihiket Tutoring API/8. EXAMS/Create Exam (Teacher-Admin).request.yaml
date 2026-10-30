@@ -1,0 +1,32 @@
+$kind: http-request
+name: Create Exam (Teacher/Admin)
+url: "{{base_url}}/exams"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Mid-Term Exam",
+      "description": "Covers chapters 1-5",
+      "subjectId": "{{subjectId}}",
+      "duration": 120,
+      "totalMarks": 100,
+      "passMark": 50,
+      "scheduledAt": "2026-12-01T09:00:00.000Z",
+      "questions": [
+        {
+          "question": "Define a limit.",
+          "options": ["Value function approaches","Derivative","Integral","None"],
+          "correctAnswer": "Value function approaches",
+          "marks": 10
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('examId',pm.response.json().data._id);}
+    language: text/javascript
+order: 3000

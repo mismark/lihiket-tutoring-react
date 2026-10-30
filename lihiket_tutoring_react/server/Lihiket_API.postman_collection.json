@@ -1,0 +1,286 @@
+{
+  "info": {
+    "name": "Lihiket Tutoring API",
+    "_postman_id": "lihiket-api-collection",
+    "description": "Complete API collection for Lihiket Tutoring Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "https://lihiket-api.onrender.com/api", "type": "string" },
+    { "key": "local_url", "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "subjectId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" },
+    { "key": "courseId", "value": "", "type": "string" },
+    { "key": "lessonId", "value": "", "type": "string" },
+    { "key": "assignmentId", "value": "", "type": "string" },
+    { "key": "quizId", "value": "", "type": "string" },
+    { "key": "examId", "value": "", "type": "string" },
+    { "key": "classId", "value": "", "type": "string" },
+    { "key": "docId", "value": "", "type": "string" },
+    { "key": "questionId", "value": "", "type": "string" },
+    { "key": "conversationId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "1. AUTH",
+      "item": [
+        {
+          "name": "Login as Admin",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===200){pm.collectionVariables.set('token',pm.response.json().data.token);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth","login"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@lihiket.com\",\n  \"password\": \"Admin@12345\"\n}" } }
+        },
+        {
+          "name": "Login as Teacher",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===200){pm.collectionVariables.set('token',pm.response.json().data.token);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth","login"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"teacher@lihiket.com\",\n  \"password\": \"Teacher@12345\"\n}" } }
+        },
+        {
+          "name": "Login as Student",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===200){pm.collectionVariables.set('token',pm.response.json().data.token);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth","login"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@lihiket.com\",\n  \"password\": \"Student@12345\"\n}" } }
+        },
+        {
+          "name": "Login as Parent",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===200){pm.collectionVariables.set('token',pm.response.json().data.token);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth","login"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"parent@lihiket.com\",\n  \"password\": \"Parent@12345\"\n}" } }
+        },
+        {
+          "name": "Register Student",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth","register"] }, "body": { "mode": "raw", "raw": "{\n  \"role\": \"student\",\n  \"firstName\": \"Selam\",\n  \"lastName\": \"Alemu\",\n  \"username\": \"selam.alemu\",\n  \"email\": \"selam@test.com\",\n  \"password\": \"Test@12345\",\n  \"phone\": \"+251911000099\",\n  \"gradeLevel\": \"G12\",\n  \"parentFullName\": \"Alemu Tadesse\",\n  \"parentPhone\": \"+251911000088\"\n}" } }
+        },
+        {
+          "name": "Register Teacher",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth","register"] }, "body": { "mode": "raw", "raw": "{\n  \"role\": \"teacher\",\n  \"firstName\": \"Dawit\",\n  \"lastName\": \"Haile\",\n  \"username\": \"dawit.haile\",\n  \"email\": \"dawit@test.com\",\n  \"password\": \"Test@12345\",\n  \"phone\": \"+251911000077\",\n  \"specializedSubject\": \"Mathematics\",\n  \"qualifications\": \"MSc Mathematics\",\n  \"experience\": 5\n}" } }
+        },
+        {
+          "name": "Forgot Password",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/forgot-password", "host": ["{{base_url}}"], "path": ["auth","forgot-password"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@lihiket.com\"\n}" } }
+        },
+        {
+          "name": "Verify OTP",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/verify-otp", "host": ["{{base_url}}"], "path": ["auth","verify-otp"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@lihiket.com\",\n  \"otp\": \"123456\"\n}" } }
+        },
+        {
+          "name": "Set New Password",
+          "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/set-new-password", "host": ["{{base_url}}"], "path": ["auth","set-new-password"] }, "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@lihiket.com\",\n  \"otp\": \"123456\",\n  \"password\": \"NewAdmin@123\"\n}" } }
+        },
+        {
+          "name": "Get My Profile",
+          "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth","me"] } }
+        },
+        {
+          "name": "Update Profile",
+          "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/profile", "host": ["{{base_url}}"], "path": ["auth","profile"] }, "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Super\",\n  \"lastName\": \"Admin\",\n  \"phone\": \"+251911000001\",\n  \"bio\": \"Platform administrator\"\n}" } }
+        },
+        {
+          "name": "Change Password",
+          "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/auth/change-password", "host": ["{{base_url}}"], "path": ["auth","change-password"] }, "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"Admin@12345\",\n  \"newPassword\": \"NewAdmin@123\"\n}" } }
+        }
+      ]
+    },
+    {
+      "name": "2. USERS (Admin)",
+      "item": [
+        { "name": "Get All Users", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users", "host": ["{{base_url}}"], "path": ["users"] } } },
+        { "name": "Get All Users — Filter by Role", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users?role=student", "host": ["{{base_url}}"], "path": ["users"], "query": [{ "key": "role", "value": "student" }] } } },
+        { "name": "Get Pending Users", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/pending", "host": ["{{base_url}}"], "path": ["users","pending"] } } },
+        { "name": "Get All Teachers", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/teachers", "host": ["{{base_url}}"], "path": ["users","teachers"] } } },
+        { "name": "Get Single User", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/{{userId}}?userType=student", "host": ["{{base_url}}"], "path": ["users","{{userId}}"], "query": [{ "key": "userType", "value": "student" }] } } },
+        { "name": "Approve User", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/{{userId}}/approve", "host": ["{{base_url}}"], "path": ["users","{{userId}}","approve"] } } },
+        { "name": "Reject User", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/{{userId}}/reject", "host": ["{{base_url}}"], "path": ["users","{{userId}}","reject"] } } },
+        { "name": "Toggle User Active", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/{{userId}}/toggle-active", "host": ["{{base_url}}"], "path": ["users","{{userId}}","toggle-active"] } } },
+        { "name": "Update User", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/users/{{userId}}", "host": ["{{base_url}}"], "path": ["users","{{userId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Updated\",\n  \"phone\": \"+251911000000\"\n}" } } },
+        { "name": "Delete User", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/{{userId}}", "host": ["{{base_url}}"], "path": ["users","{{userId}}"] } } },
+        { "name": "Parent — Get My Children", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/users/my-children", "host": ["{{base_url}}"], "path": ["users","my-children"] } } }
+      ]
+    },
+    {
+      "name": "3. SUBJECTS",
+      "item": [
+        { "name": "Get All Subjects", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/subjects", "host": ["{{base_url}}"], "path": ["subjects"] } } },
+        { "name": "Get All Subjects — Search", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/subjects?search=math&gradeLevel=G12", "host": ["{{base_url}}"], "path": ["subjects"], "query": [{ "key": "search", "value": "math" }, { "key": "gradeLevel", "value": "G12" }] } } },
+        { "name": "Get Single Subject", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/subjects/{{subjectId}}", "host": ["{{base_url}}"], "path": ["subjects","{{subjectId}}"] } } },
+        {
+          "name": "Create Subject (Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('subjectId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/subjects", "host": ["{{base_url}}"], "path": ["subjects"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Mathematics\",\n  \"description\": \"Grade 12 Mathematics\",\n  \"gradeLevel\": \"G12\",\n  \"category\": \"Science\",\n  \"price\": 500\n}" } }
+        },
+        { "name": "Update Subject (Admin)", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/subjects/{{subjectId}}", "host": ["{{base_url}}"], "path": ["subjects","{{subjectId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"name\": \"Advanced Mathematics\",\n  \"price\": 600\n}" } } },
+        { "name": "Delete Subject (Admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/subjects/{{subjectId}}", "host": ["{{base_url}}"], "path": ["subjects","{{subjectId}}"] } } },
+        { "name": "Assign Teacher to Subject", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/subjects/{{subjectId}}/assign", "host": ["{{base_url}}"], "path": ["subjects","{{subjectId}}","assign"] }, "body": { "mode": "raw", "raw": "{\n  \"teacherId\": \"{{userId}}\"\n}" } } },
+        { "name": "Remove Teacher from Subject", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/subjects/{{subjectId}}/assign/{{userId}}", "host": ["{{base_url}}"], "path": ["subjects","{{subjectId}}","assign","{{userId}}"] } } },
+        { "name": "Get Subject Teachers", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/subjects/{{subjectId}}/teachers", "host": ["{{base_url}}"], "path": ["subjects","{{subjectId}}","teachers"] } } }
+      ]
+    },
+    {
+      "name": "4. COURSES",
+      "item": [
+        { "name": "Get Courses by Subject", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/courses/subject/{{subjectId}}", "host": ["{{base_url}}"], "path": ["courses","subject","{{subjectId}}"] } } },
+        { "name": "Get Single Course", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/courses/{{courseId}}", "host": ["{{base_url}}"], "path": ["courses","{{courseId}}"] } } },
+        {
+          "name": "Create Course (Teacher/Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('courseId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/courses", "host": ["{{base_url}}"], "path": ["courses"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Introduction to Calculus\",\n  \"description\": \"Limits, derivatives and integrals\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"order\": 1\n}" } }
+        },
+        { "name": "Update Course", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/courses/{{courseId}}", "host": ["{{base_url}}"], "path": ["courses","{{courseId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Calculus Course\",\n  \"order\": 2\n}" } } },
+        { "name": "Delete Course", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/courses/{{courseId}}", "host": ["{{base_url}}"], "path": ["courses","{{courseId}}"] } } }
+      ]
+    },
+    {
+      "name": "5. LESSONS",
+      "item": [
+        { "name": "Get Lessons by Course", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/lessons/course/{{courseId}}", "host": ["{{base_url}}"], "path": ["lessons","course","{{courseId}}"] } } },
+        { "name": "Get Single Lesson", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/lessons/{{lessonId}}", "host": ["{{base_url}}"], "path": ["lessons","{{lessonId}}"] } } },
+        {
+          "name": "Create Lesson — Text (Teacher/Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('lessonId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/lessons", "host": ["{{base_url}}"], "path": ["lessons"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Lesson 1 — Limits\",\n  \"description\": \"Introduction to limits\",\n  \"courseId\": \"{{courseId}}\",\n  \"type\": \"text\",\n  \"content\": \"A limit is the value that a function approaches...\",\n  \"order\": 1\n}" } }
+        },
+        { "name": "Update Lesson", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/lessons/{{lessonId}}", "host": ["{{base_url}}"], "path": ["lessons","{{lessonId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Lesson Title\",\n  \"content\": \"Updated content here...\"\n}" } } },
+        { "name": "Delete Lesson", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/lessons/{{lessonId}}", "host": ["{{base_url}}"], "path": ["lessons","{{lessonId}}"] } } }
+      ]
+    },
+    {
+      "name": "6. ASSIGNMENTS",
+      "item": [
+        { "name": "Get All Assignments", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/assignments", "host": ["{{base_url}}"], "path": ["assignments"] } } },
+        { "name": "Get Single Assignment", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/assignments/{{assignmentId}}", "host": ["{{base_url}}"], "path": ["assignments","{{assignmentId}}"] } } },
+        {
+          "name": "Create Assignment (Teacher/Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('assignmentId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/assignments", "host": ["{{base_url}}"], "path": ["assignments"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Assignment 1\",\n  \"description\": \"Solve problems 1-10\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"dueDate\": \"2026-12-31T23:59:00.000Z\",\n  \"totalMarks\": 100\n}" } }
+        },
+        { "name": "Update Assignment", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/assignments/{{assignmentId}}", "host": ["{{base_url}}"], "path": ["assignments","{{assignmentId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Assignment\",\n  \"totalMarks\": 50\n}" } } },
+        { "name": "Delete Assignment", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/assignments/{{assignmentId}}", "host": ["{{base_url}}"], "path": ["assignments","{{assignmentId}}"] } } },
+        { "name": "Submit Assignment (Student)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/assignments/{{assignmentId}}/submit", "host": ["{{base_url}}"], "path": ["assignments","{{assignmentId}}","submit"] }, "body": { "mode": "raw", "raw": "{\n  \"answer\": \"My answer text here\"\n}" } } },
+        { "name": "Get Submissions (Teacher/Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/assignments/{{assignmentId}}/submissions", "host": ["{{base_url}}"], "path": ["assignments","{{assignmentId}}","submissions"] } } },
+        { "name": "Grade Submission (Teacher/Admin)", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/assignments/{{assignmentId}}/submissions/{{userId}}/grade", "host": ["{{base_url}}"], "path": ["assignments","{{assignmentId}}","submissions","{{userId}}","grade"] }, "body": { "mode": "raw", "raw": "{\n  \"score\": 85,\n  \"feedback\": \"Good work! Well structured answers.\"\n}" } } }
+      ]
+    },
+    {
+      "name": "7. QUIZZES",
+      "item": [
+        { "name": "Get All Quizzes", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/quizzes", "host": ["{{base_url}}"], "path": ["quizzes"] } } },
+        { "name": "Get Single Quiz", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/quizzes/{{quizId}}", "host": ["{{base_url}}"], "path": ["quizzes","{{quizId}}"] } } },
+        {
+          "name": "Create Quiz (Teacher/Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('quizId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/quizzes", "host": ["{{base_url}}"], "path": ["quizzes"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Quiz 1 — Chapter 1\",\n  \"description\": \"Test your knowledge\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"duration\": 30,\n  \"totalMarks\": 20,\n  \"passMark\": 10,\n  \"questions\": [\n    {\n      \"question\": \"What is 2+2?\",\n      \"options\": [\"2\",\"3\",\"4\",\"5\"],\n      \"correctAnswer\": \"4\",\n      \"marks\": 10\n    },\n    {\n      \"question\": \"What is the derivative of x²?\",\n      \"options\": [\"x\",\"2x\",\"x²\",\"2\"],\n      \"correctAnswer\": \"2x\",\n      \"marks\": 10\n    }\n  ]\n}" } }
+        },
+        { "name": "Update Quiz", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/quizzes/{{quizId}}", "host": ["{{base_url}}"], "path": ["quizzes","{{quizId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Quiz Title\",\n  \"duration\": 45\n}" } } },
+        { "name": "Delete Quiz", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/quizzes/{{quizId}}", "host": ["{{base_url}}"], "path": ["quizzes","{{quizId}}"] } } },
+        { "name": "Submit Quiz (Student)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/quizzes/{{quizId}}/submit", "host": ["{{base_url}}"], "path": ["quizzes","{{quizId}}","submit"] }, "body": { "mode": "raw", "raw": "{\n  \"answers\": [\n    { \"questionId\": \"QUESTION_ID_1\", \"answer\": \"4\" },\n    { \"questionId\": \"QUESTION_ID_2\", \"answer\": \"2x\" }\n  ]\n}" } } },
+        { "name": "Get All Results (Teacher/Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/quizzes/{{quizId}}/results", "host": ["{{base_url}}"], "path": ["quizzes","{{quizId}}","results"] } } },
+        { "name": "Get My Results (Student)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/quizzes/{{quizId}}/my-results", "host": ["{{base_url}}"], "path": ["quizzes","{{quizId}}","my-results"] } } }
+      ]
+    },
+    {
+      "name": "8. EXAMS",
+      "item": [
+        { "name": "Get All Exams", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/exams", "host": ["{{base_url}}"], "path": ["exams"] } } },
+        { "name": "Get Single Exam", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/exams/{{examId}}", "host": ["{{base_url}}"], "path": ["exams","{{examId}}"] } } },
+        {
+          "name": "Create Exam (Teacher/Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('examId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/exams", "host": ["{{base_url}}"], "path": ["exams"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Mid-Term Exam\",\n  \"description\": \"Covers chapters 1-5\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"duration\": 120,\n  \"totalMarks\": 100,\n  \"passMark\": 50,\n  \"scheduledAt\": \"2026-12-01T09:00:00.000Z\",\n  \"questions\": [\n    {\n      \"question\": \"Define a limit.\",\n      \"options\": [\"Value function approaches\",\"Derivative\",\"Integral\",\"None\"],\n      \"correctAnswer\": \"Value function approaches\",\n      \"marks\": 10\n    }\n  ]\n}" } }
+        },
+        { "name": "Update Exam", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/exams/{{examId}}", "host": ["{{base_url}}"], "path": ["exams","{{examId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Final Exam\",\n  \"duration\": 180\n}" } } },
+        { "name": "Delete Exam", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/exams/{{examId}}", "host": ["{{base_url}}"], "path": ["exams","{{examId}}"] } } },
+        { "name": "Submit Exam (Student)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/exams/{{examId}}/submit", "host": ["{{base_url}}"], "path": ["exams","{{examId}}","submit"] }, "body": { "mode": "raw", "raw": "{\n  \"answers\": [\n    { \"questionId\": \"QUESTION_ID_1\", \"answer\": \"Value function approaches\" }\n  ]\n}" } } },
+        { "name": "Get All Results (Teacher/Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/exams/{{examId}}/results", "host": ["{{base_url}}"], "path": ["exams","{{examId}}","results"] } } },
+        { "name": "Get My Results (Student)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/exams/{{examId}}/my-results", "host": ["{{base_url}}"], "path": ["exams","{{examId}}","my-results"] } } }
+      ]
+    },
+    {
+      "name": "9. LIVE CLASSES",
+      "item": [
+        { "name": "Get All Live Classes", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/live-classes", "host": ["{{base_url}}"], "path": ["live-classes"] } } },
+        { "name": "Get Single Live Class", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/live-classes/{{classId}}", "host": ["{{base_url}}"], "path": ["live-classes","{{classId}}"] } } },
+        {
+          "name": "Create Live Class (Teacher/Admin)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('classId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/live-classes", "host": ["{{base_url}}"], "path": ["live-classes"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Live Q&A Session\",\n  \"description\": \"Ask your questions live\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"scheduledAt\": \"2026-12-01T10:00:00.000Z\",\n  \"duration\": 60,\n  \"meetingLink\": \"https://meet.google.com/abc-defg-hij\"\n}" } }
+        },
+        { "name": "Update Live Class", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/live-classes/{{classId}}", "host": ["{{base_url}}"], "path": ["live-classes","{{classId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"title\": \"Updated Live Class\",\n  \"duration\": 90\n}" } } },
+        { "name": "Delete Live Class", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/live-classes/{{classId}}", "host": ["{{base_url}}"], "path": ["live-classes","{{classId}}"] } } }
+      ]
+    },
+    {
+      "name": "10. ENROLLMENTS",
+      "item": [
+        { "name": "Get My Enrollments (Student)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/enrollments", "host": ["{{base_url}}"], "path": ["enrollments"] } } },
+        { "name": "Enroll in Subject (Student)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/enrollments/{{subjectId}}", "host": ["{{base_url}}"], "path": ["enrollments","{{subjectId}}"] } } },
+        { "name": "Unenroll from Subject (Student)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/enrollments/{{subjectId}}", "host": ["{{base_url}}"], "path": ["enrollments","{{subjectId}}"] } } },
+        { "name": "Get Enrolled Students (Teacher/Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/enrollments/subject/{{subjectId}}", "host": ["{{base_url}}"], "path": ["enrollments","subject","{{subjectId}}"] } } },
+        { "name": "Remove Enrollment (Admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/enrollments/subject/{{subjectId}}/student/{{userId}}", "host": ["{{base_url}}"], "path": ["enrollments","subject","{{subjectId}}","student","{{userId}}"] } } }
+      ]
+    },
+    {
+      "name": "11. DOCUMENTS",
+      "item": [
+        { "name": "Get All Documents", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/documents", "host": ["{{base_url}}"], "path": ["documents"] } } },
+        { "name": "Get Single Document", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/documents/{{docId}}", "host": ["{{base_url}}"], "path": ["documents","{{docId}}"] } } },
+        { "name": "Delete Document", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/documents/{{docId}}", "host": ["{{base_url}}"], "path": ["documents","{{docId}}"] } } }
+      ]
+    },
+    {
+      "name": "12. QUESTION BANK",
+      "item": [
+        { "name": "Get All Questions", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/question-bank", "host": ["{{base_url}}"], "path": ["question-bank"] } } },
+        { "name": "Get Single Question", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/question-bank/{{questionId}}", "host": ["{{base_url}}"], "path": ["question-bank","{{questionId}}"] } } },
+        {
+          "name": "Create Question (Teacher)",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201){pm.collectionVariables.set('questionId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/question-bank", "host": ["{{base_url}}"], "path": ["question-bank"] }, "body": { "mode": "raw", "raw": "{\n  \"question\": \"What is the derivative of x²?\",\n  \"options\": [\"x\",\"2x\",\"x²\",\"2\"],\n  \"correctAnswer\": \"2x\",\n  \"explanation\": \"Power rule: d/dx(xⁿ) = nxⁿ⁻¹\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"difficulty\": \"medium\",\n  \"marks\": 5\n}" } }
+        },
+        { "name": "Update Question", "request": { "method": "PUT", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/question-bank/{{questionId}}", "host": ["{{base_url}}"], "path": ["question-bank","{{questionId}}"] }, "body": { "mode": "raw", "raw": "{\n  \"difficulty\": \"hard\",\n  \"marks\": 10\n}" } } },
+        { "name": "Delete Question", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/question-bank/{{questionId}}", "host": ["{{base_url}}"], "path": ["question-bank","{{questionId}}"] } } }
+      ]
+    },
+    {
+      "name": "13. NOTIFICATIONS",
+      "item": [
+        { "name": "Get All Notifications", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/notifications", "host": ["{{base_url}}"], "path": ["notifications"] } } },
+        { "name": "Get Unread Count", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/notifications/unread-count", "host": ["{{base_url}}"], "path": ["notifications","unread-count"] } } },
+        { "name": "Mark One as Read", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/notifications/NOTIFICATION_ID/read", "host": ["{{base_url}}"], "path": ["notifications","NOTIFICATION_ID","read"] } } },
+        { "name": "Mark All as Read", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/notifications/read-all", "host": ["{{base_url}}"], "path": ["notifications","read-all"] } } },
+        { "name": "Clear All Notifications", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/notifications/clear-all", "host": ["{{base_url}}"], "path": ["notifications","clear-all"] } } }
+      ]
+    },
+    {
+      "name": "14. CHAT",
+      "item": [
+        { "name": "Get Chatable Users", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/chats/users", "host": ["{{base_url}}"], "path": ["chats","users"] } } },
+        { "name": "Get Unread Count", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/chats/unread-count", "host": ["{{base_url}}"], "path": ["chats","unread-count"] } } },
+        { "name": "Get All Conversations", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/chats", "host": ["{{base_url}}"], "path": ["chats"] } } },
+        {
+          "name": "Start Conversation",
+          "event": [{ "listen": "test", "script": { "exec": ["if(pm.response.code===201||pm.response.code===200){pm.collectionVariables.set('conversationId',pm.response.json().data._id);}"], "type": "text/javascript" } }],
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/chats", "host": ["{{base_url}}"], "path": ["chats"] }, "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{userId}}\"\n}" } }
+        },
+        { "name": "Get Messages", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/chats/{{conversationId}}/messages", "host": ["{{base_url}}"], "path": ["chats","{{conversationId}}","messages"] } } },
+        { "name": "Send Message", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/chats/{{conversationId}}/messages", "host": ["{{base_url}}"], "path": ["chats","{{conversationId}}","messages"] }, "body": { "mode": "raw", "raw": "{\n  \"content\": \"Hello! How are you?\"\n}" } } },
+        { "name": "Delete Conversation", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/chats/{{conversationId}}", "host": ["{{base_url}}"], "path": ["chats","{{conversationId}}"] } } }
+      ]
+    },
+    {
+      "name": "15. PAYMENTS",
+      "item": [
+        { "name": "Get Payment Methods (Public)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/payments/methods", "host": ["{{base_url}}"], "path": ["payments","methods"] } } },
+        { "name": "Initiate Payment (Student)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "url": { "raw": "{{base_url}}/payments/initiate", "host": ["{{base_url}}"], "path": ["payments","initiate"] }, "body": { "mode": "raw", "raw": "{\n  \"subjectId\": \"{{subjectId}}\",\n  \"amount\": 500,\n  \"currency\": \"ETB\",\n  \"paymentMethod\": \"chapa\"\n}" } } },
+        { "name": "Verify Payment (Student)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/payments/verify?tx_ref=TX_REF_HERE", "host": ["{{base_url}}"], "path": ["payments","verify"], "query": [{ "key": "tx_ref", "value": "TX_REF_HERE" }] } } },
+        { "name": "Get My Payments (Student)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/payments/my-payments", "host": ["{{base_url}}"], "path": ["payments","my-payments"] } } },
+        { "name": "Get All Payments (Admin)", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/payments/all", "host": ["{{base_url}}"], "path": ["payments","all"] } } }
+      ]
+    },
+    {
+      "name": "16. SEARCH",
+      "item": [
+        { "name": "Search Everything", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/search?q=mathematics", "host": ["{{base_url}}"], "path": ["search"], "query": [{ "key": "q", "value": "mathematics" }] } } },
+        { "name": "Search Courses", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/search?q=calculus&type=course", "host": ["{{base_url}}"], "path": ["search"], "query": [{ "key": "q", "value": "calculus" }, { "key": "type", "value": "course" }] } } },
+        { "name": "Health Check", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] } } }
+      ]
+    }
+  ]
+}

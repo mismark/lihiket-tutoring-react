@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{base_url}}/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "role": "student",
+      "firstName": "Selam",
+      "lastName": "Alemu",
+      "username": "selam.alemu",
+      "email": "selam@test.com",
+      "password": "Test@12345",
+      "phone": "+251911000099",
+      "gradeLevel": "G12",
+      "parentFullName": "Alemu Tadesse",
+      "parentPhone": "+251911000088"
+    }
+order: 5000

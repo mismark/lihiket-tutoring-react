@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{base_url}}/lessons/{{lessonId}}"
+method: PUT
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Updated Lesson Title",
+      "content": "Updated content here..."
+    }
+order: 4000

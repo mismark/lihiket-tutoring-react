@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{base_url}}/auth/verify-otp"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "admin@lihiket.com",
+      "otp": "123456"
+    }
+order: 8000

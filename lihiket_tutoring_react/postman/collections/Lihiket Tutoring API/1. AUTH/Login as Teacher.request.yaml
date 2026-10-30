@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{base_url}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "teacher@lihiket.com",
+      "password": "Teacher@12345"
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===200){pm.collectionVariables.set('token',pm.response.json().data.token);}
+    language: text/javascript
+order: 2000

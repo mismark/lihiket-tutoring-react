@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/users/my-children"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 11000

@@ -1,0 +1,37 @@
+$kind: http-request
+name: Create Quiz (Teacher/Admin)
+url: "{{base_url}}/quizzes"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "Quiz 1 — Chapter 1",
+      "description": "Test your knowledge",
+      "subjectId": "{{subjectId}}",
+      "duration": 30,
+      "totalMarks": 20,
+      "passMark": 10,
+      "questions": [
+        {
+          "question": "What is 2+2?",
+          "options": ["2","3","4","5"],
+          "correctAnswer": "4",
+          "marks": 10
+        },
+        {
+          "question": "What is the derivative of x²?",
+          "options": ["x","2x","x²","2"],
+          "correctAnswer": "2x",
+          "marks": 10
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('quizId',pm.response.json().data._id);}
+    language: text/javascript
+order: 3000

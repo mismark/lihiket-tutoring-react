@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/payments/all"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 5000

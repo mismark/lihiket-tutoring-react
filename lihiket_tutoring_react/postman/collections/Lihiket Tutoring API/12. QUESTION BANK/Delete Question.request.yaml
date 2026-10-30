@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/question-bank/{{questionId}}"
+method: DELETE
+headers:
+  Authorization: Bearer {{token}}
+order: 5000

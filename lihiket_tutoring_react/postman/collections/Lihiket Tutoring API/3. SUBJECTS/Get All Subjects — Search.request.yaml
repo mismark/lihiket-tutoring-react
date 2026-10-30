@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{base_url}}/subjects?search=math&gradeLevel=G12"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+queryParams:
+  search: math
+  gradeLevel: G12
+order: 2000

@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/users/{{userId}}/toggle-active"
+method: PATCH
+headers:
+  Authorization: Bearer {{token}}
+order: 8000

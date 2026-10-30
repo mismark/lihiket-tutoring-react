@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{base_url}}/payments/verify?tx_ref=TX_REF_HERE"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+queryParams:
+  tx_ref: TX_REF_HERE
+order: 3000

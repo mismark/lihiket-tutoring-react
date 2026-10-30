@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{base_url}}/documents/{{docId}}"
+method: DELETE
+headers:
+  Authorization: Bearer {{token}}
+order: 3000

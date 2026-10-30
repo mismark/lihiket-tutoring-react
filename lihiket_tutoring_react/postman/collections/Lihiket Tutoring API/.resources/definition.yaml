@@ -1,0 +1,17 @@
+$kind: collection
+description: Complete API collection for Lihiket Tutoring Platform
+variables:
+  base_url: https://lihiket-api.onrender.com/api
+  local_url: http://localhost:5000/api
+  token: ""
+  subjectId: ""
+  userId: ""
+  courseId: ""
+  lessonId: ""
+  assignmentId: ""
+  quizId: ""
+  examId: ""
+  classId: ""
+  docId: ""
+  questionId: ""
+  conversationId: ""

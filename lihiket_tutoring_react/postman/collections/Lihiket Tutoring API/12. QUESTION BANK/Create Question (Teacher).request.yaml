@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{base_url}}/question-bank"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "question": "What is the derivative of x²?",
+      "options": ["x","2x","x²","2"],
+      "correctAnswer": "2x",
+      "explanation": "Power rule: d/dx(xⁿ) = nxⁿ⁻¹",
+      "subjectId": "{{subjectId}}",
+      "difficulty": "medium",
+      "marks": 5
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('questionId',pm.response.json().data._id);}
+    language: text/javascript
+order: 3000

@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{base_url}}/subjects"
+method: POST
+headers:
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Mathematics",
+      "description": "Grade 12 Mathematics",
+      "gradeLevel": "G12",
+      "category": "Science",
+      "price": 500
+    }
+scripts:
+  - type: afterResponse
+    code: if(pm.response.code===201){pm.collectionVariables.set('subjectId',pm.response.json().data._id);}
+    language: text/javascript
+order: 4000

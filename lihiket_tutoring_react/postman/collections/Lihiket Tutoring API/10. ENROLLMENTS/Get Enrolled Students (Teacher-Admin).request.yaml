@@ -1,0 +1,7 @@
+$kind: http-request
+name: Get Enrolled Students (Teacher/Admin)
+url: "{{base_url}}/enrollments/subject/{{subjectId}}"
+method: GET
+headers:
+  Authorization: Bearer {{token}}
+order: 4000
