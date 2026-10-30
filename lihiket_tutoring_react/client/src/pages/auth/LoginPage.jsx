@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiBookOpen } from 'react-icons/fi';
-import { loginUser } from '../../api/auth.api';
+import { LuFingerprint } from 'react-icons/lu';
+import { loginUser, webauthnAuthBegin, webauthnAuthFinish } from '../../api/auth.api';
+import { startAuthentication } from '@simplewebauthn/browser';
+import { isWebAuthnSupported } from '../../utils/webauthn';
 import { useAuth } from '../../store/auth/AuthContext';
 import { useTheme } from '../../store/theme/ThemeContext';
 import toast from 'react-hot-toast';
@@ -21,7 +24,14 @@ export default function LoginPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading,      setLoading]      = useState(false);
+  const [fpLoading,    setFpLoading]    = useState(false);
   const [errorMsg,     setErrorMsg]     = useState('');
+  const [webauthnSupported, setWebauthnSupported] = useState(false);
+
+  // Detect fingerprint / biometric (WebAuthn) support once on mount
+  useEffect(() => {
+    setWebauthnSupported(isWebAuthnSupported());
+  }, []);
 
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -50,6 +60,42 @@ export default function LoginPage() {
       setErrorMsg(err.message || 'Failed to sign in. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ── Fingerprint / passkey (WebAuthn) login ─────────────────────────────────
+  const handleFingerprintLogin = async () => {
+    setFpLoading(true);
+    setErrorMsg('');
+    try {
+      // 1. Ask the server for authentication options (challenge)
+      const begin = await webauthnAuthBegin();
+      // 2. Browser prompts the user for fingerprint / Face ID / Windows Hello
+      const assertion = await startAuthentication({ optionsJSON: begin.data.options });
+      // 3. Server verifies the signed assertion and returns a JWT
+      const result = await webauthnAuthFinish({
+        response: assertion,
+        requestId: begin.data.requestId,
+      });
+      if (result.success && result.data) {
+        toast.success(`Welcome back, ${result.data.user.firstName}!`);
+        login(result.data.user, result.data.token);
+        navigate('/dashboard', { replace: true });
+      }
+    } catch (err) {
+      const msg = String(err?.message || '').toLowerCase();
+      if (
+        msg.includes('cancel') ||
+        msg.includes('not allowed') ||
+        msg.includes('timed out') ||
+        msg.includes('abort')
+      ) {
+        setErrorMsg('Fingerprint sign-in was cancelled.');
+      } else {
+        setErrorMsg(err?.message || 'Fingerprint sign-in failed. You can sign in with your password instead.');
+      }
+    } finally {
+      setFpLoading(false);
     }
   };
 
@@ -122,6 +168,39 @@ export default function LoginPage() {
                 onSubmit={handleSubmit}
                 theme={theme}
               />
+
+              {/* Fingerprint / passkey sign-in (only on WebAuthn-capable browsers) */}
+              {webauthnSupported && (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div className={`flex-1 h-px ${dark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                    <span className={`text-xs font-semibold ${dark ? 'text-slate-500' : 'text-slate-400'}`}>or</span>
+                    <div className={`flex-1 h-px ${dark ? 'bg-slate-700' : 'bg-slate-200'}`} />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleFingerprintLogin}
+                    disabled={fpLoading || loading}
+                    className={`w-full py-3 px-4 font-bold text-sm rounded-xl border-2 transition-all duration-200 flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      dark
+                        ? 'bg-slate-800/60 border-slate-600 text-slate-200 hover:border-blue-500 hover:text-blue-400'
+                        : 'bg-white border-slate-200 text-slate-700 hover:border-blue-500 hover:text-blue-600'
+                    }`}
+                  >
+                    {fpLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                        <span>Use fingerprint…</span>
+                      </>
+                    ) : (
+                      <>
+                        <LuFingerprint className="w-5 h-5" />
+                        <span>Sign in with fingerprint</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
 
               {/* Sign up link */}
               <p className={`text-center text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>

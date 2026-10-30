@@ -5,16 +5,19 @@ import { useTheme } from '../../store/theme/ThemeContext';
 import { getMe } from '../../api/auth.api';
 import toast from 'react-hot-toast';
 import { FiArrowLeft, FiUser, FiEdit2, FiLock } from 'react-icons/fi';
+import { LuFingerprint } from 'react-icons/lu';
 
 import ProfileAvatar   from './components/ProfileAvatar';
 import ProfileView     from './components/ProfileView';
 import ProfileEdit     from './components/ProfileEdit';
 import ProfilePassword from './components/ProfilePassword';
+import ProfilePasskeys from './components/ProfilePasskeys';
 
 const TABS = [
-  { key: 'view',     label: 'Profile',         icon: FiUser  },
-  { key: 'edit',     label: 'Edit',            icon: FiEdit2 },
-  { key: 'password', label: 'Change Password', icon: FiLock  },
+  { key: 'view',       label: 'Profile',         icon: FiUser  },
+  { key: 'edit',       label: 'Edit',            icon: FiEdit2 },
+  { key: 'password',   label: 'Change Password', icon: FiLock  },
+  { key: 'fingerprint', label: 'Fingerprint',    icon: LuFingerprint },
 ];
 
 export default function ProfilePage() {
@@ -122,10 +125,13 @@ export default function ProfilePage() {
             onCancel={() => setActiveTab('view')}
           />
 
-        ) : (
+        ) : activeTab === 'password' ? (
           <ProfilePassword
             onCancel={() => setActiveTab('view')}
           />
+
+        ) : (
+          <ProfilePasskeys />
         )}
 
       </div>

@@ -47,3 +47,45 @@ export const changePassword = async (data) => {
   const res = await api.put('/auth/change-password', data);
   return res.data;
 };
+
+// ── WebAuthn (passkey / fingerprint login) ────────────────────────────────────
+// Each "begin" call returns { options, requestId }; the client passes the
+// options to @simplewebauthn/browser, then sends the authenticator response +
+// requestId back to the matching "finish" call.
+
+export const webauthnRegisterBegin = async () => {
+  const res = await api.post('/auth/webauthn/register/begin');
+  return res.data;
+};
+
+export const webauthnRegisterFinish = async ({ response, requestId, deviceName }) => {
+  const res = await api.post('/auth/webauthn/register/finish', { response, requestId, deviceName });
+  return res.data;
+};
+
+export const webauthnAuthBegin = async () => {
+  const res = await api.post('/auth/webauthn/auth/begin');
+  return res.data;
+};
+
+// Returns { data: { token, user } } — same shape as loginUser()
+export const webauthnAuthFinish = async ({ response, requestId }) => {
+  const res = await api.post('/auth/webauthn/auth/finish', { response, requestId });
+  return res.data;
+};
+
+// ── Passkey management (authenticated) ────────────────────────────────────────
+export const listPasskeys = async () => {
+  const res = await api.get('/auth/webauthn');
+  return res.data;
+};
+
+export const renamePasskey = async (id, deviceName) => {
+  const res = await api.patch(`/auth/webauthn/${id}`, { deviceName });
+  return res.data;
+};
+
+export const removePasskey = async (id) => {
+  const res = await api.delete(`/auth/webauthn/${id}`);
+  return res.data;
+};

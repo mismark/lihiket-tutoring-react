@@ -16,6 +16,9 @@ const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
 const { uploadCVCloud }        = require('../middleware/upload.middleware');
 
+// WebAuthn (passkey / fingerprint login) routes
+const webauthnRoutes = require('./webauthn.routes');
+
 // Public auth endpoints
 router.post('/register', ...uploadCVCloud, register);
 router.post('/login', login);
@@ -27,6 +30,9 @@ router.post('/create-admin', createFirstAdmin);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify-otp', verifyOTP);
 router.post('/set-new-password', setNewPassword);
+
+// WebAuthn (passkey / fingerprint login) — public registration + auth ceremonies
+router.use('/webauthn', webauthnRoutes);
 
 // Protected auth endpoints
 router.get('/me',              protect, requireVerified, getMe);
