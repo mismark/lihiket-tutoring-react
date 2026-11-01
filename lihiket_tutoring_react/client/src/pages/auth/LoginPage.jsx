@@ -173,61 +173,28 @@ export default function LoginPage() {
                 theme={theme}
               />
 
-              {/* Fingerprint / passkey sign-in (only on WebAuthn-capable browsers) */}
+              {/* Fingerprint icon only — no text */}
               {webauthnSupported && (
-                <>
-                  <div className="flex items-center gap-3">
-                    <div className={`flex-1 h-px ${dark ? 'bg-slate-700' : 'bg-slate-200'}`} />
-                    <span className={`text-xs font-semibold ${dark ? 'text-slate-500' : 'text-slate-400'}`}>or</span>
-                    <div className={`flex-1 h-px ${dark ? 'bg-slate-700' : 'bg-slate-200'}`} />
-                  </div>
-
-                  {/* ── Biometric button — prominent on mobile ── */}
+                <div className="flex justify-center">
                   <button
                     type="button"
                     onClick={handleFingerprintLogin}
                     disabled={fpLoading || loading}
-                    className={`group w-full py-4 px-4 font-bold text-sm rounded-2xl border-2 transition-all duration-200
-                      flex items-center justify-center gap-3
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      active:scale-95
-                      ${dark
-                        ? 'bg-blue-600/10 border-blue-500/40 text-blue-300 hover:bg-blue-600/20 hover:border-blue-400'
-                        : 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-400'
-                      }`}
-                  >
-                    {fpLoading ? (
-                      <>
-                        {/* Scanning animation */}
-                        <div className="relative w-8 h-8 flex items-center justify-center">
-                          <div className="absolute inset-0 rounded-full border-2 border-blue-400/40 animate-ping" />
-                          <div className="absolute inset-1 rounded-full border-2 border-blue-400/60 animate-ping animation-delay-150" />
-                          <LuFingerprint className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <div className="flex flex-col items-start">
-                          <span className="font-bold leading-tight">Scanning…</span>
-                          <span className={`text-xs font-normal ${dark ? 'text-blue-400/70' : 'text-blue-500/70'}`}>
-                            Place your finger on the sensor
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className={`relative w-8 h-8 flex items-center justify-center rounded-full
-                          ${dark ? 'bg-blue-500/15' : 'bg-blue-100'}
-                          group-hover:scale-110 transition-transform`}>
-                          <LuFingerprint className="w-5 h-5 text-blue-500" />
-                        </div>
-                        <div className="flex flex-col items-start">
-                          <span className="font-bold leading-tight">Sign in with Biometrics</span>
-                          <span className={`text-xs font-normal ${dark ? 'text-blue-400/70' : 'text-blue-500/70'}`}>
-                            Fingerprint · Face ID · Windows Hello
-                          </span>
-                        </div>
-                      </>
-                    )}
+                    title="Sign in with fingerprint / Face ID"
+                    className={`w-14 h-14 rounded-full flex items-center justify-center
+                      transition-all duration-200 active:scale-90 disabled:opacity-50
+                      ${fpLoading
+                        ? 'bg-blue-500/20 border-2 border-blue-400/60'
+                        : dark
+                          ? 'bg-slate-700/60 border-2 border-slate-600 hover:border-blue-500 hover:bg-blue-500/10'
+                          : 'bg-slate-100 border-2 border-slate-200 hover:border-blue-400 hover:bg-blue-50'
+                      }`}>
+                    {fpLoading
+                      ? <div className="w-6 h-6 border-2 border-blue-400/40 border-t-blue-500 rounded-full animate-spin" />
+                      : <LuFingerprint className={`w-7 h-7 ${dark ? 'text-slate-300' : 'text-slate-600'}`} />
+                    }
                   </button>
-                </>
+                </div>
               )}
 
               {/* Sign up link */}
