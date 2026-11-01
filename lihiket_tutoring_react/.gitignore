@@ -36,3 +36,8 @@ server/uploads/*
 coverage/
 .cache/
 .vite/
+
+# Capacitor generated native projects (rebuilt with: npm run cap:sync)
+client/android/
+client/ios/
+client/.gradle/

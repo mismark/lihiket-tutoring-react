@@ -1,0 +1,9 @@
+{
+  "appId": "com.lihiket.tutoring",
+  "appName": "Lihiket",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false,
+    "minWebViewVersion": 60
+  }
+}

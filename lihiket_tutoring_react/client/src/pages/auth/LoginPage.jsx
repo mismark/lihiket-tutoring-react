@@ -5,12 +5,17 @@ import { LuFingerprint } from 'react-icons/lu';
 import { loginUser, webauthnAuthBegin, webauthnAuthFinish } from '../../api/auth.api';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { isWebAuthnSupported } from '../../utils/webauthn';
+import { isNativeApp, checkNativeBiometrics, authenticateWithBiometrics } from '../../utils/biometric';
 import { useAuth } from '../../store/auth/AuthContext';
 import { useTheme } from '../../store/theme/ThemeContext';
 import toast from 'react-hot-toast';
 import LoginBrandSection from './components/LoginBrandSection';
 import LoginForm         from './components/LoginForm';
 import ErrorBanner       from './components/ErrorBanner';
+
+// ── Secure local storage key for cached token used in native biometric login ──
+const BIOMETRIC_EMAIL_KEY = 'lihiket_biometric_email';
+const BIOMETRIC_TOKEN_KEY = 'lihiket_biometric_token';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -27,11 +32,21 @@ export default function LoginPage() {
   const [fpLoading,    setFpLoading]    = useState(false);
   const [errorMsg,     setErrorMsg]     = useState('');
   const [webauthnSupported, setWebauthnSupported] = useState(false);
+  // true when running inside the Capacitor native app with biometrics available
+  const [nativeBiometrics, setNativeBiometrics] = useState(false);
 
-  // Detect fingerprint / biometric (WebAuthn) support once on mount
   useEffect(() => {
-    setWebauthnSupported(isWebAuthnSupported());
+    // Check native biometrics first (Capacitor app)
+    if (isNativeApp()) {
+      checkNativeBiometrics().then(r => setNativeBiometrics(r.available));
+    } else {
+      // Web fallback: use WebAuthn passkeys
+      setWebauthnSupported(isWebAuthnSupported());
+    }
   }, []);
+
+  // Show the fingerprint button if EITHER native OR WebAuthn is available
+  const showFingerprintBtn = nativeBiometrics || webauthnSupported;
 
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -54,6 +69,9 @@ export default function LoginPage() {
       if (response.success && response.data) {
         toast.success(`Welcome back, ${response.data.user.firstName}!`);
         login(response.data.user, response.data.token);
+        // Cache for native biometric re-login
+        localStorage.setItem(BIOMETRIC_EMAIL_KEY, response.data.user.email);
+        localStorage.setItem(BIOMETRIC_TOKEN_KEY, response.data.token);
         navigate('/dashboard', { replace: true });
       }
     } catch (err) {
@@ -63,40 +81,79 @@ export default function LoginPage() {
     }
   };
 
-  // ── Fingerprint / passkey (WebAuthn) login ─────────────────────────────────
+  // ── Fingerprint / passkey login ──────────────────────────────────────────────
   const handleFingerprintLogin = async () => {
     setFpLoading(true);
     setErrorMsg('');
     try {
-      // 1. Ask the server for authentication options (challenge)
-      const begin = await webauthnAuthBegin();
-      // 2. Browser prompts the user for fingerprint / Face ID / Windows Hello
-      const assertion = await startAuthentication({ optionsJSON: begin.data.options });
-      // 3. Server verifies the signed assertion and returns a JWT
-      const result = await webauthnAuthFinish({
-        response: assertion,
-        requestId: begin.data.requestId,
-      });
-      if (result.success && result.data) {
-        toast.success(`Welcome back, ${result.data.user.firstName}!`);
-        login(result.data.user, result.data.token);
-        navigate('/dashboard', { replace: true });
+      if (nativeBiometrics) {
+        // ── NATIVE path (Capacitor app — Telebirr/MPesa style) ─────────────
+        // 1. Prompt the device's native fingerprint scanner — no browser sheet
+        await authenticateWithBiometrics('Sign in to Lihiket');
+
+        // 2. Get the saved email from last password login
+        const savedEmail = localStorage.getItem(BIOMETRIC_EMAIL_KEY);
+        const savedToken = localStorage.getItem(BIOMETRIC_TOKEN_KEY);
+
+        if (!savedEmail) {
+          setErrorMsg('Please sign in with your password once first to enable fingerprint login.');
+          return;
+        }
+
+        // 3. Biometric passed — restore the session (re-use cached token or
+        //    re-authenticate via WebAuthn credential if token expired)
+        if (savedToken) {
+          // Try to use the cached session
+          try {
+            const { getMe } = await import('../../api/auth.api');
+            // Temporarily set token to validate it
+            const prev = localStorage.getItem('token');
+            localStorage.setItem('token', savedToken);
+            const me = await getMe();
+            if (me.success) {
+              login(me.data, savedToken);
+              toast.success(`Welcome back, ${me.data.firstName}!`);
+              navigate('/dashboard', { replace: true });
+              return;
+            }
+            localStorage.setItem('token', prev || '');
+          } catch {
+            // Token expired — fall through to WebAuthn finish
+          }
+        }
+
+        // 4. If token expired, use WebAuthn to get a fresh one
+        const begin     = await webauthnAuthBegin();
+        const assertion = await startAuthentication({ optionsJSON: begin.data.options });
+        const result    = await webauthnAuthFinish({ response: assertion, requestId: begin.data.requestId });
+        if (result.success && result.data) {
+          localStorage.setItem(BIOMETRIC_TOKEN_KEY, result.data.token);
+          localStorage.setItem(BIOMETRIC_EMAIL_KEY, result.data.user.email);
+          login(result.data.user, result.data.token);
+          toast.success(`Welcome back, ${result.data.user.firstName}!`);
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        // ── WEB fallback path (browser WebAuthn passkey) ────────────────────
+        const begin     = await webauthnAuthBegin();
+        const assertion = await startAuthentication({ optionsJSON: begin.data.options });
+        const result    = await webauthnAuthFinish({ response: assertion, requestId: begin.data.requestId });
+        if (result.success && result.data) {
+          toast.success(`Welcome back, ${result.data.user.firstName}!`);
+          login(result.data.user, result.data.token);
+          navigate('/dashboard', { replace: true });
+        }
       }
     } catch (err) {
       const msg = String(err?.message || '').toLowerCase();
-      if (
-        msg.includes('cancel') ||
-        msg.includes('not allowed') ||
-        msg.includes('timed out') ||
-        msg.includes('abort')
-      ) {
-        setErrorMsg('Fingerprint sign-in was cancelled. Try again or use your password.');
+      if (msg.includes('cancel') || msg.includes('not allowed') || msg.includes('abort') || msg.includes('user cancel')) {
+        // Silently dismiss — user cancelled, no error shown
       } else if (msg.includes('not registered') || msg.includes('no credentials')) {
-        setErrorMsg('No fingerprint registered. Go to Profile → Passkeys and add one first.');
-      } else if (msg.includes('origin') || msg.includes('rpid') || msg.includes('rp id')) {
-        setErrorMsg('Domain mismatch — make sure you registered this fingerprint on this site.');
+        setErrorMsg('No fingerprint registered. Go to Profile → Passkeys to set it up.');
+      } else if (msg.includes('once first') || msg.includes('saved email')) {
+        setErrorMsg(err.message);
       } else {
-        setErrorMsg(err?.message || 'Fingerprint sign-in failed. Please use your password instead.');
+        setErrorMsg(err?.message || 'Fingerprint sign-in failed. Use your password instead.');
       }
     } finally {
       setFpLoading(false);
@@ -174,7 +231,7 @@ export default function LoginPage() {
               />
 
               {/* Fingerprint icon only — no text */}
-              {webauthnSupported && (
+              {showFingerprintBtn && (
                 <div className="flex justify-center">
                   <button
                     type="button"
