@@ -90,9 +90,13 @@ export default function LoginPage() {
         msg.includes('timed out') ||
         msg.includes('abort')
       ) {
-        setErrorMsg('Fingerprint sign-in was cancelled.');
+        setErrorMsg('Fingerprint sign-in was cancelled. Try again or use your password.');
+      } else if (msg.includes('not registered') || msg.includes('no credentials')) {
+        setErrorMsg('No fingerprint registered. Go to Profile → Passkeys and add one first.');
+      } else if (msg.includes('origin') || msg.includes('rpid') || msg.includes('rp id')) {
+        setErrorMsg('Domain mismatch — make sure you registered this fingerprint on this site.');
       } else {
-        setErrorMsg(err?.message || 'Fingerprint sign-in failed. You can sign in with your password instead.');
+        setErrorMsg(err?.message || 'Fingerprint sign-in failed. Please use your password instead.');
       }
     } finally {
       setFpLoading(false);

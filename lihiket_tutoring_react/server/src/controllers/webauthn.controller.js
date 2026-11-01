@@ -112,8 +112,8 @@ exports.verifyRegistrationHandler = async (req, res) => {
     verification = await verifyRegistrationResponse({
       response,
       expectedChallenge: entry.challenge,
-      expectedOrigin:     RP.expectedOrigins,
-      expectedRPID:       RP.rpID,
+      expectedOrigin:    RP.expectedOrigins,
+      expectedRPID:      RP.rpID,
     });
   } catch (err) {
     throw new AppError(`Could not verify fingerprint registration: ${err.message}`, 400);
@@ -192,14 +192,23 @@ exports.verifyAuthenticationHandler = async (req, res) => {
   }
 
   // Look up the credential the browser is asserting with.
+  // Must explicitly select credentialPublicKey since it has select: false.
   const credID = response.id;
-  const cred = await WebauthnCredential.findOne({ credentialID: credID });
+  const cred = await WebauthnCredential.findOne({ credentialID: credID })
+    .select('+credentialPublicKey');
   if (!cred) {
     throw new AppError('This fingerprint is not registered. Set it up from your profile first.', 404);
   }
 
   let verification;
   try {
+    // credentialPublicKey is stored as Buffer; Mongoose may load it as a
+    // plain object with numeric keys — re-wrap it to ensure it's a proper
+    // Uint8Array before passing to @simplewebauthn/server.
+    const publicKey = Buffer.isBuffer(cred.credentialPublicKey)
+      ? cred.credentialPublicKey
+      : Buffer.from(Object.values(cred.credentialPublicKey));
+
     verification = await verifyAuthenticationResponse({
       response,
       expectedChallenge: entry.challenge,
@@ -207,7 +216,7 @@ exports.verifyAuthenticationHandler = async (req, res) => {
       expectedRPID:       RP.rpID,
       credential: {
         id:         cred.credentialID,
-        publicKey:  cred.credentialPublicKey, // Buffer (Uint8Array subclass)
+        publicKey:  publicKey,
         counter:    cred.counter,
         transports: cred.transports,
       },
