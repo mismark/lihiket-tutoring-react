@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import { useTheme } from '../../store/theme/ThemeContext';
 import { useAuth }  from '../../store/auth/AuthContext';
+import UserAvatar from '../../components/shared/UserAvatar';
 import {
   toggleLike, sharePost, addComment, deleteComment, toggleCommentLike,
   addReply, deleteReply, toggleReplyLike, deletePost,
@@ -191,6 +192,7 @@ function CommentRow({ comment, postId, currentUserId, dark, onDeleted, onPostCha
 // ── Main PostCard ──────────────────────────────────────────────────────────────
 export default function PostCard({ post: initialPost, currentUserId, onDeleted, onEdit }) {
   const { theme } = useTheme();
+  const { user }  = useAuth();
   const dark = theme === 'dark';
 
   const [post,        setPost]        = useState(initialPost);
@@ -375,9 +377,12 @@ export default function PostCard({ post: initialPost, currentUserId, onDeleted, 
 
           {/* Add comment */}
           <div className="flex gap-3 pt-2">
-            <div className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden"
-              style={{ background: 'linear-gradient(135deg,#10b981,#3b82f6)' }}>
-            </div>
+            <UserAvatar
+              pic={user?.profilePicture}
+              name={`${user?.firstName} ${user?.lastName}`}
+              role={user?.role}
+              size={8}
+            />
             <div className="flex-1 flex gap-2">
               <input value={commentText} onChange={e => setCommentText(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleComment(); } }}

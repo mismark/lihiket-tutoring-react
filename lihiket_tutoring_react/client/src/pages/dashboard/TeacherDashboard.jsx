@@ -123,8 +123,12 @@ export default function TeacherDashboard() {
         {/* ── Profile card ── */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
           <div className="flex flex-col sm:flex-row gap-6">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-extrabold shadow-sm flex-shrink-0">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm">
+              {user?.profilePicture
+                ? <img src={user.profilePicture} alt={user?.firstName} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-extrabold">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </div>}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-2">

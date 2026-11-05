@@ -5,6 +5,7 @@ import { useTheme }   from '../../store/theme/ThemeContext';
 import { useSidebar } from '../../store/sidebar/SidebarContext';
 import { usePWAInstall } from '../../hooks/usePWAInstall';
 import logo from '../../assets/logo.jpg';
+import UserAvatar from '../shared/UserAvatar';
 import {
   FiMenu, FiLogOut, FiBook, FiSun, FiMoon,
   FiSearch, FiChevronsLeft, FiChevronsRight, FiUser,
@@ -238,9 +239,7 @@ export default function Header() {
                           ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30'
                           : 'hover:bg-white/[0.06]'
                       }`}>
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
-                      </div>
+                      <UserAvatar pic={user?.profilePicture} name={`${user?.firstName} ${user?.lastName}`} role={user?.role} size={7} />
                       <div className="hidden sm:block text-left leading-tight">
                         <p className="text-xs font-semibold text-white">
                           {user?.firstName} {user?.lastName}

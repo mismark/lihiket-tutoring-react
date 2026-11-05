@@ -23,8 +23,13 @@ const ROLE_COLORS = {
 function Avatar({ user }) {
   const grad = ROLE_COLORS[user?.role] || 'from-slate-400 to-slate-500';
   return (
-    <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-      {user?.firstName?.[0]}{user?.lastName?.[0]}
+    <div className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0`}
+      style={{ background: 'linear-gradient(135deg,#64748b,#475569)' }}>
+      {user?.profilePicture
+        ? <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover" />
+        : <div className={`bg-gradient-to-br ${grad} w-full h-full flex items-center justify-center text-white text-xs font-bold`}>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </div>}
     </div>
   );
 }

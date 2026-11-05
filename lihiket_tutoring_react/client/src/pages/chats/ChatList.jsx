@@ -14,8 +14,12 @@ function Avatar({ user, size = 'md' }) {
   const grad = ROLE_COLORS[user?.role] || 'from-slate-400 to-slate-500';
   const sz   = size === 'sm' ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm';
   return (
-    <div className={`${sz} rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white font-bold flex-shrink-0`}>
-      {user?.firstName?.[0]}{user?.lastName?.[0]}
+    <div className={`${sz} rounded-full overflow-hidden flex-shrink-0`}>
+      {user?.profilePicture
+        ? <img src={user.profilePicture} alt={user?.firstName} className="w-full h-full object-cover" />
+        : <div className={`bg-gradient-to-br ${grad} w-full h-full flex items-center justify-center text-white font-bold`}>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </div>}
     </div>
   );
 }

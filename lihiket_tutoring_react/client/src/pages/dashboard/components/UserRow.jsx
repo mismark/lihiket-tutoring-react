@@ -4,6 +4,7 @@ import { FiToggleLeft, FiToggleRight, FiShield,
          FiFileText, FiPhone, FiCopy, FiCheckCircle,
          FiEdit2, FiTrash2, FiHash } from 'react-icons/fi';
 import FilePreviewModal from '../../../components/shared/FilePreviewModal';
+import UserAvatar from '../../../components/shared/UserAvatar';
 
 const ROLE_ICONS  = { teacher: FiBookOpen, student: FiUser, parent: FiUsers, admin: FiShield };
 const ROLE_COLORS = { teacher: 'blue', student: 'emerald', parent: 'purple', admin: 'amber' };
@@ -168,9 +169,13 @@ export default function UserRow({ user, activeTab, onApprove, onReject, onToggle
       {/* User */}
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${colors.bg} ${colors.text}`}>
-            <RoleIcon className="w-5 h-5" />
-          </div>
+          <UserAvatar
+            pic={user.profilePicture}
+            name={`${user.firstName} ${user.lastName}`}
+            role={user.userType}
+            size={10}
+            rounded="xl"
+          />
           <div>
             <p className={`font-semibold leading-tight ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
               {user.firstName} {user.lastName}

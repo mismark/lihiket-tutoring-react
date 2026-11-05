@@ -130,8 +130,12 @@ export default function NewChatModal({ onClose, onCreated }) {
                       : dark ? 'hover:bg-slate-800' : 'hover:bg-gray-50'
                   }`}
                 >
-                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                    {u.firstName?.[0]}{u.lastName?.[0]}
+                  <div className={`w-9 h-9 rounded-full overflow-hidden flex-shrink-0`}>
+                    {u.profilePicture
+                      ? <img src={u.profilePicture} alt={u.firstName} className="w-full h-full object-cover" />
+                      : <div className={`bg-gradient-to-br ${grad} w-full h-full flex items-center justify-center text-white text-xs font-bold`}>
+                          {u.firstName?.[0]}{u.lastName?.[0]}
+                        </div>}
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <p className={`text-sm font-semibold truncate ${dark ? 'text-white' : 'text-gray-900'}`}>

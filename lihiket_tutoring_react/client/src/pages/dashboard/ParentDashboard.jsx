@@ -501,8 +501,12 @@ function ChildProgressPanel({ child, onClose }) {
           dark ? 'border-slate-700' : 'border-slate-200'
         }`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-              {child.firstName?.[0]}{child.lastName?.[0]}
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+              {child.profilePicture
+                ? <img src={child.profilePicture} alt={child.firstName} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                    {child.firstName?.[0]}{child.lastName?.[0]}
+                  </div>}
             </div>
             <div>
               <p className={`font-bold ${dark ? 'text-white' : 'text-slate-900'}`}>
@@ -604,8 +608,12 @@ function ChildCard({ child, onViewProgress, onUnlink }) {
     }`}>
       <div className="p-5 flex items-start gap-4">
         {/* Avatar */}
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-base flex-shrink-0">
-          {child.firstName?.[0]}{child.lastName?.[0]}
+        <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+          {child.profilePicture
+            ? <img src={child.profilePicture} alt={child.firstName} className="w-full h-full object-cover" />
+            : <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-base">
+                {child.firstName?.[0]}{child.lastName?.[0]}
+              </div>}
         </div>
 
         {/* Info */}
@@ -822,8 +830,12 @@ export default function ParentDashboard() {
           dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
         }`}>
           <div className="flex flex-col sm:flex-row gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-white text-2xl font-extrabold shadow-lg flex-shrink-0">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg">
+              {user?.profilePicture
+                ? <img src={user.profilePicture} alt={user?.firstName} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-gradient-to-br from-purple-500 to-violet-600 flex items-center justify-center text-white text-2xl font-extrabold">
+                    {user?.firstName?.[0]}{user?.lastName?.[0]}
+                  </div>}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-2">

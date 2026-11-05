@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../store/auth/AuthContext';
 import { useTheme } from '../../store/theme/ThemeContext';
 import { useSidebar } from '../../store/sidebar/SidebarContext';
+import UserAvatar from '../shared/UserAvatar';
 import logo from '../../assets/logo.jpg';
 import {
   FiX, FiHome, FiGrid, FiUsers, FiBook, FiBookOpen,
@@ -144,9 +145,7 @@ function SidebarPanel({ onClose }) {
         <Link to="/profile" onClick={() => onClose?.()}
           className="flex items-center gap-3 px-4 py-3 border-b flex-shrink-0 transition hover:bg-white/[0.04]"
           style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
-          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow`}>
-            {user.firstName?.[0]}{user.lastName?.[0]}
-          </div>
+          <UserAvatar pic={user.profilePicture} name={`${user.firstName} ${user.lastName}`} role={role} size={9} />
           <div className="min-w-0">
             <p className="text-sm font-bold truncate text-white">{user.firstName} {user.lastName}</p>
             <p className="text-xs capitalize text-slate-400">{role}</p>
