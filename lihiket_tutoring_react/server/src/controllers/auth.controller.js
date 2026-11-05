@@ -524,7 +524,12 @@ exports.updateProfile = async (req, res) => {
 
   // ── Avatar upload via Cloudinary (multer + pushToCloudinary in route) ─────
   if (req.file?.path) {
-    req.body.profilePicture = req.file.path;   // Cloudinary secure_url
+    const url = req.file.path;
+    // Validate it's a proper remote URL (Cloudinary), not a local path
+    if (!url.startsWith('http')) {
+      throw new AppError('Image upload failed — server returned a local path. Ensure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET are set in the server environment.', 500);
+    }
+    req.body.profilePicture = url;
   }
 
   // Uniqueness checks if email or username is changing

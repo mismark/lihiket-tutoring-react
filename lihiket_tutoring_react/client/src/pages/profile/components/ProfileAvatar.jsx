@@ -41,14 +41,21 @@ export default function ProfileAvatar({ profile, fetching, theme, onUpdated }) {
     try {
       const res = await uploadAvatar(file);
       if (res.success && res.data?.profilePicture) {
-        // Update local auth state so the new photo appears in header + sidebar instantly
-        updateUser({ profilePicture: res.data.profilePicture });
+        const cloudUrl = res.data.profilePicture;
+        // Clear the local blob preview — show the real Cloudinary URL instead
+        setPreview(null);
+        if (fileRef.current) fileRef.current.value = '';
+        // Update auth context → header + sidebar update instantly
+        updateUser({ profilePicture: cloudUrl });
         toast.success('Profile photo updated!');
-        onUpdated?.();   // trigger parent re-fetch
+        onUpdated?.();
+      } else {
+        throw new Error('Server did not return a photo URL. Check Cloudinary config.');
       }
     } catch (err) {
       toast.error(err.message || 'Upload failed. Please try again.');
       setPreview(null);
+      if (fileRef.current) fileRef.current.value = '';
     } finally {
       setUploading(false);
     }
@@ -56,8 +63,9 @@ export default function ProfileAvatar({ profile, fetching, theme, onUpdated }) {
 
   const cancelPreview = () => { setPreview(null); if (fileRef.current) fileRef.current.value = ''; };
 
-  // The image to show: local preview → server profilePicture → initials
-  const photoSrc = preview || profile?.profilePicture || null;
+  // Show only Cloudinary URL (from profile or auth context) — never a blob
+  // blob preview is only used as the uploading overlay src, not as the stored photo
+  const photoSrc = profile?.profilePicture || null;
 
   return (
     <div className={`rounded-2xl border p-6 shadow-sm ${
@@ -68,11 +76,9 @@ export default function ProfileAvatar({ profile, fetching, theme, onUpdated }) {
         {/* ── Avatar with camera button ── */}
         <div className="relative flex-shrink-0">
           {/* Photo or initials */}
-          <div className={`w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg`}
-            style={{ background: photoSrc ? 'transparent' : undefined }}>
+          <div className="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 shadow-lg">
             {photoSrc ? (
-              <img src={photoSrc} alt="Profile"
-                className="w-full h-full object-cover" />
+              <img src={photoSrc} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <div className={`w-full h-full bg-gradient-to-br ${gradient}
                               flex items-center justify-center text-white text-3xl font-extrabold`}>
@@ -82,10 +88,16 @@ export default function ProfileAvatar({ profile, fetching, theme, onUpdated }) {
             )}
           </div>
 
-          {/* Uploading overlay */}
+          {/* Uploading overlay — shows the local preview while Cloudinary processes */}
           {uploading && (
-            <div className="absolute inset-0 rounded-2xl bg-black/50 flex items-center justify-center">
-              <FiLoader className="w-7 h-7 text-white animate-spin" />
+            <div className="absolute inset-0 rounded-2xl overflow-hidden">
+              {preview && (
+                <img src={preview} alt="uploading" className="w-full h-full object-cover opacity-60" />
+              )}
+              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1">
+                <FiLoader className="w-6 h-6 text-white animate-spin" />
+                <span className="text-white text-xs font-semibold">Uploading…</span>
+              </div>
             </div>
           )}
 
