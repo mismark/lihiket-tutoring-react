@@ -27,6 +27,9 @@ import ContactPage  from './pages/contact/ContactPage';
 import PrivacyPage  from './pages/legal/PrivacyPage';
 import TermsPage    from './pages/legal/TermsPage';
 
+// Social Feed
+import FeedPage from './pages/feed/FeedPage';
+
 // Dashboard
 import AdminDashboard   from './pages/dashboard/AdminDashboard';
 import AdminUsers       from './pages/dashboard/AdminUsers';
@@ -277,6 +280,7 @@ function AppShell() {
             <Route path="/subjects/:subjectSlug/live-classes"
               element={<PrivateRoute><SubjectLiveClassesPage /></PrivateRoute>} />
             <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
+            <Route path="/feed"          element={<PrivateRoute><FeedPage /></PrivateRoute>} />
             <Route path="/search"        element={<PrivateRoute><SearchPage /></PrivateRoute>} />
             <Route path="/chats"         element={<PrivateRoute><ChatPage /></PrivateRoute>} />
             <Route path="/certificates"  element={<PrivateRoute><CertificatesPage /></PrivateRoute>} />

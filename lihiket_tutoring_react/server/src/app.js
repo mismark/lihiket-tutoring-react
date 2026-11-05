@@ -172,6 +172,7 @@ app.use('/api/chats',         require('./routes/chat.routes'));
 app.use('/api/home-tutoring', require('./routes/hometutoring.routes'));
 app.use('/api/home-tutor',          require('./routes/hometutorsubject.routes'));
 app.use('/api/home-tutor-register', require('./routes/hometutorregistration.routes'));
+app.use('/api/posts',              require('./routes/post.routes'));
 
 // â”€â”€â”€ 404 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
