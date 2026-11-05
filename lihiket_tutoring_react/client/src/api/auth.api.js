@@ -1,4 +1,4 @@
-import api from './axios';
+import api, { uploadApi } from './axios';
 
 /**
  * Register a new user.
@@ -39,7 +39,19 @@ export const getMe = async () => {
 };
 
 export const updateProfile = async (data) => {
-  const res = await api.put('/auth/profile', data);
+  const isFormData = data instanceof FormData;
+  const res = isFormData
+    ? await uploadApi.put('/auth/profile', data, { headers: { 'Content-Type': 'multipart/form-data' } })
+    : await api.put('/auth/profile', data);
+  return res.data;
+};
+
+export const uploadAvatar = async (file) => {
+  const fd = new FormData();
+  fd.append('avatar', file);
+  const res = await uploadApi.put('/auth/profile', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return res.data;
 };
 

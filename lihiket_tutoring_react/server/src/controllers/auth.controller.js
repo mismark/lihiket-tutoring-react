@@ -522,6 +522,11 @@ exports.updateProfile = async (req, res) => {
                      'passwordResetOTP', 'otpExpires', 'role', 'userId'];
   PROTECTED.forEach(f => delete req.body[f]);
 
+  // ── Avatar upload via Cloudinary (multer + pushToCloudinary in route) ─────
+  if (req.file?.path) {
+    req.body.profilePicture = req.file.path;   // Cloudinary secure_url
+  }
+
   // Uniqueness checks if email or username is changing
   if (req.body.email) {
     const normalized = req.body.email.trim().toLowerCase();

@@ -76,6 +76,7 @@ export default function ProfilePage() {
           profile={profile || { firstName: user?.firstName, lastName: user?.lastName, username: user?.username, role: user?.role }}
           fetching={fetching}
           theme={theme}
+          onUpdated={() => getMe().then(res => setProfile(res.data)).catch(() => {})}
         />
 
         {/* ── Tab bar ── */}
