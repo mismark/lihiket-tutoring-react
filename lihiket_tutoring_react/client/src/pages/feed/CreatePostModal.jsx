@@ -40,10 +40,21 @@ export default function CreatePostModal({ onClose, onCreated, editPost = null })
       if (file) fd.append('image', file);
 
       if (editPost) {
-        await updatePost(editPost._id, fd);
+        const res = await updatePost(editPost._id, fd);
+        if (!res.success) throw new Error(res.message || 'Update failed');
         toast.success('Post updated!');
       } else {
-        await createPost(fd);
+        const res = await createPost(fd);
+        if (!res.success) throw new Error(res.message || 'Post failed');
+        // If an image was attached, verify it was stored as a Cloudinary URL
+        if (file && res.data?.imageUrl) {
+          const isCloudinary = res.data.imageUrl.includes('cloudinary.com') ||
+                               res.data.imageUrl.startsWith('http');
+          if (!isCloudinary) {
+            console.warn('Image URL is not a Cloudinary URL:', res.data.imageUrl);
+            toast.error('Image may not be visible to others. Check server Cloudinary config.');
+          }
+        }
         toast.success('Post shared!');
       }
       onCreated?.();

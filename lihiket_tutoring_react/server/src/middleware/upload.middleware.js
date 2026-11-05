@@ -73,7 +73,11 @@ const pushToCloudinary = (folder, resourceType = 'detect') => async (req, res, n
     next();
   } catch (err) {
     console.error('❌ Cloudinary upload error:', err.message);
-    return res.status(500).json({ success: false, message: 'File upload failed. Please try again.' });
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error('❌ Cloudinary env vars missing: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET');
+    }
+    return res.status(500).json({ success: false, message: 'Image upload failed. Check Cloudinary configuration on the server.' });
   }
 };
 
