@@ -8,8 +8,11 @@ import CreatePostModal  from './CreatePostModal';
 import toast from 'react-hot-toast';
 import {
   FiPlus, FiRefreshCw, FiLoader, FiRss,
-  FiImage, FiEdit3,
+  FiImage, FiEdit3, FiArrowUp,
 } from 'react-icons/fi';
+
+// Auto-refresh interval in ms (10 seconds — checks for new posts silently)
+const REFRESH_INTERVAL = 10_000;
 
 export default function FeedPage() {
   const { theme } = useTheme();
@@ -23,15 +26,19 @@ export default function FeedPage() {
   const txtSub  = dark ? '#94a3b8' : '#475569';
   const inputBg = dark ? 'rgba(255,255,255,0.05)' : '#f0f2f5';
 
-  const [posts,   setPosts]   = useState([]);
-  const [page,    setPage]    = useState(1);
-  const [pages,   setPages]   = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [loadMore, setLoadMore] = useState(false);
-  const [showCreate, setShowCreate] = useState(false);
-  const [editPost,   setEditPost]   = useState(null);
-  const loaderRef = useRef(null);
+  const [posts,       setPosts]       = useState([]);
+  const [page,        setPage]        = useState(1);
+  const [pages,       setPages]       = useState(1);
+  const [loading,     setLoading]     = useState(true);
+  const [loadMore,    setLoadMore]    = useState(false);
+  const [newCount,    setNewCount]    = useState(0);   // unseen posts since last refresh
+  const [showCreate,  setShowCreate]  = useState(false);
+  const [editPost,    setEditPost]    = useState(null);
+  const loaderRef   = useRef(null);
+  const latestIdRef = useRef(null);  // _id of the most recent post we've seen
+  const intervalRef = useRef(null);
 
+  // ── Initial load ─────────────────────────────────────────────────────────────
   const loadFeed = useCallback(async (p = 1, append = false) => {
     try {
       if (p === 1) setLoading(true); else setLoadMore(true);
@@ -39,6 +46,9 @@ export default function FeedPage() {
       setPosts(prev => append ? [...prev, ...res.data] : res.data);
       setPage(res.page);
       setPages(res.pages);
+      setNewCount(0);
+      // Track the newest post id so polling can detect new ones
+      if (res.data.length > 0) latestIdRef.current = res.data[0]._id;
     } catch (err) {
       toast.error(err.message || 'Failed to load feed');
     } finally {
@@ -49,7 +59,29 @@ export default function FeedPage() {
 
   useEffect(() => { loadFeed(1); }, [loadFeed]);
 
-  // Infinite scroll observer
+  // ── Silent background polling — checks for new posts every 10s ───────────────
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await getFeed({ page: 1, limit: 5 });
+        if (!res.data?.length) return;
+        const newestId = res.data[0]._id;
+        if (latestIdRef.current && newestId !== latestIdRef.current) {
+          // Count how many new posts appeared at the top
+          const knownIds = new Set(posts.map(p => p._id));
+          const brandNew = res.data.filter(p => !knownIds.has(p._id));
+          if (brandNew.length > 0) {
+            setNewCount(c => c + brandNew.length);
+          }
+        }
+      } catch { /* silent — don't show error for background poll */ }
+    };
+
+    intervalRef.current = setInterval(poll, REFRESH_INTERVAL);
+    return () => clearInterval(intervalRef.current);
+  }, [posts]);
+
+  // ── Infinite scroll observer ──────────────────────────────────────────────────
   useEffect(() => {
     if (!loaderRef.current) return;
     const obs = new IntersectionObserver(entries => {
@@ -63,6 +95,9 @@ export default function FeedPage() {
 
   const handleDeleted = (id) => setPosts(prev => prev.filter(p => p._id !== id));
   const handleEdit    = (post) => { setEditPost(post); setShowCreate(true); };
+
+  // Load fresh feed and dismiss the "new posts" banner
+  const handleShowNew = () => { setNewCount(0); loadFeed(1); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   return (
     <div className="min-h-screen" style={{ background: bg }}>
@@ -87,6 +122,25 @@ export default function FeedPage() {
               style={{ color: txtSub }} />
           </button>
         </div>
+
+        {/* ── "New posts" banner ── */}
+        <AnimatePresence>
+          {newCount > 0 && (
+            <motion.button
+              onClick={handleShowNew}
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl
+                         text-sm font-bold text-white shadow-lg"
+              style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)',
+                       boxShadow: '0 4px 20px rgba(59,130,246,0.4)' }}>
+              <FiArrowUp className="w-4 h-4" />
+              {newCount} new post{newCount !== 1 ? 's' : ''} — tap to refresh
+            </motion.button>
+          )}
+        </AnimatePresence>
 
         {/* ── Create post prompt ── */}
         <div className="rounded-2xl p-4 flex items-center gap-3 cursor-pointer group transition"
