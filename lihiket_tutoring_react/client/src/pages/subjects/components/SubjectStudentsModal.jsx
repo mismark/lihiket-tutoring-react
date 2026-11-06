@@ -150,8 +150,12 @@ export default function SubjectStudentsModal({ isOpen, onClose, subject, theme }
                     }`}
                   >
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                      {student.firstName?.[0]}{student.lastName?.[0]}
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                      {student.profilePicture
+                        ? <img src={student.profilePicture} alt={student.firstName} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-sm font-bold">
+                            {student.firstName?.[0]}{student.lastName?.[0]}
+                          </div>}
                     </div>
 
                     {/* Info */}

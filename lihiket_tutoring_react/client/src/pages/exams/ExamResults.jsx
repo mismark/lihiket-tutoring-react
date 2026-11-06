@@ -210,8 +210,12 @@ export default function ExamResults({ exam, onClose, theme }) {
                             </span>
                           </div>
                           <div className="col-span-4 flex items-center gap-2.5 min-w-0">
-                            <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                              {s?.firstName?.[0]}{s?.lastName?.[0]}
+                            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                              {s?.profilePicture
+                                ? <img src={s.profilePicture} alt={s?.firstName} className="w-full h-full object-cover" />
+                                : <div className="w-full h-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold">
+                                    {s?.firstName?.[0]}{s?.lastName?.[0]}
+                                  </div>}
                             </div>
                             <div className="min-w-0">
                               <p className="text-xs font-bold truncate text-slate-900 dark:text-white">

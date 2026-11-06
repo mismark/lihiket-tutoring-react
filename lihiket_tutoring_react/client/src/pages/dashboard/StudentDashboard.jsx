@@ -30,8 +30,12 @@ function TeacherContact({ teacher }) {
     }`}>
       {/* Name + avatar */}
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-          {teacher.firstName?.[0]}{teacher.lastName?.[0]}
+        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+          {teacher.profilePicture
+            ? <img src={teacher.profilePicture} alt={teacher.firstName} className="w-full h-full object-cover" />
+            : <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                {teacher.firstName?.[0]}{teacher.lastName?.[0]}
+              </div>}
         </div>
         <div>
           <p className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">

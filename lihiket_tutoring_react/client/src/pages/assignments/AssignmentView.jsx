@@ -220,8 +220,12 @@ export default function AssignmentView({ assignment: a, canManage, onClose, onEd
               {showSubs && subs.map(s => (
                 <div key={s._id} className={`rounded-xl border p-4 mb-3 ${dark ? 'border-slate-700 bg-slate-700/30' : 'border-slate-200'}`}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {s.student?.firstName?.[0]}{s.student?.lastName?.[0]}
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                      {s.student?.profilePicture
+                        ? <img src={s.student.profilePicture} alt={s.student?.firstName} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-bold">
+                            {s.student?.firstName?.[0]}{s.student?.lastName?.[0]}
+                          </div>}
                     </div>
                     <div>
                       <p className={`text-sm font-semibold ${dark ? 'text-white' : 'text-slate-900'}`}>{s.student?.firstName} {s.student?.lastName}</p>
