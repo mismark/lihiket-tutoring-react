@@ -1,10 +1,10 @@
-const Teacher = require('../models/Teacher');
+﻿const Teacher = require('../models/Teacher');
 const Student = require('../models/Student');
 const Parent  = require('../models/Parent');
 const Admin   = require('../models/Admin');
 const AppError = require('../utils/AppError');
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const MODEL_MAP = {
   teacher: Teacher,
   student: Student,
@@ -28,21 +28,21 @@ exports.getPendingUsers = async (req, res, next) => {
 
     if (!role || role === 'teacher') {
       const teachers = await Teacher.find({ isVerified: false })
-        .select('firstName lastName email phone specializedSubject qualifications experience cvDocument role createdAt')
+        .select('profilePicture firstName lastName email phone specializedSubject qualifications experience cvDocument role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...teachers.map(t => ({ ...t.toObject(), userType: 'teacher' }))];
     }
 
     if (!role || role === 'student') {
       const students = await Student.find({ isVerified: false })
-        .select('firstName lastName email phone gradeLevel parentFullName parentEmail parentPhone role createdAt')
+        .select('profilePicture firstName lastName email phone gradeLevel parentFullName parentEmail parentPhone role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...students.map(s => ({ ...s.toObject(), userType: 'student' }))];
     }
 
     if (!role || role === 'parent') {
       const parents = await Parent.find({ isVerified: false })
-        .select('firstName lastName email phone country role createdAt')
+        .select('profilePicture firstName lastName email phone country role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...parents.map(p => ({ ...p.toObject(), userType: 'parent' }))];
     }
@@ -71,28 +71,28 @@ exports.getAllUsers = async (req, res, next) => {
 
     if (!role || role === 'teacher') {
       const teachers = await Teacher.find(isActiveFilter)
-        .select('userId firstName lastName email phone specializedSubject qualifications experience cvDocument isVerified isActive role createdAt')
+        .select('profilePicture userId firstName lastName email phone specializedSubject qualifications experience cvDocument isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...teachers.map(t => ({ ...t.toObject(), userType: 'teacher' }))];
     }
 
     if (!role || role === 'student') {
       const students = await Student.find(isActiveFilter)
-        .select('userId firstName lastName email phone gradeLevel parentFullName parentEmail parentPhone isVerified isActive role createdAt')
+        .select('profilePicture userId firstName lastName email phone gradeLevel parentFullName parentEmail parentPhone isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...students.map(s => ({ ...s.toObject(), userType: 'student' }))];
     }
 
     if (!role || role === 'parent') {
       const parents = await Parent.find(isActiveFilter)
-        .select('userId firstName lastName email phone country isVerified isActive role createdAt')
+        .select('profilePicture userId firstName lastName email phone country isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...parents.map(p => ({ ...p.toObject(), userType: 'parent' }))];
     }
 
     if (!role || role === 'admin') {
       const admins = await Admin.find()
-        .select('userId firstName lastName email phone isVerified isActive role createdAt')
+        .select('profilePicture userId firstName lastName email phone isVerified isActive role createdAt')
         .sort({ createdAt: -1 });
       users = [...users, ...admins.map(a => ({ ...a.toObject(), userType: 'admin' }))];
     }
@@ -226,7 +226,7 @@ exports.toggleUserActive = async (req, res, next) => {
 exports.getAllTeachers = async (req, res, next) => {
   try {
     const teachers = await Teacher.find({ isVerified: true, isActive: true })
-      .select('firstName lastName email specializedSubject experience')
+      .select('profilePicture firstName lastName email specializedSubject experience')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -369,9 +369,9 @@ exports.getMyChildren = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PARENT ↔ CHILD LINKING
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PARENT â†” CHILD LINKING
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // @desc    Link a student to the logged-in parent
 //          Body: { studentUserId: "LIKST10001" }  OR  { studentId: "<mongoId>" }
@@ -452,9 +452,9 @@ exports.unlinkChild = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CHILD PROGRESS
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // @desc    Get full academic progress for one child of the logged-in parent.
 //          Returns: enrollments, assignment submissions (with marks), quiz
@@ -558,7 +558,7 @@ exports.getChildProgress = async (req, res, next) => {
           .lean()
       : [];
 
-    // ── Summary stats ────────────────────────────────────────────────────────
+    // â”€â”€ Summary stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const gradedSubmissions = submissions.filter((s) => s.marks !== null && s.marks !== undefined);
     const totalAssignmentMarks = gradedSubmissions.reduce((sum, s) => sum + (s.assignment?.totalMarks || 0), 0);
     const earnedAssignmentMarks = gradedSubmissions.reduce((sum, s) => sum + (s.marks || 0), 0);
@@ -605,3 +605,4 @@ exports.getChildProgress = async (req, res, next) => {
     next(err);
   }
 };
+

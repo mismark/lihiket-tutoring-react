@@ -1,9 +1,9 @@
-const Conversation = require('../models/Conversation');
+﻿const Conversation = require('../models/Conversation');
 const Message      = require('../models/Message');
 const AppError     = require('../utils/AppError');
 const { getIO }    = require('../config/socket');
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ROLE_TO_MODEL = {
   admin:   'Admin',
@@ -12,7 +12,7 @@ const ROLE_TO_MODEL = {
   parent:  'Parent',
 };
 
-// Safely get the IO instance — won't throw if socket not yet initialised
+// Safely get the IO instance â€” won't throw if socket not yet initialised
 function io() {
   try { return getIO(); } catch { return null; }
 }
@@ -22,7 +22,7 @@ async function populateUser(userId, userModel) {
   try {
     const Model = require(`../models/${userModel}`);
     const user  = await Model.findById(userId)
-      .select('firstName lastName email role')
+      .select('profilePicture firstName lastName email role')
       .lean();
     if (!user) return null;
     return {
@@ -49,7 +49,7 @@ async function withOtherUser(conv, myIdStr) {
   return { ...conv, otherUser, unread };
 }
 
-// ─── GET /api/chats ──────────────────────────────────────────────────────────
+// â”€â”€â”€ GET /api/chats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.getConversations = async (req, res) => {
   const myId = req.user._id.toString();
 
@@ -66,7 +66,7 @@ exports.getConversations = async (req, res) => {
   res.json({ success: true, data: result });
 };
 
-// ─── GET /api/chats/:conversationId/messages ─────────────────────────────────
+// â”€â”€â”€ GET /api/chats/:conversationId/messages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Page 1 = most-recent 50, page 2 = next-older 50, etc.
 // Within each page messages are sorted oldest-first for display.
 exports.getMessages = async (req, res) => {
@@ -88,7 +88,7 @@ exports.getMessages = async (req, res) => {
   const totalPages = Math.ceil(total / limit) || 1;
 
   // Skip from the END so page 1 = newest, page 2 = next older, etc.
-  // Then sort ascending so messages display oldest→newest within the page.
+  // Then sort ascending so messages display oldestâ†’newest within the page.
   const skipFromEnd = (page - 1) * limit;
   const skipFromStart = Math.max(0, total - skipFromEnd - limit);
 
@@ -128,7 +128,7 @@ exports.getMessages = async (req, res) => {
   });
 };
 
-// ─── POST /api/chats ─────────────────────────────────────────────────────────
+// â”€â”€â”€ POST /api/chats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Start a new conversation (or return existing) + optional first message
 exports.startConversation = async (req, res) => {
   const { recipientId, recipientModel, text } = req.body;
@@ -206,7 +206,7 @@ exports.startConversation = async (req, res) => {
   });
 };
 
-// ─── POST /api/chats/:conversationId/messages ─────────────────────────────────
+// â”€â”€â”€ POST /api/chats/:conversationId/messages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.sendMessage = async (req, res) => {
   const { conversationId } = req.params;
   const { text } = req.body;
@@ -246,7 +246,7 @@ exports.sendMessage = async (req, res) => {
     sender: { ...msgObj.sender, ...(senderInfo || {}) },
   };
 
-  // ── Real-time: push to everyone in this conversation room ─────────────────
+  // â”€â”€ Real-time: push to everyone in this conversation room â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // The sender's own optimistic message is already shown; emit to the room so
   // the RECIPIENT (and any other open tabs of the sender) receives it instantly.
   const socket = io();
@@ -266,7 +266,7 @@ exports.sendMessage = async (req, res) => {
   res.status(201).json({ success: true, data: payload });
 };
 
-// ─── DELETE /api/chats/messages/:messageId ────────────────────────────────────
+// â”€â”€â”€ DELETE /api/chats/messages/:messageId â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Soft-delete own message
 exports.deleteMessage = async (req, res) => {
   const { messageId } = req.params;
@@ -288,7 +288,7 @@ exports.deleteMessage = async (req, res) => {
   res.json({ success: true, message: 'Message deleted' });
 };
 
-// ─── DELETE /api/chats/:conversationId ───────────────────────────────────────
+// â”€â”€â”€ DELETE /api/chats/:conversationId â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.deleteConversation = async (req, res) => {
   const { conversationId } = req.params;
   const conv = await Conversation.findOne({
@@ -303,7 +303,7 @@ exports.deleteConversation = async (req, res) => {
   res.json({ success: true, message: 'Conversation deleted' });
 };
 
-// ─── GET /api/chats/unread-count ──────────────────────────────────────────────
+// â”€â”€â”€ GET /api/chats/unread-count â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.unreadCount = async (req, res) => {
   const myId = req.user._id.toString();
 
@@ -319,7 +319,7 @@ exports.unreadCount = async (req, res) => {
   res.json({ success: true, data: { count: total } });
 };
 
-// ─── GET /api/chats/users ─────────────────────────────────────────────────────
+// â”€â”€â”€ GET /api/chats/users â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // All users the current user can start a conversation with (everyone except self)
 exports.getChatableUsers = async (req, res) => {
   const myId   = req.user._id.toString();
@@ -329,7 +329,7 @@ exports.getChatableUsers = async (req, res) => {
   for (const modelName of models) {
     const Model = require(`../models/${modelName}`);
     const list  = await Model.find({ _id: { $ne: req.user._id } })
-      .select('firstName lastName email role')
+      .select('profilePicture firstName lastName email role')
       .lean();
     list.forEach((u) =>
       users.push({
@@ -342,3 +342,4 @@ exports.getChatableUsers = async (req, res) => {
 
   res.json({ success: true, data: users });
 };
+
