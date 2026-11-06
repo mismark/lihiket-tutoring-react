@@ -522,14 +522,25 @@ exports.updateProfile = async (req, res) => {
                      'passwordResetOTP', 'otpExpires', 'role', 'userId'];
   PROTECTED.forEach(f => delete req.body[f]);
 
-  // ── Avatar upload via Cloudinary (multer + pushToCloudinary in route) ─────
+  // Auto-update authorPic on all this user's posts when profile picture changes
   if (req.file?.path) {
     const url = req.file.path;
-    // Validate it's a proper remote URL (Cloudinary), not a local path
     if (!url.startsWith('http')) {
       throw new AppError('Image upload failed — server returned a local path. Ensure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET are set in the server environment.', 500);
     }
     req.body.profilePicture = url;
+    // Fire-and-forget: backfill authorPic on all existing posts by this user
+    setImmediate(async () => {
+      try {
+        const Post = require('../models/Post');
+        await Post.updateMany(
+          { 'author.userId': req.user._id },
+          { $set: { authorPic: url } }
+        );
+      } catch (e) {
+        console.error('Post authorPic backfill error:', e.message);
+      }
+    });
   }
 
   // Uniqueness checks if email or username is changing

@@ -160,14 +160,14 @@ export default function QuizResults({ quiz, onClose, theme }) {
                                 {s?.profilePicture
                                   ? <img src={s.profilePicture} alt={s?.firstName} className="w-full h-full object-cover" />
                                   : <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
-                                      {s?.firstName?.[0]}{s?.lastName?.[0]}
+                                      {s?.firstName?.[0] || '?'}{s?.lastName?.[0] || ''}
                                     </div>}
                               </div>
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold truncate text-slate-900 dark:text-white">
-                                  {s?.firstName} {s?.lastName}
+                                  {s?.firstName ? `${s.firstName} ${s.lastName}` : 'Unknown Student'}
                                 </p>
-                                <p className="text-xs truncate text-slate-400 dark:text-slate-500">{s?.gradeLevel}</p>
+                                <p className="text-xs truncate text-slate-400 dark:text-slate-500">{s?.gradeLevel || '—'}</p>
                               </div>
                             </div>
                             {/* Score */}
