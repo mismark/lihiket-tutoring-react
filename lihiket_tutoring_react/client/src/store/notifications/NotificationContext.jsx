@@ -1,11 +1,12 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import axios from '../../api/axios';
+import toast from 'react-hot-toast';
 
 const NotificationContext = createContext(null);
 
-// Poll interval — 5 min fallback in case the socket misses something
-// (e.g. browser was backgrounded, connection briefly dropped)
-const POLL_MS = 5 * 60 * 1000;
+// Poll every 30 seconds for near-real-time badge updates
+// (Socket.IO handles instant delivery; this is the safety net)
+const POLL_MS = 30 * 1000;
 
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
@@ -78,38 +79,48 @@ export const NotificationProvider = ({ children }) => {
   // ── Add a notification locally (optimistic, called by socket handler) ─────
   const addNotification = useCallback((n) => {
     setNotifications(prev => {
-      // Deduplicate — socket can occasionally fire twice
       if (prev.some(x => x._id === n._id)) return prev;
       return [n, ...prev];
     });
     setUnreadCount(c => c + 1);
+
+    // ── In-app toast pop-up ───────────────────────────────────────────────
+    toast(n.title + (n.message ? `\n${n.message}` : ''), {
+      icon: '🔔',
+      duration: 5000,
+      style: { maxWidth: 360, fontSize: 13 },
+    });
+
+    // ── OS / browser notification when tab is in background ──────────────
+    if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+      try {
+        new Notification(n.title, {
+          body: n.message,
+          icon: '/logo1.png',
+          tag:  `notif-${n._id}`,
+        });
+      } catch { /* blocked */ }
+    }
   }, []);
 
   // ── Real-time: receive new notification via socket DOM event ─────────────
-  // SocketContext dispatches 'socket:notification:new' to avoid circular imports.
   useEffect(() => {
     const onNew = (e) => {
       const notification = e.detail;
-      if (!notification) return;
-      addNotification(notification);
-
-      // Optional: browser notification when tab is in background
-      if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-        try {
-          new Notification(notification.title, {
-            body:     notification.message,
-            icon:     '/favicon.ico',
-            tag:      `notif-${notification._id}`,
-          });
-        } catch { /* some browsers block this */ }
-      }
+      if (notification) addNotification(notification);
     };
-
     window.addEventListener('socket:notification:new', onNew);
     return () => window.removeEventListener('socket:notification:new', onNew);
   }, [addNotification]);
 
-  // ── Fallback poll: every 5 min, just refresh the badge count ────────────
+  // ── Request browser notification permission once ──────────────────────────
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      // Delay slightly so it doesn't fire on the very first page load
+      const t = setTimeout(() => Notification.requestPermission(), 5000);
+      return () => clearTimeout(t);
+    }
+  }, []);
   // This catches any notifications delivered while the socket was reconnecting.
   useEffect(() => {
     fetchUnreadCount();
