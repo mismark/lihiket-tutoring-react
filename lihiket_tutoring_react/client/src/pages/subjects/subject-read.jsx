@@ -125,8 +125,12 @@ export default function SubjectRead({ subjectId, theme, onBack }) {
                   key={teacher._id}
                   className={`flex items-center gap-3 p-3 rounded-lg ${theme === 'dark' ? 'bg-slate-700/50' : 'bg-gray-50'}`}
                 >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-slate-600 text-slate-300' : 'bg-gray-200 text-gray-600'}`}>
-                    {teacher.firstName[0]}{teacher.lastName[0]}
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    {teacher.profilePicture
+                      ? <img src={teacher.profilePicture} alt={teacher.firstName} className="w-full h-full object-cover" />
+                      : <div className={`w-full h-full flex items-center justify-center font-bold text-sm ${theme === 'dark' ? 'bg-slate-600 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>
+                          {teacher.firstName?.[0]}{teacher.lastName?.[0]}
+                        </div>}
                   </div>
                   <div>
                     <p className={`text-sm font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>

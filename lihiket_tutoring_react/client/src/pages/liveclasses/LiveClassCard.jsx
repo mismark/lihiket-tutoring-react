@@ -142,8 +142,14 @@ export default function LiveClassCard({ lc, canManage, onView, onEdit, onDelete,
             )}
           </div>
           {lc.createdBy && (
-            <span className="flex items-center gap-1 text-gray-400 dark:text-slate-500">
-              <FiUser className="w-3 h-3" />
+            <span className="flex items-center gap-1.5 text-gray-400 dark:text-slate-500">
+              <div className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0">
+                {lc.createdBy.profilePicture
+                  ? <img src={lc.createdBy.profilePicture} alt={lc.createdBy.firstName} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold" style={{fontSize:8}}>
+                      {lc.createdBy.firstName?.[0]}{lc.createdBy.lastName?.[0]}
+                    </div>}
+              </div>
               {lc.createdBy.firstName} {lc.createdBy.lastName}
             </span>
           )}

@@ -47,13 +47,22 @@ export default function AssignTeacherModal({ isOpen, onClose, teachers, onAssign
                         : 'bg-emerald-50 border-emerald-200'
                     }`}
                   >
-                    <div>
-                      <p className={`font-semibold text-sm ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                        {teacher.firstName} {teacher.lastName}
-                      </p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                        {teacher.email}
-                      </p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                        {teacher.profilePicture
+                          ? <img src={teacher.profilePicture} alt={teacher.firstName} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                              {teacher.firstName?.[0]}{teacher.lastName?.[0]}
+                            </div>}
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                          {teacher.firstName} {teacher.lastName}
+                        </p>
+                        <p className={`text-xs truncate ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                          {teacher.email}
+                        </p>
+                      </div>
                     </div>
                     {onRemove && (
                       <button
@@ -89,13 +98,22 @@ export default function AssignTeacherModal({ isOpen, onClose, teachers, onAssign
                         : 'bg-slate-50 border-slate-200 hover:border-blue-300'
                     } transition`}
                   >
-                    <div>
-                      <p className={`font-semibold text-sm ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                        {teacher.firstName} {teacher.lastName}
-                      </p>
-                      <p className={`text-xs ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
-                        {teacher.email}
-                      </p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
+                        {teacher.profilePicture
+                          ? <img src={teacher.profilePicture} alt={teacher.firstName} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                              {teacher.firstName?.[0]}{teacher.lastName?.[0]}
+                            </div>}
+                      </div>
+                      <div className="min-w-0">
+                        <p className={`font-semibold text-sm truncate ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                          {teacher.firstName} {teacher.lastName}
+                        </p>
+                        <p className={`text-xs truncate ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+                          {teacher.email}
+                        </p>
+                      </div>
                     </div>
                     <button
                       onClick={() => onAssign(teacher._id)}
