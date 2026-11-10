@@ -92,10 +92,14 @@ function PaymentCard({ p, dark }) {
       {/* Row 1 — student + status */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-            dark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
-          }`}>
-            <FiUser className="w-4 h-4" />
+          <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0">
+            {p.student?.profilePicture
+              ? <img src={p.student.profilePicture} alt={name} className="w-full h-full object-cover" />
+              : <div className={`w-full h-full flex items-center justify-center font-black text-sm ${
+                  dark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
+                }`}>
+                  {p.student?.firstName?.[0] || '?'}{p.student?.lastName?.[0] || ''}
+                </div>}
           </div>
           <div className="min-w-0">
             <p className={`font-bold text-sm leading-tight ${dark ? 'text-white' : 'text-gray-900'}`}>{name}</p>
@@ -369,10 +373,14 @@ export default function AdminPayments() {
                           {/* Student */}
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-2.5">
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                                dark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
-                              }`}>
-                                <FiUser className="w-3.5 h-3.5" />
+                              <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
+                                {p.student?.profilePicture
+                                  ? <img src={p.student.profilePicture} alt={name} className="w-full h-full object-cover" />
+                                  : <div className={`w-full h-full flex items-center justify-center font-black text-xs ${
+                                      dark ? 'bg-purple-500/20 text-purple-400' : 'bg-purple-100 text-purple-600'
+                                    }`}>
+                                      {p.student?.firstName?.[0] || '?'}{p.student?.lastName?.[0] || ''}
+                                    </div>}
                               </div>
                               <div className="min-w-0">
                                 <p className={`font-semibold truncate max-w-[130px] ${dark ? 'text-slate-100' : 'text-gray-900'}`}>{name}</p>

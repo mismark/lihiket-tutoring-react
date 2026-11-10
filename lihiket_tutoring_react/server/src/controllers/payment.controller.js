@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Payment Controller
  *
  * Handles all payment flows through Chapa.
@@ -24,7 +24,7 @@ const config     = require('../config/index');
 const notify     = require('../utils/notify');
 const { EVENTS } = require('../constants/events');
 
-// ── Chapa API client ──────────────────────────────────────────────────────────
+// â”€â”€ Chapa API client â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const chapaApi = axios.create({
   baseURL: config.chapa.baseUrl || 'https://api.chapa.co/v1',
   timeout: 25000,
@@ -35,7 +35,7 @@ const chapaApi = axios.create({
   },
 });
 
-// ── Supported Chapa payment methods ──────────────────────────────────────────
+// â”€â”€ Supported Chapa payment methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Chapa routes users to these on its hosted checkout page automatically.
 // Passing `payment_method` forces a specific channel; omitting it lets
 // the customer choose on the Chapa checkout page.
@@ -52,7 +52,7 @@ const CHAPA_METHODS = {
   card:           'Debit / Credit Card',
 };
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function generateTxRef(studentId, subjectId) {
   // Format: lihiket-<student6>-<subject6>-<8 random hex>
@@ -102,7 +102,7 @@ function verifyWebhookSignature(rawBody, signatureHeader) {
   }
 }
 
-// ── POST /api/payments/initiate ───────────────────────────────────────────────
+// â”€â”€ POST /api/payments/initiate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.initiatePayment = async (req, res, next) => {
   try {
     const { subjectId, paymentMethod } = req.body;
@@ -120,7 +120,7 @@ exports.initiatePayment = async (req, res, next) => {
     if (!subject)          return next(new AppError('Subject not found', 404));
     if (!subject.isActive) return next(new AppError('Subject is not currently active', 400));
     if (!subject.price || subject.price <= 0)
-      return next(new AppError('This subject is free — use the enroll endpoint directly', 400));
+      return next(new AppError('This subject is free â€” use the enroll endpoint directly', 400));
 
     const student = await Student.findById(req.user._id).select('firstName lastName email phone');
     if (!student) return next(new AppError('Student profile not found', 404));
@@ -128,7 +128,7 @@ exports.initiatePayment = async (req, res, next) => {
     const txRef     = generateTxRef(req.user._id, subjectId);
     const returnUrl = `${config.clientUrl}/payment/verify?tx_ref=${txRef}`;
 
-    // ── Create / upsert enrollment record (pending) ──
+    // â”€â”€ Create / upsert enrollment record (pending) â”€â”€
     const enrollment = await Enrollment.findOneAndUpdate(
       { student: req.user._id, subject: subjectId },
       {
@@ -139,7 +139,7 @@ exports.initiatePayment = async (req, res, next) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // ── Create payment record ──
+    // â”€â”€ Create payment record â”€â”€
     await Payment.findOneAndUpdate(
       { txRef },
       {
@@ -156,7 +156,7 @@ exports.initiatePayment = async (req, res, next) => {
       { upsert: true, new: true }
     );
 
-    // ── Build Chapa payload ──
+    // â”€â”€ Build Chapa payload â”€â”€
     const payload = {
       amount:       Number(subject.price).toFixed(2),
       currency:     'ETB',
@@ -196,7 +196,7 @@ exports.initiatePayment = async (req, res, next) => {
   }
 };
 
-// ── GET /api/payments/verify?tx_ref=... ──────────────────────────────────────
+// â”€â”€ GET /api/payments/verify?tx_ref=... â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.verifyPayment = async (req, res, next) => {
   try {
     const { tx_ref } = req.query;
@@ -210,7 +210,7 @@ exports.verifyPayment = async (req, res, next) => {
       return next(new AppError('Unauthorized', 403));
     }
 
-    // Already verified — idempotent
+    // Already verified â€” idempotent
     if (enrollment.paymentStatus === 'paid') {
       const payment = await Payment.findOne({ txRef: tx_ref });
       return res.json({
@@ -228,7 +228,7 @@ exports.verifyPayment = async (req, res, next) => {
       });
     }
 
-    // ── Verify with Chapa ──
+    // â”€â”€ Verify with Chapa â”€â”€
     const chapaRes = await chapaApi.get(`/transaction/verify/${tx_ref}`);
     const tx       = chapaRes.data?.data;
 
@@ -243,7 +243,7 @@ exports.verifyPayment = async (req, res, next) => {
       return next(new AppError('Payment was not successful. Please try again.', 402));
     }
 
-    // ── Activate enrollment ──
+    // â”€â”€ Activate enrollment â”€â”€
     enrollment.status        = 'active';
     enrollment.paymentStatus = 'paid';
     enrollment.paidAt        = new Date();
@@ -251,7 +251,7 @@ exports.verifyPayment = async (req, res, next) => {
     enrollment.enrolledAt    = new Date();
     await enrollment.save();
 
-    // ── Update Payment record ──
+    // â”€â”€ Update Payment record â”€â”€
     await Payment.findOneAndUpdate(
       { txRef: tx_ref },
       {
@@ -260,11 +260,11 @@ exports.verifyPayment = async (req, res, next) => {
         chapaRef:      tx.reference || tx.chapa_reference || null,
         paymentMethod: tx.payment_method || tx.type || null,
         amount:        Number(tx.amount),
-        _chapaRaw:     tx, // raw stored for audit — never sent to client
+        _chapaRaw:     tx, // raw stored for audit â€” never sent to client
       }
     );
 
-    // ── Notify student ──
+    // â”€â”€ Notify student â”€â”€
     await notify({
       userId:    enrollment.student,
       userModel: 'Student',
@@ -295,27 +295,27 @@ exports.verifyPayment = async (req, res, next) => {
   }
 };
 
-// ── POST /api/payments/webhook ────────────────────────────────────────────────
-// Chapa calls this when payment completes (server-to-server — no auth needed).
-// MUST return 200 quickly — Chapa retries on failure.
+// â”€â”€ POST /api/payments/webhook â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Chapa calls this when payment completes (server-to-server â€” no auth needed).
+// MUST return 200 quickly â€” Chapa retries on failure.
 exports.chapaWebhook = async (req, res) => {
   try {
-    // ── 1. Verify HMAC signature ──────────────────────────────────────────
+    // â”€â”€ 1. Verify HMAC signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const signature = req.headers['chapa-signature'] ||
                       req.headers['x-chapa-signature'];
     const rawBody   = req.rawBody || JSON.stringify(req.body);
 
     if (!verifyWebhookSignature(rawBody, signature)) {
-      console.warn('[Webhook] Invalid Chapa signature — ignored');
+      console.warn('[Webhook] Invalid Chapa signature â€” ignored');
       return res.sendStatus(200); // always 200 to prevent Chapa from retrying
     }
 
     const { tx_ref, status } = req.body;
     if (!tx_ref) return res.sendStatus(200);
 
-    // ── 2. Only process successful payments ──────────────────────────────
+    // â”€â”€ 2. Only process successful payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (status !== 'success') {
-      // Failed / cancelled — update records
+      // Failed / cancelled â€” update records
       await Promise.all([
         Enrollment.findOneAndUpdate(
           { txRef: tx_ref, paymentStatus: 'pending' },
@@ -329,11 +329,11 @@ exports.chapaWebhook = async (req, res) => {
       return res.sendStatus(200);
     }
 
-    // ── 3. Check if already processed (idempotency) ───────────────────────
+    // â”€â”€ 3. Check if already processed (idempotency) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const existing = await Payment.findOne({ txRef: tx_ref });
     if (existing?.status === 'paid') return res.sendStatus(200);
 
-    // ── 4. Activate enrollment ─────────────────────────────────────────────
+    // â”€â”€ 4. Activate enrollment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const enrollment = await Enrollment.findOneAndUpdate(
       { txRef: tx_ref },
       {
@@ -346,7 +346,7 @@ exports.chapaWebhook = async (req, res) => {
       { new: true }
     ).populate('subject');
 
-    // ── 5. Update Payment record ───────────────────────────────────────────
+    // â”€â”€ 5. Update Payment record â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     await Payment.findOneAndUpdate(
       { txRef: tx_ref },
       {
@@ -359,7 +359,7 @@ exports.chapaWebhook = async (req, res) => {
       }
     );
 
-    // ── 6. Notify student ─────────────────────────────────────────────────
+    // â”€â”€ 6. Notify student â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (enrollment?.student) {
       await notify({
         userId:    enrollment.student,
@@ -379,7 +379,7 @@ exports.chapaWebhook = async (req, res) => {
   }
 };
 
-// ── GET /api/payments/methods ─────────────────────────────────────────────────
+// â”€â”€ GET /api/payments/methods â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Returns the list of supported payment methods for the UI
 exports.getPaymentMethods = (req, res) => {
   res.json({
@@ -388,7 +388,7 @@ exports.getPaymentMethods = (req, res) => {
   });
 };
 
-// ── GET /api/payments/my-payments ────────────────────────────────────────────
+// â”€â”€ GET /api/payments/my-payments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.getMyPayments = async (req, res, next) => {
   try {
     const payments = await Payment.find({ student: req.user._id })
@@ -399,7 +399,7 @@ exports.getMyPayments = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ── GET /api/payments/all (admin) ─────────────────────────────────────────────
+// â”€â”€ GET /api/payments/all (admin) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 exports.getAllPayments = async (req, res, next) => {
   try {
     const { status, page = 1, limit = 50 } = req.query;
@@ -408,7 +408,7 @@ exports.getAllPayments = async (req, res, next) => {
 
     const [payments, total] = await Promise.all([
       Payment.find(filter)
-        .populate('student', 'firstName lastName email phone gradeLevel')
+        .populate('student', 'profilePicture firstName lastName email phone gradeLevel')
         .populate('subject', 'name code gradeLevel price')
         .sort({ createdAt: -1 })
         .skip((Number(page) - 1) * Number(limit))
@@ -420,7 +420,7 @@ exports.getAllPayments = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// ── GET /api/payments/lookup?tx_ref=... (admin) ───────────────────────────────
+// â”€â”€ GET /api/payments/lookup?tx_ref=... (admin) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Looks up a single payment record by transaction reference.
 // Returns enriched details: payment + enrollment status + student + subject.
 exports.adminLookupPayment = async (req, res, next) => {
@@ -431,7 +431,7 @@ exports.adminLookupPayment = async (req, res, next) => {
     }
 
     const payment = await Payment.findOne({ txRef: tx_ref.trim() })
-      .populate('student',    'firstName lastName email phone gradeLevel userId')
+      .populate('student',    'profilePicture firstName lastName email phone gradeLevel userId')
       .populate('subject',    'name code gradeLevel price')
       .populate('enrollment', 'status paymentStatus enrolledAt amountPaid paidAt');
 
@@ -463,3 +463,4 @@ exports.adminLookupPayment = async (req, res, next) => {
     });
   } catch (err) { next(err); }
 };
+
