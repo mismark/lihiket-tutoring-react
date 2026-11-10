@@ -157,12 +157,6 @@ export default function HomePage() {
   const statBg     = dark ? 'rgba(255,255,255,0.025)'   : '#ffffff';
   const statBd     = dark ? 'rgba(255,255,255,0.06)'    : 'rgba(0,0,0,0.08)';
 
-  // Hero overlay — lighter in light mode so the photo shows through nicely
-  const heroBrightness  = dark ? '0.45' : '0.55';
-  const heroOverlay     = dark
-    ? 'linear-gradient(180deg,rgba(2,8,23,0.45) 0%,rgba(2,8,23,0.25) 35%,rgba(2,8,23,0.55) 70%,rgba(2,8,23,0.88) 100%)'
-    : 'linear-gradient(180deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.04) 35%,rgba(15,23,42,0.42) 70%,rgba(15,23,42,0.82) 100%)';
-
   // Gallery fade edges
   const galleryFadeL = dark ? 'linear-gradient(to right,#020817,transparent)' : 'linear-gradient(to right,#f8fafc,transparent)';
   const galleryFadeR = dark ? 'linear-gradient(to left,#020817,transparent)'  : 'linear-gradient(to left,#f8fafc,transparent)';
@@ -193,113 +187,202 @@ export default function HomePage() {
       `}</style>
 
       {/* ═══════════════════════════════ HERO ══════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16"
+        style={{ background: dark ? '#020817' : '#ffffff' }}>
 
-        {/* ── Background photo ── */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1920&h=1080&fit=crop&auto=format&q=85"
-            alt="Teacher teaching students in a classroom"
-            className="w-full h-full object-cover object-center"
-            style={{ filter: `brightness(${heroBrightness}) saturate(0.9)` }}
-          />
-          {/* Directional overlay for readable text */}
-          <div className="absolute inset-0" style={{ background: heroOverlay }} />
-          {/* Brand-color tint */}
-          <div className="absolute inset-0" style={{
-            background: 'linear-gradient(135deg,rgba(16,185,129,0.07) 0%,transparent 40%,rgba(59,130,246,0.07) 100%)',
+        {/* ── Background decorations (light mode: soft blobs; dark: existing) ── */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Top-right large blob */}
+          <div className="absolute glowa" style={{
+            top: '-10%', right: '-5%', width: 600, height: 600, borderRadius: '50%',
+            background: dark ? 'rgba(16,185,129,0.06)' : 'rgba(16,185,129,0.10)',
+            filter: 'blur(80px)',
           }} />
+          {/* Bottom-left blob */}
+          <div className="absolute glowa" style={{
+            bottom: '-10%', left: '-5%', width: 500, height: 500, borderRadius: '50%',
+            background: dark ? 'rgba(59,130,246,0.06)' : 'rgba(59,130,246,0.09)',
+            filter: 'blur(80px)', animationDelay: '2s',
+          }} />
+          {/* Centre subtle blob */}
+          <div className="absolute" style={{
+            top: '30%', left: '40%', width: 400, height: 400, borderRadius: '50%',
+            background: dark ? 'rgba(139,92,246,0.04)' : 'rgba(139,92,246,0.06)',
+            filter: 'blur(70px)',
+          }} />
+          {/* Light-mode dot-grid pattern */}
+          {!dark && (
+            <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1.5" fill="#0f172a" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#dots)" />
+            </svg>
+          )}
+          {/* Spinning rings */}
+          <div className="absolute spin" style={{ top: '50%', left: '50%', marginLeft: -400, marginTop: -400, width: 800, height: 800, borderRadius: '50%', border: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}` }} />
+          <div className="absolute spinr" style={{ top: '50%', left: '50%', marginLeft: -280, marginTop: -280, width: 560, height: 560, borderRadius: '50%', border: `1px solid ${dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'}` }} />
         </div>
-
-        {/* ── Ambient orbs (on top of photo) ── */}
-        <div className="absolute glowa" style={{ top: '20%', left: '15%', width: 400, height: 400, borderRadius: '50%', background: 'rgba(59,130,246,0.08)', filter: 'blur(60px)' }} />
-        <div className="absolute glowa" style={{ bottom: '20%', right: '15%', width: 350, height: 350, borderRadius: '50%', background: 'rgba(139,92,246,0.08)', filter: 'blur(60px)', animationDelay: '2s' }} />
-
-        {/* ── Spinning rings ── */}
-        <div className="absolute spin"  style={{ top: '50%', left: '50%', marginLeft: -350, marginTop: -350, width: 700, height: 700, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.05)' }} />
-        <div className="absolute spinr" style={{ top: '50%', left: '50%', marginLeft: -250, marginTop: -250, width: 500, height: 500, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.05)' }} />
 
         {/* ── Floating stat cards ── */}
         {[
-          { delay: '0s',   style: { top: 128, left: 32, width: 176 },  icon: FiZap,   color: '#3b82f6', val: '95%',  sub: 'Quiz Score',      bar: 0.95 },
-          { delay: '1s',   style: { top: 176, right: 32, width: 176 }, icon: FiUsers, color: '#10b981', val: '500+', sub: 'Active learners',  bar: null },
-          { delay: '2s',   style: { bottom: 128, left: 64, width: 160 },  icon: FiAward, color: '#f59e0b', val: '120',  sub: 'Certificates',    bar: null },
-          { delay: '1.5s', style: { bottom: 160, right: 80, width: 160 }, icon: FiVideo, color: '#8b5cf6', val: '3 Live', sub: 'Classes now',  bar: null },
+          { delay: '0s',   style: { top: 140, left: 40, width: 180 },   icon: FiZap,   color: '#3b82f6', val: '95%',    sub: 'Quiz Score',     bar: 0.95 },
+          { delay: '1s',   style: { top: 180, right: 40, width: 180 },  icon: FiUsers, color: '#10b981', val: '500+',   sub: 'Active Learners', bar: null },
+          { delay: '2s',   style: { bottom: 140, left: 72, width: 168 }, icon: FiAward, color: '#f59e0b', val: '120',    sub: 'Certificates',   bar: null },
+          { delay: '1.5s', style: { bottom: 170, right: 88, width: 168 },icon: FiVideo, color: '#8b5cf6', val: '3 Live', sub: 'Classes Now',    bar: null },
         ].map(({ delay, style, icon: Icon, color, val, sub, bar }, i) => (
           <div key={i} className="absolute float hidden md:block z-10" style={{ animationDelay: delay, ...style }}>
-            <div className="rounded-2xl p-4 shadow-2xl" style={{ background: 'rgba(10,18,40,0.82)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(18px)' }}>
+            <div className="rounded-2xl p-4 shadow-xl" style={{
+              background: dark ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.95)',
+              border: dark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: dark ? `0 8px 32px rgba(0,0,0,0.5)` : `0 8px 32px ${color}22`,
+            }}>
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}25` }}>
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
                   <Icon style={{ color, width: 14, height: 14 }} />
                 </div>
-                <span className="text-xs font-bold text-white">{sub}</span>
+                <span className="text-xs font-bold" style={{ color: dark ? '#94a3b8' : '#475569' }}>{sub}</span>
               </div>
-              <div className="text-2xl font-black text-white">{val}</div>
-              {bar  && <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}><div className="h-full rounded-full" style={{ width: `${bar * 100}%`, background: `linear-gradient(90deg,${color},${color}99)` }} /></div>}
-              {!bar && <div className="text-xs mt-1" style={{ color: '#64748b' }}>This month</div>}
+              <div className="text-2xl font-black" style={{ color: dark ? '#f1f5f9' : '#0f172a' }}>{val}</div>
+              {bar  && <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)' }}><div className="h-full rounded-full" style={{ width: `${bar * 100}%`, background: `linear-gradient(90deg,${color},${color}99)` }} /></div>}
+              {!bar && <div className="text-xs mt-1 font-medium" style={{ color: color }}>{`↑ This month`}</div>}
             </div>
           </div>
         ))}
 
         {/* ── Hero copy ── */}
         <motion.div className="relative z-10 max-w-5xl mx-auto px-4 text-center" style={{ y: heroY, opacity: heroOp }}>
+
+          {/* Badge */}
           <motion.div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full mb-8 text-sm font-semibold"
-            style={{ background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)', color: '#34d399' }}
+            style={{
+              background: dark ? 'rgba(16,185,129,0.1)' : 'rgba(16,185,129,0.08)',
+              border: `1px solid ${dark ? 'rgba(16,185,129,0.35)' : 'rgba(16,185,129,0.3)'}`,
+              color: dark ? '#34d399' : '#059669',
+            }}
             initial={{ opacity: 0, y: 30 }} animate={heroLoaded ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.8, delay: 0.1 }}>
-            <motion.div className="w-2 h-2 rounded-full bg-emerald-400" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
+            <motion.div className="w-2 h-2 rounded-full bg-emerald-500" animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 1.5, repeat: Infinity }} />
             Ethiopia's #1 Online Tutoring Platform
             <FiStar className="w-3.5 h-3.5" />
           </motion.div>
 
-          <motion.h1 className="font-black leading-[1.02] tracking-tight mb-6 drop-shadow-lg"
-            style={{ fontSize: 'clamp(3rem,8vw,6rem)' }}
+          {/* Heading */}
+          <motion.h1 className="font-black leading-[1.03] tracking-tight mb-6"
+            style={{ fontSize: 'clamp(2.8rem,8vw,5.5rem)' }}
             initial={{ opacity: 0, y: 40 }} animate={heroLoaded ? { opacity: 1, y: 0 } : {}} transition={{ duration: 1, delay: 0.2 }}>
-            <span style={{ color: 'white', textShadow: '0 2px 16px rgba(0,0,0,0.5)' }}>Experience</span><br />
-            <span className="shim">the Future</span>
+            <span style={{ color: dark ? '#f1f5f9' : '#0f172a' }}>Experience</span><br />
+            <span className="shim">the Future</span><br />
+            <span style={{ color: dark ? '#f1f5f9' : '#0f172a' }}>of Learning</span>
           </motion.h1>
 
-          <motion.p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed drop-shadow"
-            style={{ color: 'rgba(241,245,249,0.9)' }}
+          {/* Sub-heading */}
+          <motion.p className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
+            style={{ color: dark ? 'rgba(148,163,184,0.95)' : '#475569' }}
             initial={{ opacity: 0, y: 30 }} animate={heroLoaded ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.9, delay: 0.4 }}>
             Connect with expert teachers. Master any subject. Earn verified certificates.
             Join thousands of Ethiopian students transforming their future with Lihiket.
           </motion.p>
 
-          <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-8"
+          {/* CTA buttons */}
+          <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-10"
             initial={{ opacity: 0, y: 30 }} animate={heroLoaded ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.9, delay: 0.6 }}>
             <MagBtn>
               <Link to="/register">
                 <motion.div className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white cursor-pointer"
-                  style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 0 30px rgba(16,185,129,0.45)' }}
-                  whileHover={{ boxShadow: '0 0 50px rgba(16,185,129,0.65)' }}>
+                  style={{ background: 'linear-gradient(135deg,#10b981,#0d9488)', boxShadow: '0 4px 24px rgba(16,185,129,0.4)' }}
+                  whileHover={{ scale: 1.03, boxShadow: '0 8px 40px rgba(16,185,129,0.55)' }}
+                  whileTap={{ scale: 0.97 }}>
                   Get Started Free <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </motion.div>
               </Link>
             </MagBtn>
             <MagBtn>
-              <Link to="/install">
-                <motion.div className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg text-white cursor-pointer"
-                  style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)', backdropFilter: 'blur(12px)' }}
-                  whileHover={{ background: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.4)' }}>
-                  <FiDownload className="w-5 h-5" /> Install App
+              <Link to="/login">
+                <motion.div className="flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-lg cursor-pointer"
+                  style={{
+                    background: dark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                    border: dark ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(15,23,42,0.12)',
+                    color: dark ? '#f1f5f9' : '#0f172a',
+                  }}
+                  whileHover={{
+                    background: dark ? 'rgba(255,255,255,0.12)' : '#e2e8f0',
+                    scale: 1.03,
+                  }}
+                  whileTap={{ scale: 0.97 }}>
+                  Sign In <FiArrowRight className="w-5 h-5" />
                 </motion.div>
               </Link>
             </MagBtn>
           </motion.div>
 
-          <motion.div className="flex flex-wrap items-center justify-center gap-5 text-sm font-medium"
-            style={{ color: 'rgba(203,213,225,0.85)' }}
+          {/* Trust badges */}
+          <motion.div className="flex flex-wrap items-center justify-center gap-6 text-sm font-semibold"
+            style={{ color: dark ? 'rgba(148,163,184,0.8)' : '#64748b' }}
             initial={{ opacity: 0 }} animate={heroLoaded ? { opacity: 1 } : {}} transition={{ delay: 0.9 }}>
-            {['✓ Free to start', '✓ No credit card', '✓ 500+ students', '✓ Expert teachers'].map(t => <span key={t}>{t}</span>)}
+            {[
+              { icon: '✓', text: 'Free to start' },
+              { icon: '✓', text: 'No credit card' },
+              { icon: '✓', text: '500+ students' },
+              { icon: '✓', text: 'Expert teachers' },
+            ].map(({ icon, text }) => (
+              <span key={text} className="flex items-center gap-1.5">
+                <span style={{ color: '#10b981' }}>{icon}</span>
+                {text}
+              </span>
+            ))}
+          </motion.div>
+
+          {/* Hero image */}
+          <motion.div className="mt-16 mx-auto max-w-4xl rounded-3xl overflow-hidden shadow-2xl relative"
+            style={{ boxShadow: dark ? '0 24px 80px rgba(0,0,0,0.6)' : '0 24px 80px rgba(15,23,42,0.15)' }}
+            initial={{ opacity: 0, y: 50 }} animate={heroLoaded ? { opacity: 1, y: 0 } : {}} transition={{ duration: 1.1, delay: 0.8 }}>
+            <img
+              src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1200&h=560&fit=crop&auto=format&q=85"
+              alt="Teacher teaching students in a classroom"
+              className="w-full object-cover"
+              style={{ height: 360, filter: dark ? 'brightness(0.85)' : 'brightness(0.95) saturate(1.05)' }}
+            />
+            {/* Gradient overlay at bottom */}
+            <div className="absolute inset-0 rounded-3xl" style={{
+              background: dark
+                ? 'linear-gradient(to top,rgba(2,8,23,0.6) 0%,transparent 50%)'
+                : 'linear-gradient(to top,rgba(0,0,0,0.3) 0%,transparent 50%)',
+            }} />
+            {/* Live badge */}
+            <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-full"
+              style={{ background: 'rgba(16,185,129,0.9)', backdropFilter: 'blur(8px)' }}>
+              <motion.div className="w-2 h-2 rounded-full bg-white" animate={{ opacity: [1,0.3,1] }} transition={{ duration: 1.2, repeat: Infinity }} />
+              <span className="text-xs font-bold text-white">Live Class in Progress</span>
+            </div>
+            {/* Bottom caption */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+              <div>
+                <p className="text-white font-bold text-sm drop-shadow">Advanced Mathematics</p>
+                <p className="text-white/70 text-xs">Grade 11 · 24 students attending</p>
+              </div>
+              <div className="flex -space-x-2">
+                {['#ec4899','#3b82f6','#10b981','#f59e0b'].map((c,i) => (
+                  <div key={i} className="w-7 h-7 rounded-full border-2 border-white/30 flex items-center justify-center text-white text-xs font-bold"
+                    style={{ background: `linear-gradient(135deg,${c},${c}99)` }}>
+                    {['S','D','M','A'][i]}
+                  </div>
+                ))}
+                <div className="w-7 h-7 rounded-full border-2 border-white/30 bg-black/40 flex items-center justify-center text-white text-xs font-bold">+20</div>
+              </div>
+            </div>
           </motion.div>
         </motion.div>
 
         {/* ── Scroll indicator ── */}
         <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}>
-          <span className="text-xs text-slate-300/70">Scroll to explore</span>
-          <div className="w-6 h-10 rounded-full border flex items-start justify-center pt-1.5" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>
-            <motion.div className="w-1.5 h-3 rounded-full bg-emerald-400"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }}>
+          <span className="text-xs" style={{ color: dark ? '#475569' : '#94a3b8' }}>Scroll to explore</span>
+          <div className="w-6 h-10 rounded-full border flex items-start justify-center pt-1.5"
+            style={{ borderColor: dark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)' }}>
+            <motion.div className="w-1.5 h-3 rounded-full bg-emerald-500"
               animate={{ y: [0, 14, 0], opacity: [1, 0, 1] }} transition={{ duration: 1.8, repeat: Infinity }} />
           </div>
         </motion.div>
