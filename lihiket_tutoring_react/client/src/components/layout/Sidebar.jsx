@@ -18,7 +18,7 @@ const NAV = {
   admin: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Feed',               to: '/feed',                      icon: FiRss       },
+    { label: 'Posts',              to: '/feed',                      icon: FiRss       },
     { section: 'Management' },
     { label: 'Users',              to: '/users',                     icon: FiUsers     },
     { label: 'Subjects',           to: '/subjects',                  icon: FiBook      },
@@ -41,7 +41,7 @@ const NAV = {
   teacher: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Feed',               to: '/feed',                      icon: FiRss       },
+    { label: 'Posts',              to: '/feed',                      icon: FiRss       },
     { section: 'Teaching' },
     { label: 'My Subjects',        to: '/my-subjects',               icon: FiBook      },
     { label: 'Browse Subjects',    to: '/subjects',                  icon: FiBookOpen  },
@@ -60,7 +60,7 @@ const NAV = {
   student: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Feed',               to: '/feed',                      icon: FiRss       },
+    { label: 'Posts',              to: '/feed',                      icon: FiRss       },
     { section: 'Learning' },
     { label: 'Browse Subjects',    to: '/subjects',                  icon: FiBookOpen  },
     { label: 'Documents',          to: '/documents',                 icon: FiFileText  },
@@ -81,7 +81,7 @@ const NAV = {
   parent: [
     { section: 'Main' },
     { label: 'Dashboard',          to: '/dashboard',                 icon: FiGrid      },
-    { label: 'Feed',               to: '/feed',                      icon: FiRss       },
+    { label: 'Posts',              to: '/feed',                      icon: FiRss       },
     { label: 'Documents',          to: '/documents',                 icon: FiFileText  },
     { section: 'Home Tutoring' },
     { label: 'Register',           to: '/home-tutor/register',       icon: FiMapPin    },

@@ -111,7 +111,7 @@ export default function FeedPage() {
               <FiRss style={{ color: '#3b82f6', width: 18, height: 18 }} />
             </div>
             <div>
-              <h1 className="text-xl font-extrabold" style={{ color: txt }}>Community Feed</h1>
+              <h1 className="text-xl font-extrabold" style={{ color: txt }}>Posts</h1>
               <p className="text-xs" style={{ color: txtSub }}>Share ideas with the Lihiket community</p>
             </div>
           </div>
