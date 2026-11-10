@@ -42,20 +42,10 @@ function Avatar({ user, online }) {
 }
 
 // ── Read receipt ticks ────────────────────────────────────────────────────────
-// single grey ✓  = sending/optimistic
-// double grey ✓✓ = delivered to server (saved)
+// single grey ✓  = sending or delivered (not yet seen)
 // double blue ✓✓ = seen by receiver
-function Ticks({ seen, optimistic, delivered }) {
-  if (optimistic) {
-    // Single grey tick — still sending
-    return (
-      <span className="inline-flex text-slate-400" title="Sending…">
-        <FiCheck className="w-3 h-3" />
-      </span>
-    );
-  }
+function Ticks({ seen, optimistic }) {
   if (seen) {
-    // Double blue ticks — receiver has seen it
     return (
       <span className="inline-flex text-blue-400" title="Seen">
         <FiCheck className="w-3 h-3 -mr-1" />
@@ -63,10 +53,9 @@ function Ticks({ seen, optimistic, delivered }) {
       </span>
     );
   }
-  // Double grey ticks — delivered to server, not yet seen
+  // Single grey tick — sending or delivered but not seen yet
   return (
-    <span className="inline-flex text-slate-400" title="Delivered">
-      <FiCheck className="w-3 h-3 -mr-1" />
+    <span className="inline-flex text-slate-400" title={optimistic ? 'Sending…' : 'Delivered'}>
       <FiCheck className="w-3 h-3" />
     </span>
   );
@@ -471,7 +460,7 @@ export default function ChatWindow({ conversation, onBack }) {
                     <span className={`text-[10px] ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
                       {fmtTime(item.createdAt)}
                     </span>
-                    {mine && <Ticks seen={seen} optimistic={!!item._optimistic} delivered={!item._optimistic} />}
+                    {mine && <Ticks seen={seen} optimistic={!!item._optimistic} />}
 
                     {/* Delete button on hover */}
                     {mine && !item._optimistic && (
