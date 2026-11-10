@@ -9,6 +9,8 @@ const {
   deleteConversation,
   unreadCount,
   getChatableUsers,
+  markMessagesRead,
+  getOnlineUsers,
 } = require('../controllers/chat.controller');
 const { protect }         = require('../middleware/auth.middleware');
 const { requireVerified } = require('../middleware/verified.middleware');
@@ -28,6 +30,12 @@ router.post('/',                                  auth, startConversation);
 // Messages inside a conversation
 router.get('/:conversationId/messages',           auth, getMessages);
 router.post('/:conversationId/messages',          auth, sendMessage);
+
+// Mark messages as read
+router.post('/:conversationId/read',              auth, markMessagesRead);
+
+// Online presence
+router.get('/online',                             auth, getOnlineUsers);
 
 // Delete
 router.delete('/messages/:messageId',             auth, deleteMessage);

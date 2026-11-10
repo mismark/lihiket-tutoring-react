@@ -1,74 +1,98 @@
 ﻿import { useEffect, useRef, useState, useCallback } from 'react';
-import { FiSend, FiTrash2, FiArrowLeft, FiLoader, FiWifiOff, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
+import {
+  FiSend, FiTrash2, FiArrowLeft, FiLoader,
+  FiWifiOff, FiAlertCircle, FiRefreshCw, FiCheck,
+} from 'react-icons/fi';
 import { useAuth }   from '../../store/auth/AuthContext';
 import { useTheme }  from '../../store/theme/ThemeContext';
 import { useChat }   from '../../store/chat/ChatContext';
 import { useSocket } from '../../store/socket/SocketContext';
-import { getMessages, sendMessage, deleteMessage } from '../../api/chat.api';
+import { getMessages, sendMessage, deleteMessage, markMessagesRead } from '../../api/chat.api';
 
-// â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Poll is a fallback only â€” socket handles real-time delivery.
-// 30 s is enough to catch any edge cases (tab-visibility changes, etc.)
 const POLL_INTERVAL         = 30_000;
 const NEAR_BOTTOM_THRESHOLD = 120;
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const ROLE_COLORS = {
+// ── Role gradient colours ─────────────────────────────────────────────────────
+const ROLE_GRAD = {
   admin:   'from-amber-500 to-orange-500',
   teacher: 'from-blue-500 to-indigo-500',
   student: 'from-emerald-500 to-teal-500',
   parent:  'from-purple-500 to-violet-500',
 };
 
-function Avatar({ user }) {
-  const grad = ROLE_COLORS[user?.role] || 'from-slate-400 to-slate-500';
+// ── Avatar ────────────────────────────────────────────────────────────────────
+function Avatar({ user, online }) {
+  const grad = ROLE_GRAD[user?.role] || 'from-slate-400 to-slate-500';
   return (
-    <div className={`w-8 h-8 rounded-full overflow-hidden flex-shrink-0`}
-      style={{ background: 'linear-gradient(135deg,#64748b,#475569)' }}>
-      {user?.profilePicture
-        ? <img src={user.profilePicture} alt={user.firstName} className="w-full h-full object-cover" />
-        : <div className={`bg-gradient-to-br ${grad} w-full h-full flex items-center justify-center text-white text-xs font-bold`}>
-            {user?.firstName?.[0]}{user?.lastName?.[0]}
-          </div>}
+    <div className="relative flex-shrink-0">
+      <div className="w-8 h-8 rounded-full overflow-hidden">
+        {user?.profilePicture
+          ? <img src={user.profilePicture} alt={user?.firstName} className="w-full h-full object-cover" />
+          : <div className={`bg-gradient-to-br ${grad} w-full h-full flex items-center justify-center text-white text-xs font-bold`}>
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </div>}
+      </div>
+      {/* Online dot */}
+      {online && (
+        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500
+                         border-2 border-white dark:border-slate-900" />
+      )}
     </div>
   );
 }
 
-function formatTime(date) {
-  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+// ── Read receipt ticks ────────────────────────────────────────────────────────
+// single grey ✓ = delivered, double blue ✓✓ = seen
+function Ticks({ seen, optimistic }) {
+  if (optimistic) return <FiLoader className="w-3 h-3 text-slate-400 animate-spin" />;
+  if (seen) {
+    return (
+      <span className="inline-flex text-blue-400" title="Seen">
+        <FiCheck className="w-3 h-3 -mr-1" />
+        <FiCheck className="w-3 h-3" />
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex text-slate-400" title="Delivered">
+      <FiCheck className="w-3 h-3 -mr-1" />
+      <FiCheck className="w-3 h-3" />
+    </span>
+  );
 }
 
-function formatDay(date) {
+// ── Time helpers ──────────────────────────────────────────────────────────────
+function fmtTime(d) {
+  return new Date(d).toLocaleTimeString('en-US', {
+    timeZone: 'Africa/Addis_Ababa',
+    hour: '2-digit', minute: '2-digit', hour12: true,
+  });
+}
+function fmtDay(date) {
   const d   = new Date(date);
   const now = new Date();
   if (d.toDateString() === now.toDateString()) return 'Today';
-  const yesterday = new Date(now);
-  yesterday.setDate(now.getDate() - 1);
-  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (d.toDateString() === y.toDateString()) return 'Yesterday';
   return d.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
 }
-
-function groupByDay(messages) {
-  const groups   = [];
-  let currentDay = null;
-  messages.forEach((msg) => {
-    const day = new Date(msg.createdAt).toDateString();
-    if (day !== currentDay) {
-      groups.push({ type: 'divider', label: formatDay(msg.createdAt), key: day + msg._id });
-      currentDay = day;
-    }
-    groups.push({ type: 'message', ...msg });
+function groupByDay(msgs) {
+  const groups = []; let curDay = null;
+  msgs.forEach(m => {
+    const day = new Date(m.createdAt).toDateString();
+    if (day !== curDay) { groups.push({ type: 'divider', label: fmtDay(m.createdAt), key: day + m._id }); curDay = day; }
+    groups.push({ type: 'message', ...m });
   });
   return groups;
 }
 
-// â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main component ────────────────────────────────────────────────────────────
 export default function ChatWindow({ conversation, onBack }) {
-  const { user }    = useAuth();
-  const { theme }   = useTheme();
+  const { user }   = useAuth();
+  const { theme }  = useTheme();
   const { connected: globalConnected } = useChat();
-  const { socket }  = useSocket();
-  const dark        = theme === 'dark';
+  const { socket } = useSocket();
+  const dark = theme === 'dark';
 
   const [messages,    setMessages]    = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -81,117 +105,121 @@ export default function ChatWindow({ conversation, onBack }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [pollOk,      setPollOk]      = useState(true);
   const [retrying,    setRetrying]    = useState(false);
+  const [otherOnline, setOtherOnline] = useState(false);
 
-  const scrollAreaRef = useRef(null);
-  const bottomRef     = useRef(null);
-  const textareaRef   = useRef(null);
-  const pollTimerRef  = useRef(null);
-  const convIdRef     = useRef(null);
+  const scrollRef  = useRef(null);
+  const bottomRef  = useRef(null);
+  const textRef    = useRef(null);
+  const pollRef    = useRef(null);
+  const convIdRef  = useRef(null);
 
   useEffect(() => { convIdRef.current = conversation?._id; }, [conversation?._id]);
 
-  const other = conversation?.otherUser;
+  const other    = conversation?.otherUser;
+  const otherId  = other?._id?.toString();
+  const myId     = (user?._id || user?.id)?.toString();
 
-  // â”€â”€ Scroll helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const isNearBottom = () => {
-    const el = scrollAreaRef.current;
-    if (!el) return true;
-    return el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD;
+    const el = scrollRef.current;
+    return !el || el.scrollHeight - el.scrollTop - el.clientHeight < NEAR_BOTTOM_THRESHOLD;
   };
-  const scrollToBottom = (behavior = 'smooth') =>
-    bottomRef.current?.scrollIntoView({ behavior });
+  const scrollToBottom = (b = 'smooth') => bottomRef.current?.scrollIntoView({ behavior: b });
 
-  // â”€â”€ Page loader â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Load page ─────────────────────────────────────────────────────────────
   const loadPage = useCallback(async (p = 1, prepend = false) => {
     const id = convIdRef.current;
     if (!id || !localStorage.getItem('token')) return;
     try {
-      const res        = await getMessages(id, p);
-      const data       = res.data?.data || [];
-      const pagination = res.data?.pagination || {};
-      setTotalPages(pagination.pages || 1);
+      const res  = await getMessages(id, p);
+      const data = res.data?.data || [];
+      setTotalPages(res.data?.pagination?.pages || 1);
       setLoadError('');
-
       if (prepend) {
-        const el = scrollAreaRef.current;
+        const el = scrollRef.current;
         const prev = el?.scrollHeight ?? 0;
-        setMessages((m) => [...data, ...m]);
+        setMessages(m => [...data, ...m]);
         requestAnimationFrame(() => { if (el) el.scrollTop = el.scrollHeight - prev; });
       } else {
         setMessages(data);
       }
     } catch (err) {
       if (!prepend) setLoadError(err.message || 'Failed to load messages');
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
+    } finally { setLoading(false); setLoadingMore(false); }
   }, []);
 
   // Reset on conversation change
   useEffect(() => {
     if (!conversation?._id) return;
-    setLoading(true);
-    setMessages([]);
-    setPage(1);
-    setTotalPages(1);
-    setLoadError('');
-    setSendError('');
+    setLoading(true); setMessages([]); setPage(1); setTotalPages(1);
+    setLoadError(''); setSendError('');
     loadPage(1, false);
   }, [conversation?._id, loadPage]);
 
-  // Scroll to bottom after initial load
   useEffect(() => { if (!loading) scrollToBottom('auto'); }, [loading]);
 
-  // â”€â”€ Socket: join / leave conversation room â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Mark messages as read when window is open ─────────────────────────────
+  useEffect(() => {
+    if (!conversation?._id) return;
+    markMessagesRead(conversation._id).catch(() => {});
+  }, [conversation?._id, messages.length]);
+
+  // ── Socket: join room ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!socket || !conversation?._id) return;
     socket.emit('chat:join', conversation._id);
     return () => socket.emit('chat:leave', conversation._id);
   }, [socket, conversation?._id]);
 
-  // â”€â”€ Socket: receive new messages instantly â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Socket: messages, read receipts, presence ────────────────────────────
   useEffect(() => {
     if (!socket) return;
 
     const onMessage = (msg) => {
-      // Only handle messages for the currently open conversation
       if (msg.conversationId?.toString() !== convIdRef.current?.toString()) return;
-
-      setMessages((prev) => {
-        // Replace matching optimistic placeholder if present
-        const hasOptimistic = prev.some(
-          (m) => m._optimistic &&
-                 m.text === msg.text &&
-                 Math.abs(new Date(m.createdAt) - new Date(msg.createdAt)) < 10_000
-        );
-        if (hasOptimistic) {
-          return prev.map((m) =>
-            m._optimistic && m.text === msg.text ? { ...msg } : m
-          );
-        }
-        // Skip if already in list (double-delivery guard)
-        if (prev.some((m) => m._id === msg._id)) return prev;
-
-        // Append and auto-scroll if near bottom
+      setMessages(prev => {
+        const hasOpt = prev.some(m => m._optimistic && m.text === msg.text &&
+          Math.abs(new Date(m.createdAt) - new Date(msg.createdAt)) < 10_000);
+        if (hasOpt) return prev.map(m => m._optimistic && m.text === msg.text ? { ...msg } : m);
+        if (prev.some(m => m._id === msg._id)) return prev;
         setTimeout(() => { if (isNearBottom()) scrollToBottom(); }, 50);
         return [...prev, msg];
       });
+      // Mark received messages as read immediately
+      markMessagesRead(msg.conversationId).catch(() => {});
     };
 
-    const onDeleted = ({ messageId }) => {
-      setMessages((prev) => prev.filter((m) => m._id !== messageId));
+    const onDeleted = ({ messageId }) =>
+      setMessages(prev => prev.filter(m => m._id !== messageId));
+
+    // Update read ticks when other user reads our messages
+    const onRead = ({ conversationId, readerId }) => {
+      if (conversationId !== convIdRef.current?.toString()) return;
+      setMessages(prev => prev.map(m => ({
+        ...m,
+        readBy: m.readBy?.includes(readerId) ? m.readBy : [...(m.readBy || []), readerId],
+      })));
     };
+
+    // Presence
+    const onOnline  = (uid) => { if (uid === otherId) setOtherOnline(true); };
+    const onOffline = (uid) => { if (uid === otherId) setOtherOnline(false); };
 
     socket.on('chat:message', onMessage);
     socket.on('chat:deleted', onDeleted);
+    socket.on('chat:read',    onRead);
+    socket.on('presence:online',  onOnline);
+    socket.on('presence:offline', onOffline);
+
     return () => {
       socket.off('chat:message', onMessage);
       socket.off('chat:deleted', onDeleted);
+      socket.off('chat:read',    onRead);
+      socket.off('presence:online',  onOnline);
+      socket.off('presence:offline', onOffline);
     };
-  }, [socket]);
+  }, [socket, otherId]);
 
-  // â”€â”€ Fallback poll (30 s) â€” catches socket gaps â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Poll fallback ─────────────────────────────────────────────────────────
   const pollMessages = useCallback(async () => {
     const id = convIdRef.current;
     if (!id || document.hidden || !localStorage.getItem('token')) return;
@@ -199,20 +227,15 @@ export default function ChatWindow({ conversation, onBack }) {
       const res   = await getMessages(id, 1);
       const fresh = res.data?.data || [];
       setPollOk(true);
-      if (!fresh.length) return;
-
-      setMessages((prev) => {
-        const existingIds = new Set(prev.map((m) => m._id));
-        // Replace optimistic messages
-        const replaced = prev.map((m) => {
+      setMessages(prev => {
+        const ids = new Set(prev.map(m => m._id));
+        const replaced = prev.map(m => {
           if (!m._optimistic) return m;
-          const match = fresh.find(
-            (s) => s.text === m.text &&
-                   Math.abs(new Date(s.createdAt) - new Date(m.createdAt)) < 10_000
-          );
+          const match = fresh.find(s => s.text === m.text &&
+            Math.abs(new Date(s.createdAt) - new Date(m.createdAt)) < 10_000);
           return match || m;
         });
-        const newMsgs = fresh.filter((m) => !existingIds.has(m._id));
+        const newMsgs = fresh.filter(m => !ids.has(m._id));
         if (!newMsgs.length) return replaced;
         setTimeout(() => { if (isNearBottom()) scrollToBottom(); }, 50);
         return [...replaced, ...newMsgs];
@@ -223,10 +246,10 @@ export default function ChatWindow({ conversation, onBack }) {
   }, []);
 
   useEffect(() => {
-    clearInterval(pollTimerRef.current);
+    clearInterval(pollRef.current);
     if (!conversation?._id) return;
-    pollTimerRef.current = setInterval(pollMessages, POLL_INTERVAL);
-    return () => clearInterval(pollTimerRef.current);
+    pollRef.current = setInterval(pollMessages, POLL_INTERVAL);
+    return () => clearInterval(pollRef.current);
   }, [conversation?._id, pollMessages]);
 
   useEffect(() => {
@@ -238,253 +261,213 @@ export default function ChatWindow({ conversation, onBack }) {
   }, [pollMessages]);
 
   useEffect(() => {
-    const stop = () => { clearInterval(pollTimerRef.current); pollTimerRef.current = null; };
+    const stop = () => { clearInterval(pollRef.current); pollRef.current = null; };
     window.addEventListener('auth:logout', stop);
     return () => window.removeEventListener('auth:logout', stop);
   }, []);
 
-  // â”€â”€ Auto-resize textarea â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Auto-resize textarea ──────────────────────────────────────────────────
   useEffect(() => {
-    const el = textareaRef.current;
+    const el = textRef.current;
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
   }, [text]);
 
-  // â”€â”€ Send â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Send ──────────────────────────────────────────────────────────────────
   const handleSend = async () => {
     if (!text.trim() || sending) return;
-    if (!localStorage.getItem('token')) {
-      setSendError('Session expired. Please log in again.');
-      return;
-    }
-
-    const msgText    = text.trim();
-    const tmpId      = `tmp_${Date.now()}`;
-    const optimistic = {
-      _id:         tmpId,
-      text:        msgText,
-      createdAt:   new Date().toISOString(),
-      sender:      { userId: user._id, ...user },
-      _optimistic: true,
-    };
-
-    setMessages((prev) => [...prev, optimistic]);
-    setText('');
-    setSendError('');
-    scrollToBottom();
-    setSending(true);
-
+    if (!localStorage.getItem('token')) { setSendError('Session expired. Please log in again.'); return; }
+    const msgText = text.trim();
+    const tmpId   = `tmp_${Date.now()}`;
+    setMessages(prev => [...prev, {
+      _id: tmpId, text: msgText, createdAt: new Date().toISOString(),
+      sender: { userId: myId, ...user }, readBy: [], _optimistic: true,
+    }]);
+    setText(''); setSendError(''); scrollToBottom(); setSending(true);
     try {
       const res   = await sendMessage(conversation._id, msgText);
       const saved = res.data?.data;
-      // Replace optimistic entry with confirmed message
-      setMessages((prev) => prev.map((m) => m._id === tmpId ? { ...saved } : m));
+      setMessages(prev => prev.map(m => m._id === tmpId ? { ...saved } : m));
       setPollOk(true);
-      // The socket room emit from the server will deliver to the other side;
-      // no need to manually poll here.
     } catch (err) {
-      setMessages((prev) => prev.filter((m) => m._id !== tmpId));
+      setMessages(prev => prev.filter(m => m._id !== tmpId));
       setText(msgText);
       setSendError(err.message || 'Failed to send');
       if (!err.message?.includes('Session expired')) setPollOk(false);
-    } finally {
-      setSending(false);
-      textareaRef.current?.focus();
-    }
+    } finally { setSending(false); textRef.current?.focus(); }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-  };
-
-  const handleTextChange = (e) => { setText(e.target.value); if (sendError) setSendError(''); };
-
-  // â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleDelete = async (msgId) => {
     if (!window.confirm('Delete this message?')) return;
     try {
       await deleteMessage(msgId);
-      setMessages((prev) => prev.filter((m) => m._id !== msgId));
-      // Socket will notify the other side via chat:deleted
-    } catch (err) {
-      setSendError(err.message || 'Could not delete message');
-    }
+      setMessages(prev => prev.filter(m => m._id !== msgId));
+    } catch (err) { setSendError(err.message || 'Could not delete message'); }
   };
 
-  // â”€â”€ Load earlier â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const hasMore  = page < totalPages;
-  const loadMore = async () => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    const next = page + 1;
-    setPage(next);
-    await loadPage(next, true);
-  };
-
-  // â”€â”€ Manual retry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleRetry = async () => {
     setRetrying(true);
-    await loadPage(1, false);
-    setPollOk(true);
-    if (!pollTimerRef.current && conversation?._id) {
-      pollTimerRef.current = setInterval(pollMessages, POLL_INTERVAL);
-    }
+    await loadPage(1, false); setPollOk(true);
+    if (!pollRef.current && conversation?._id)
+      pollRef.current = setInterval(pollMessages, POLL_INTERVAL);
     setRetrying(false);
   };
 
-  const showOfflineBanner = !globalConnected || !pollOk;
-  const grouped           = groupByDay(messages);
+  const showOffline = !globalConnected || !pollOk;
+  const grouped     = groupByDay(messages);
 
-  // â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Empty state ───────────────────────────────────────────────────────────
   if (!conversation) {
     return (
-      <div className={`flex-1 flex flex-col items-center justify-center gap-4 ${
-        dark ? 'bg-slate-950 text-slate-500' : 'bg-slate-50 text-slate-400'
-      }`}>
-        <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
-          dark ? 'bg-slate-800' : 'bg-slate-100'
-        }`}>
-          <FiSend className="w-8 h-8 opacity-30" />
-        </div>
+      <div className={`flex-1 flex flex-col items-center justify-center gap-4
+          ${dark ? 'bg-slate-950 text-slate-500' : 'bg-slate-50 text-slate-400'}`}>
+        <FiSend className="w-12 h-12 opacity-20" />
         <p className="text-sm font-medium">Select a conversation to start chatting</p>
       </div>
     );
   }
 
   return (
-    <div className={`flex flex-col h-full ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`flex flex-col h-full ${dark ? 'bg-[#0d1117]' : 'bg-[#eae6df]'}`}>
 
-      {/* â”€â”€ Top bar â”€â”€ */}
-      <div className={`flex items-center gap-3 px-4 py-3 border-b flex-shrink-0 ${
-        dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
-      }`}>
-        <button onClick={onBack} className={`lg:hidden p-2 rounded-xl transition ${
-          dark ? 'hover:bg-slate-800 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
-        }`}>
+      {/* ── Top bar ── */}
+      <div className={`flex items-center gap-3 px-4 py-3 border-b flex-shrink-0 z-10
+          ${dark ? 'bg-[#1f2937] border-slate-700/60' : 'bg-[#075e54] border-transparent'}`}>
+        <button onClick={onBack} className="lg:hidden p-2 rounded-xl transition text-white/70 hover:text-white hover:bg-white/10">
           <FiArrowLeft className="w-5 h-5" />
         </button>
-        <Avatar user={other} />
+
+        <Avatar user={other} online={otherOnline} />
+
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-bold truncate ${dark ? 'text-white' : 'text-slate-900'}`}>
+          <p className="text-sm font-bold truncate text-white">
             {other?.firstName} {other?.lastName}
           </p>
-          <p className={`text-xs capitalize ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
-            {other?.role}
+          <p className="text-xs text-white/60">
+            {otherOnline ? (
+              <span className="text-emerald-300 font-semibold">● Online</span>
+            ) : (
+              <span className="capitalize">{other?.role}</span>
+            )}
           </p>
         </div>
-        {/* Connection indicator */}
-        <div className="flex items-center gap-1.5 flex-shrink-0"
-          title={showOfflineBanner ? 'Connection lost' : 'Live'}>
-          <span className={`w-2 h-2 rounded-full transition-colors ${
-            showOfflineBanner ? 'bg-red-500' : 'bg-green-500 animate-pulse'
-          }`} />
-          <span className={`text-xs hidden sm:block ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
-            {showOfflineBanner ? 'Offline' : 'Live'}
-          </span>
+
+        <div className="flex items-center gap-1.5" title={showOffline ? 'Connection lost' : 'Connected'}>
+          <span className={`w-2 h-2 rounded-full ${showOffline ? 'bg-red-400' : 'bg-emerald-400 animate-pulse'}`} />
         </div>
       </div>
 
-      {/* â”€â”€ Offline banner â”€â”€ */}
-      {showOfflineBanner && (
-        <div className={`flex items-center justify-between gap-3 px-4 py-2.5 text-xs font-medium flex-shrink-0 ${
-          dark ? 'bg-red-500/10 text-red-400 border-b border-red-500/20'
-               : 'bg-red-50 text-red-600 border-b border-red-100'
-        }`}>
+      {/* ── Offline banner ── */}
+      {showOffline && (
+        <div className={`flex items-center justify-between gap-3 px-4 py-2 text-xs font-medium flex-shrink-0
+            ${dark ? 'bg-red-500/10 text-red-400 border-b border-red-500/20'
+                   : 'bg-red-50 text-red-600 border-b border-red-100'}`}>
           <div className="flex items-center gap-2">
-            <FiWifiOff className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>Connection lost â€” messages may not be delivered</span>
+            <FiWifiOff className="w-3.5 h-3.5" />
+            Connection lost — messages may not be delivered
           </div>
           <button onClick={handleRetry} disabled={retrying}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition ${
-              dark ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400'
-                   : 'bg-red-100 hover:bg-red-200 text-red-700'
-            }`}>
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-semibold transition
+              ${dark ? 'bg-red-500/20 hover:bg-red-500/30' : 'bg-red-100 hover:bg-red-200'}`}>
             <FiRefreshCw className={`w-3 h-3 ${retrying ? 'animate-spin' : ''}`} />
-            {retrying ? 'Retryingâ€¦' : 'Retry'}
+            {retrying ? 'Retrying…' : 'Retry'}
           </button>
         </div>
       )}
 
-      {/* â”€â”€ Messages â”€â”€ */}
-      <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
-
-        {hasMore && (
-          <div className="flex justify-center mb-2">
-            <button onClick={loadMore} disabled={loadingMore}
-              className={`text-xs px-4 py-1.5 rounded-full font-medium transition ${
-                dark ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                     : 'bg-slate-200 text-slate-600 hover:bg-gray-300'
-              }`}>
-              {loadingMore ? 'Loadingâ€¦' : 'Load earlier messages'}
+      {/* ── Messages ── */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        {/* Load earlier */}
+        {page < totalPages && (
+          <div className="flex justify-center mb-3">
+            <button onClick={async () => {
+              setLoadingMore(true); const next = page + 1; setPage(next); await loadPage(next, true);
+            }} disabled={loadingMore}
+              className={`text-xs px-4 py-1.5 rounded-full font-medium transition
+                ${dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                       : 'bg-white text-slate-600 hover:bg-gray-100 shadow-sm'}`}>
+              {loadingMore ? 'Loading…' : 'Load earlier messages'}
             </button>
           </div>
         )}
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <div className={`w-6 h-6 border-2 rounded-full animate-spin
+              ${dark ? 'border-blue-500 border-t-transparent' : 'border-teal-600 border-t-transparent'}`} />
           </div>
         ) : loadError ? (
-          <div className={`flex flex-col items-center justify-center py-20 gap-3 ${
-            dark ? 'text-slate-400' : 'text-slate-500'
-          }`}>
+          <div className="flex flex-col items-center py-20 gap-3 text-slate-400">
             <FiAlertCircle className="w-10 h-10 text-red-400 opacity-70" />
-            <p className="text-sm font-medium text-center">{loadError}</p>
+            <p className="text-sm text-center">{loadError}</p>
             <button onClick={() => { setLoadError(''); setLoading(true); loadPage(1, false); }}
-              className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
-              <FiRefreshCw className="w-3.5 h-3.5" /> Try again
+              className="text-xs px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+              Try again
             </button>
           </div>
         ) : grouped.length === 0 ? (
-          <div className={`flex flex-col items-center justify-center py-20 gap-2 ${
-            dark ? 'text-slate-500' : 'text-slate-400'
-          }`}>
-            <p className="text-sm">No messages yet. Say hello!</p>
+          <div className="flex flex-col items-center py-20 gap-2 text-slate-400">
+            <p className="text-sm">No messages yet. Say hello! 👋</p>
           </div>
         ) : (
-          grouped.map((item) => {
+          grouped.map(item => {
+            // ── Date divider ──────────────────────────────────────────────
             if (item.type === 'divider') {
               return (
-                <div key={item.key} className="flex items-center gap-3 py-3">
-                  <div className={`flex-1 h-px ${dark ? 'bg-slate-800' : 'bg-slate-200'}`} />
-                  <span className={`text-xs font-medium px-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+                <div key={item.key} className="flex items-center justify-center py-3">
+                  <span className={`text-xs font-semibold px-3 py-1 rounded-full shadow-sm
+                    ${dark ? 'bg-slate-700 text-slate-400' : 'bg-white/80 text-slate-500'}`}>
                     {item.label}
                   </span>
-                  <div className={`flex-1 h-px ${dark ? 'bg-slate-800' : 'bg-slate-200'}`} />
                 </div>
               );
             }
 
-            const mine =
-              item.sender?.userId?.toString() === user?._id?.toString() ||
-              item.sender?._id?.toString()    === user?._id?.toString();
+            const mine = item.sender?.userId?.toString() === myId ||
+                         item.sender?._id?.toString()    === myId;
+
+            // Did the other user read this message?
+            const seen = mine && (item.readBy || []).some(id => id?.toString() === otherId);
 
             return (
-              <div key={item._id} className={`flex gap-2 group ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
-                {!mine && <Avatar user={item.sender} />}
-                <div className={`max-w-[70%] flex flex-col gap-1 ${mine ? 'items-end' : 'items-start'}`}>
-                  <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed break-words ${
-                    mine
-                      ? 'bg-blue-600 text-white rounded-tr-sm'
-                      : dark ? 'bg-slate-800 text-slate-100 rounded-tl-sm'
-                              : 'bg-white text-slate-900 rounded-tl-sm shadow-sm border border-slate-100'
-                  } ${item._optimistic ? 'opacity-60' : ''}`}>
-                    {item.text || <span className="italic opacity-50">Message deleted</span>}
+              <div key={item._id}
+                className={`flex items-end gap-1.5 group ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
+
+                {/* Avatar — only for received messages */}
+                {!mine && <Avatar user={item.sender} online={false} />}
+                {/* Spacer so sent messages align without avatar */}
+                {mine && <div className="w-8 flex-shrink-0" />}
+
+                {/* Bubble */}
+                <div className={`max-w-[72%] flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
+                  <div className={`px-3.5 py-2 rounded-2xl text-sm leading-relaxed break-words shadow-sm relative
+                    ${mine
+                      ? dark
+                        ? 'bg-[#005c4b] text-white rounded-br-sm'          // Telegram dark sent
+                        : 'bg-[#dcf8c6] text-gray-900 rounded-br-sm'       // Telegram light sent (green)
+                      : dark
+                        ? 'bg-[#1f2937] text-slate-100 rounded-bl-sm'      // Telegram dark received
+                        : 'bg-white text-gray-900 rounded-bl-sm'           // Telegram light received
+                    } ${item._optimistic ? 'opacity-70' : ''}`}>
+                    {item.isDeleted
+                      ? <span className="italic opacity-50 text-xs">Message deleted</span>
+                      : item.text}
                   </div>
-                  <div className={`flex items-center gap-1.5 px-1 ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <span className={`text-xs ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
-                      {formatTime(item.createdAt)}
+
+                  {/* Time + ticks */}
+                  <div className={`flex items-center gap-1 mt-0.5 px-1 ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <span className={`text-[10px] ${dark ? 'text-slate-500' : 'text-slate-400'}`}>
+                      {fmtTime(item.createdAt)}
                     </span>
-                    {item._optimistic && (
-                      <FiLoader className="w-3 h-3 text-blue-400 animate-spin" />
-                    )}
+                    {mine && <Ticks seen={seen} optimistic={!!item._optimistic} />}
+
+                    {/* Delete button on hover */}
                     {mine && !item._optimistic && (
                       <button onClick={() => handleDelete(item._id)}
-                        className={`opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded ${
-                          dark ? 'text-slate-600 hover:text-red-400' : 'text-gray-300 hover:text-red-500'
-                        }`} title="Delete message">
-                        <FiTrash2 className="w-3 h-3" />
+                        className="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                        title="Delete">
+                        <FiTrash2 className={`w-3 h-3 ${dark ? 'text-slate-600 hover:text-red-400' : 'text-gray-300 hover:text-red-500'}`} />
                       </button>
                     )}
                   </div>
@@ -496,55 +479,46 @@ export default function ChatWindow({ conversation, onBack }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* â”€â”€ Send error â”€â”€ */}
+      {/* ── Send error ── */}
       {sendError && (
-        <div className={`flex items-center gap-2 mx-4 mb-2 px-3 py-2 rounded-xl text-xs font-medium ${
-          dark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'
-        }`}>
+        <div className={`flex items-center gap-2 mx-4 mb-2 px-3 py-2 rounded-xl text-xs
+            ${dark ? 'bg-red-500/10 text-red-400' : 'bg-red-50 text-red-600'}`}>
           <FiAlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="flex-1">{sendError}</span>
-          <button onClick={() => setSendError('')} className="opacity-60 hover:opacity-100">âœ•</button>
+          <button onClick={() => setSendError('')} className="opacity-60 hover:opacity-100">✕</button>
         </div>
       )}
 
-      {/* â”€â”€ Input â”€â”€ */}
-      <div className={`px-4 py-3 border-t flex-shrink-0 ${
-        dark ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
-      }`}>
-        <div className={`flex items-end gap-2 rounded-2xl border px-4 py-2 transition-colors ${
-          dark ? 'bg-slate-800 border-slate-700 focus-within:border-blue-500'
-               : 'bg-slate-50 border-slate-200 focus-within:border-blue-400'
-        }`}>
-          <textarea ref={textareaRef} rows={1} value={text}
-            onChange={handleTextChange} onKeyDown={handleKeyDown}
+      {/* ── Input ── */}
+      <div className={`px-3 py-3 flex-shrink-0
+          ${dark ? 'bg-[#1f2937]' : 'bg-[#f0f2f5]'}`}>
+        <div className={`flex items-end gap-2 rounded-3xl px-4 py-2 shadow-sm
+            ${dark ? 'bg-[#2a3942]' : 'bg-white'}`}>
+          <textarea ref={textRef} rows={1} value={text}
+            onChange={e => { setText(e.target.value); if (sendError) setSendError(''); }}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             disabled={sending}
-            placeholder={
-              showOfflineBanner
-                ? 'Connection lost â€” check your networkâ€¦'
-                : 'Type a messageâ€¦ (Enter to send, Shift+Enter for newline)'
-            }
-            className={`flex-1 bg-transparent text-sm resize-none outline-none leading-relaxed max-h-32 py-1 disabled:opacity-50 ${
-              dark ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-gray-400'
-            }`}
+            placeholder={showOffline ? 'Connection lost…' : 'Type a message…'}
+            className={`flex-1 bg-transparent text-sm resize-none outline-none leading-relaxed
+                        max-h-32 py-1 disabled:opacity-50
+              ${dark ? 'text-white placeholder-slate-500' : 'text-gray-900 placeholder-gray-400'}`}
           />
           <button onClick={handleSend} disabled={!text.trim() || sending}
-            className={`p-2 rounded-xl flex-shrink-0 transition-all ${
-              text.trim() && !sending
-                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+            className={`p-2 rounded-full flex-shrink-0 transition-all
+              ${text.trim() && !sending
+                ? dark ? 'bg-[#00a884] hover:bg-[#00917a] text-white'
+                       : 'bg-[#00a884] hover:bg-[#00917a] text-white'
                 : dark ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}>
+                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
             {sending
               ? <FiLoader className="w-4 h-4 animate-spin" />
-              : <FiSend   className="w-4 h-4" />
-            }
+              : <FiSend   className="w-4 h-4" />}
           </button>
         </div>
-        <p className={`text-xs mt-1.5 px-1 ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
-          Enter to send Â· Shift+Enter for new line
+        <p className={`text-[10px] mt-1 px-1 ${dark ? 'text-slate-600' : 'text-slate-400'}`}>
+          Enter to send · Shift+Enter for new line
         </p>
       </div>
     </div>
   );
 }
-

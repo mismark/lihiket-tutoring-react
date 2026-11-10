@@ -21,3 +21,13 @@ export const deleteMessage      = (messageId)             =>
 
 export const getUnreadCount     = ()                      => api.get('/chats/unread-count');
 export const getChatableUsers   = ()                      => api.get('/chats/users');
+
+export const markMessagesRead = async (conversationId) => {
+  const res = await api.post(`/chats/${conversationId}/read`);
+  return res.data;
+};
+
+export const getOnlineUsers = async () => {
+  const res = await api.get('/chats/online');
+  return res.data;
+};

@@ -12,11 +12,12 @@ const MessageSchema = new mongoose.Schema(
       userModel: { type: String, required: true, enum: ['Admin', 'Teacher', 'Student', 'Parent'] },
     },
     text:      { type: String, default: '' },
-    // optional file attachment
     fileUrl:   { type: String, default: null },
     fileName:  { type: String, default: null },
     fileType:  { type: String, default: null },
     isDeleted: { type: Boolean, default: false },
+    // Array of userIds who have seen this message
+    readBy:    [{ type: mongoose.Schema.Types.ObjectId }],
   },
   { timestamps: true }
 );

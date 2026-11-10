@@ -344,3 +344,46 @@ exports.getChatableUsers = async (req, res) => {
   res.json({ success: true, data: users });
 };
 
+90
+// ── POST /api/chats/:conversationId/read ─────────────────────────────────────
+// Mark all messages in this conversation as read by the current user.
+// Also emits a socket event so the sender sees the double-tick instantly.
+exports.markMessagesRead = async (req, res) => {
+  const myId = req.user._id;
+  const { conversationId } = req.params;
+
+  // Add myId to readBy on all messages NOT sent by me that I haven't read yet
+  await Message.updateMany(
+    {
+      conversationId,
+      'sender.userId': { $ne: myId },
+      readBy: { $ne: myId },
+    },
+    { $addToSet: { readBy: myId } }
+  );
+
+  // Notify the other participants via socket so their UI updates ticks
+  const socket = io();
+  if (socket) {
+    socket.to(`chat:${conversationId}`).emit('chat:read', {
+      conversationId,
+      readerId: myId.toString(),
+    });
+  }
+
+  res.json({ success: true });
+};
+
+// ── In-memory online presence ─────────────────────────────────────────────────
+// The socket config tracks connected users in a Set; expose it here.
+// Falls back gracefully if socket isn't initialised.
+exports.getOnlineUsers = (req, res) => {
+  try {
+    const { getOnlineUserIds } = require('../config/socket');
+    const ids = getOnlineUserIds ? getOnlineUserIds() : [];
+    res.json({ success: true, data: ids });
+  } catch {
+    res.json({ success: true, data: [] });
+  }
+};
+

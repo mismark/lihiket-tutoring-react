@@ -5,6 +5,13 @@ const config     = require('./index');
 // Singleton — set once in server.js, read anywhere via getIO()
 let _io = null;
 
+// ── Online presence: track connected userIds ──────────────────────────────────
+const _onlineUsers = new Set();   // Set of userId strings
+
+function getOnlineUserIds() {
+  return Array.from(_onlineUsers);
+}
+
 /**
  * Attach Socket.IO to the HTTP server, wire auth middleware,
  * and set up per-connection event handling.
@@ -12,11 +19,10 @@ let _io = null;
 function initSocket(httpServer) {
   _io = new Server(httpServer, {
     cors: {
-      origin: '*',          // same permissive policy as Express CORS
+      origin: '*',
       methods: ['GET', 'POST'],
       credentials: true,
     },
-    // Use long-polling as transport fallback (works behind proxies/firewalls)
     transports: ['websocket', 'polling'],
   });
 
@@ -43,23 +49,19 @@ function initSocket(httpServer) {
   _io.on('connection', (socket) => {
     const uid = socket.userId;
 
-    // Each user joins a personal room keyed by their userId.
-    // This lets us target messages to a specific user regardless of
-    // how many tabs/devices they have open.
+    // Mark user as online and broadcast to everyone
+    _onlineUsers.add(uid);
+    _io.emit('presence:online', uid);
+
+    // Personal room for direct notifications
     socket.join(`user:${uid}`);
 
-    // Client asks to join a specific conversation room (for the active chat)
-    socket.on('chat:join', (conversationId) => {
-      if (conversationId) socket.join(`conv:${conversationId}`);
-    });
-
-    // Client leaves a conversation room (when they navigate away)
-    socket.on('chat:leave', (conversationId) => {
-      if (conversationId) socket.leave(`conv:${conversationId}`);
-    });
+    socket.on('chat:join',  (cid) => { if (cid) socket.join(`chat:${cid}`); });
+    socket.on('chat:leave', (cid) => { if (cid) socket.leave(`chat:${cid}`); });
 
     socket.on('disconnect', () => {
-      // rooms are cleaned up automatically by Socket.IO on disconnect
+      _onlineUsers.delete(uid);
+      _io.emit('presence:offline', uid);
     });
   });
 
@@ -73,4 +75,4 @@ function getIO() {
   return _io;
 }
 
-module.exports = { initSocket, getIO };
+module.exports = { initSocket, getIO, getOnlineUserIds };
