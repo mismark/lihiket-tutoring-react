@@ -26,11 +26,12 @@ async function populateUser(userId, userModel) {
       .lean();
     if (!user) return null;
     return {
-      _id:       userId,
-      firstName: user.firstName,
-      lastName:  user.lastName,
-      email:     user.email,
-      role:      user.role || userModel.toLowerCase(),
+      _id:            userId,
+      firstName:      user.firstName,
+      lastName:       user.lastName,
+      email:          user.email,
+      role:           user.role || userModel.toLowerCase(),
+      profilePicture: user.profilePicture || null,
     };
   } catch {
     return null;
